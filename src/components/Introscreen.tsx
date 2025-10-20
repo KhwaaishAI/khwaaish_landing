@@ -47,7 +47,7 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black">
-      {/* Rotating decorative frame - reduced size and centered */}
+      {/* Rotating decorative frame - centered */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="animate-spin" style={{ animationDuration: '10s' }}>
           <img
