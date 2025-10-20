@@ -1,0 +1,299 @@
+import { useEffect, useRef, useState } from 'react'
+
+function App() {
+  // Sidebar open on desktop, hidden on mobile by default
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [searchText, setSearchText] = useState('')
+  const [showChat, setShowChat] = useState(false)
+  const [messageInput, setMessageInput] = useState('')
+  const [messages, setMessages] = useState<Array<{ id: string; role: 'user' | 'system'; text: string }>>([])
+  const listRef = useRef<HTMLDivElement | null>(null)
+
+  const openChatWith = (text: string) => {
+    const t = text.trim()
+    if (!t) return
+    setShowChat(true)
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', text: t }])
+    setSearchText('')
+  }
+
+  const handleSend = () => {
+    const t = messageInput.trim()
+    if (!t) return
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', text: t }])
+    setMessageInput('')
+  }
+
+  useEffect(() => {
+    if (!showChat) return
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
+  }, [messages, showChat])
+
+  return (
+    <div className="min-h-screen w-screen bg-black text-white">
+      {/* Sidebar - always visible */}
+      <aside
+        className={
+          `fixed left-0 top-0 z-40 h-full border-r border-gray-800 bg-black transition-transform duration-300 ` +
+          `w-64 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
+        }
+      >
+        {/* Logo and collapse */}
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Brand logo - clicking opens sidebar if ever used when closed */}
+          <button
+            className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open sidebar"
+          >
+            <img
+              src="/images/LOGO.png"
+              alt="Khwaaish AI"
+              className="h-12 w-auto sm:h-14 md:h-16 shrink-0 object-contain"
+            />
+          </button>
+          {/* Collapse / Toggle inside sidebar */}
+          <button
+            aria-label="Toggle sidebar"
+            className="inline-flex items-center justify-center rounded-lg p-2 hover:bg-gray-900"
+            onClick={() => setSidebarOpen((v) => !v)}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+
+        {/* New Chat */}
+        <div className="px-3">
+          <button
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-900 transition-colors"
+            onClick={() => {
+              setShowChat(true)
+              setMessages([])
+              setSearchText('')
+              setMessageInput('')
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>New chat</span>
+          </button>
+        </div>
+
+        {/* Sections */}
+        <div className="mt-3 space-y-2 px-4 text-sm text-gray-400">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>History</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Drafts</span>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className={`min-h-screen transition-[padding] duration-300 ${sidebarOpen ? 'md:pl-64' : ''}`}>
+        {/* Top bar - hidden in chat mode */}
+        {!showChat && (
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* When sidebar is closed, show brand icon to open it */}
+          {!sidebarOpen ? (
+            <button
+              aria-label="Open sidebar"
+              className="inline-flex items-center justify-center rounded-lg p-1 hover:bg-gray-900"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <img src="/images/Circle.png" alt="Open sidebar" className="h-8 w-8 object-contain" />
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <div className="ml-auto flex items-center gap-3">
+            <button className="p-2 hover:bg-gray-900 rounded-lg transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </button>
+            <div className="p-2 hover:bg-gray-900 rounded-full transition-colors">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-sm font-semibold">
+                E
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
+
+        {/* Center content or Chat */}
+        {!showChat ? (
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-8 px-4 pb-24">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <img src="/images/Circle.png" alt="Khwaaish" className="w-10 h-10 sm:w-12 sm:h-12" />
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-wide">khwaaish</h1>
+          </div>
+
+          {/* Greeting */}
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-semibold">
+              Good to see you Emma.....<span className="text-red-500">🌺</span>
+            </h2>
+            <p className="text-gray-400 text-base sm:text-lg">What can I help you with today?</p>
+          </div>
+
+          {/* Search */}
+          <div className="w-full relative">
+            <input
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  openChatWith(searchText)
+                }
+              }}
+              placeholder="What is your household...."
+              className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white placeholder-white/60"
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+              <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              </button>
+              <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => openChatWith(searchText)}
+                className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Cards */}
+          <div className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-blue-500/50 transition-all cursor-pointer group">
+              <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Travel</h3>
+              <p className="text-sm text-gray-400">Book a flight or train anywhere.</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-green-500/50 transition-all cursor-pointer group">
+              <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Groceries</h3>
+              <p className="text-sm text-gray-400">Order fresh groceries from your nearest stations</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-yellow-500/50 transition-all cursor-pointer group">
+              <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Transport</h3>
+              <p className="text-sm text-gray-400">Book a ride on cab, bike or A bus anywhere.</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-purple-500/50 transition-all cursor-pointer group">
+              <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Shopping</h3>
+              <p className="text-sm text-gray-400">Order products, video and many more...</p>
+            </div>
+          </div>
+        </div>
+        ) : (
+          // Chat-only full screen like ChatGPT
+          <div className="relative mx-auto w-full max-w-5xl h-[calc(100vh-0px)] px-4 sm:px-6">
+            {!sidebarOpen && (
+              <button
+                aria-label="Open sidebar"
+                className="absolute left-3 top-3 z-40 inline-flex items-center justify-center rounded-lg p-1 hover:bg-gray-900"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <img src="/images/Circle.png" alt="Open sidebar" className="h-8 w-8 object-contain" />
+              </button>
+            )}
+            <div ref={listRef} className="pt-6 pb-28 sm:pb-32 h-full overflow-y-auto space-y-4 sm:space-y-5">
+              {messages.map((m) => (
+                <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`${m.role === 'user' ? 'bg-white/15 text-white' : 'bg-gray-900/80 text-gray-100'} max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border ${m.role === 'user' ? 'border-white/20' : 'border-gray-800'}`}>
+                    <p className="text-sm sm:text-base leading-relaxed">{m.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSend()
+              }}
+              className="fixed left-0 right-0 bottom-0 z-40 mx-auto max-w-5xl px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+            >
+              <div className="flex items-center gap-2 sm:gap-3 rounded-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-800 bg-white/10 backdrop-blur supports-[backdrop-filter]:bg-white/10">
+                <input
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSend()
+                    }
+                  }}
+                  placeholder="What is your khwaaish?"
+                  className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-sm sm:text-base"
+                />
+                <button type="submit" className="p-2 sm:p-2.5 rounded-full bg-white/20 hover:bg-white/30">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        
+      </main>
+
+      {/* Mobile overlay when sidebar open (not in chat) */}
+      {sidebarOpen && (
+        <button
+          aria-label="Close sidebar"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+        />
+      )}
+    </div>
+  )
+}
+
+export default App
