@@ -1,55 +1,66 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
 interface IntroscreenProps {
-  onComplete: () => void
+  onComplete: () => void;
 }
 
+const VALID_EMAIL = import.meta.env.VITE_APP_EMAIL;
+const VALID_PASSWORD = import.meta.env.VITE_APP_PASSWORD;
+
 export default function Introscreen({ onComplete }: IntroscreenProps) {
-  const [showWelcome, setShowWelcome] = useState(true)
-  const [showLogin, setShowLogin] = useState(false)
-  const [animatedText, setAnimatedText] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  
-  const welcomeText = 'welcome to Khwaaish'
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [showLogin, setShowLogin] = useState(false);
+  const [animatedText, setAnimatedText] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const welcomeText = "welcome to Khwaaish";
 
   // Letter by letter animation
   useEffect(() => {
-    let index = 0
+    let index = 0;
     const interval = setInterval(() => {
       if (index <= welcomeText.length) {
-        setAnimatedText(welcomeText.slice(0, index))
-        index++
+        setAnimatedText(welcomeText.slice(0, index));
+        index++;
       } else {
-        clearInterval(interval)
+        clearInterval(interval);
       }
-    }, 100)
+    }, 100);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   // Show login after 3 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowWelcome(false)
-      setShowLogin(true)
-    }, 3000)
+      setShowWelcome(false);
+      setShowLogin(true);
+    }, 3000);
 
-    return () => clearTimeout(timer)
-  }, [])
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (email.trim() && password.trim()) {
-      onComplete()
+    e.preventDefault();
+    
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) return;
+
+    if (trimmedEmail === VALID_EMAIL && trimmedPassword === VALID_PASSWORD) {
+      onComplete();
+    } else {
+      alert("Invalid email or password. Please try again.");
     }
-  }
+  };
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black">
       {/* Rotating decorative frame - centered */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="animate-spin" style={{ animationDuration: '10s' }}>
+        <div className="animate-spin" style={{ animationDuration: "10s" }}>
           <img
             src="/images/Frame 533.png"
             alt="Background"
@@ -69,7 +80,7 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
               className="w-[30px] h-[26px] object-contain"
             />
           </div>
-          
+
           {/* Animated text */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-wide">
             {animatedText}
@@ -80,9 +91,9 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
 
       {/* Login form */}
       {showLogin && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4 transform -translate-y-1.5">
+        <div className="absolute inset-0 flex flex-col items-center justify-center mb-12 z-10 px-4 transform -translate-y-1.5">
           {/* Static logo */}
-          <div className="mb-8">
+          <div className="mb-6">
             <img
               src="/images/LOGO.png"
               alt="Khwaaish Logo"
@@ -91,11 +102,16 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
           </div>
 
           <div className="w-full max-w-md bg-black/60 backdrop-blur-md border border-gray-800 rounded-2xl p-5 sm:p-6 -mt-1.5">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-3">Welcome Back</h2>
-            
+            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-3">
+              Welcome Back
+            </h2>
+
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Email
                 </label>
                 <input
@@ -104,13 +120,16 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="w-full px-4 py-2.5 bg-white/10 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 bg-white/10 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Password
                 </label>
                 <input
@@ -119,7 +138,7 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full px-4 py-2.5 bg-white/10 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 bg-white/10 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -135,5 +154,5 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
         </div>
       )}
     </div>
-  )
+  );
 }
