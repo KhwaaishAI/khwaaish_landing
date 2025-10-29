@@ -12,31 +12,6 @@ function App() {
   const listRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
 
-  const cards = [
-    {
-      id: 1,
-      title: "Groceries",
-      desc: "Order fresh groceries from your nearest stations",
-      color: "green",
-      iconPath:
-        "M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z",
-    },
-    {
-      id: 2,
-      title: "Transport",
-      desc: "Book a ride on cab, bike or a bus anywhere.",
-      color: "yellow",
-      iconPath: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4",
-    },
-    {
-      id: 3,
-      title: "Shopping",
-      desc: "Order products, video and many more...",
-      color: "purple",
-      iconPath: "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z",
-    },
-  ];
-
   const openChatWith = (text: string) => {
     const t = text.trim();
     if (!t) return;
@@ -236,27 +211,13 @@ function App() {
           <div className="mx-auto flex max-w-5xl flex-col items-center gap-8 px-4 pb-24">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <img
-                src="/images/Circle.png"
-                alt="Khwaaish"
-                className="w-10 h-10 sm:w-12 sm:h-12 mb-3"
-              />
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-wide">
-                khwaaish
-              </h1>
+              <img src="/images/LOGO.png" alt="" />
             </div>
 
             {/* Greeting */}
             <div className="text-center space-y-2">
               <h2 className="text-2xl flex items-center sm:text-3xl font-semibold">
                 Good to see you Laksh....
-                <span className="">
-                  <img
-                    src="/images/Circle.png"
-                    alt="Khwaaish"
-                    className="w-10 h-10 mb-2"
-                  />
-                </span>
               </h2>
               <p className="text-gray-400 text-base sm:text-lg">
                 What can I help you with today?
@@ -306,57 +267,130 @@ function App() {
                 </div>
               </div>
             )}
-
             {/* Cards */}
-            <div className="flex flex-wrap justify-center lg:flex-nowrap w-full gap-4 ">
-              {cards.map((card) => {
-                const isSelected = selected === card.id;
-
-                // hide unselected ones
-                if (selected && !isSelected) return null;
-
-                return (
-                  <div
-                    key={card.id}
-                    onClick={() => handleCardClick(card.id)}
-                    className={`relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl border border-gray-700 
-              hover:border-${card.color}-500/50 transition-all cursor-pointer group`}
-                  >
-                    {/* Cross span when selected */}
-                    {isSelected && (
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelected(null);
-                        }}
-                        className="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold cursor-pointer select-none"
-                      >
-                        ×
-                      </span>
-                    )}
-
-                    <div
-                      className={`w-12 h-12 bg-${card.color}-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+            <div className="flex flex-wrap justify-center lg:flex-nowrap w-full gap-4">
+              {/* GROCERIES */}
+              {(!selected || selected === 1) && (
+                <div
+                  onClick={() => handleCardClick(1)}
+                  className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+          border border-gray-700 hover:border-green-500/50 transition-all cursor-pointer group"
+                >
+                  {selected === 1 && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelected(null);
+                      }}
+                      className="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold cursor-pointer select-none"
                     >
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d={card.iconPath}
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">{card.title}</h3>
-                    <p className="text-sm text-gray-400">{card.desc}</p>
+                      ×
+                    </span>
+                  )}
+
+                  <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
                   </div>
-                );
-              })}
+                  <h3 className="text-lg font-semibold mb-2">Groceries</h3>
+                  <p className="text-sm text-gray-400">
+                    Order fresh groceries from your nearest stations
+                  </p>
+                </div>
+              )}
+
+              {/* TRANSPORT */}
+              {(!selected || selected === 2) && (
+                <div
+                  onClick={() => handleCardClick(2)}
+                  className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+          border border-gray-700 hover:border-yellow-500/50 transition-all cursor-pointer group"
+                >
+                  {selected === 2 && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelected(null);
+                      }}
+                      className="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold cursor-pointer select-none"
+                    >
+                      ×
+                    </span>
+                  )}
+
+                  <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Transport</h3>
+                  <p className="text-sm text-gray-400">
+                    Book a ride on cab, bike or a bus anywhere.
+                  </p>
+                </div>
+              )}
+
+              {/* SHOPPING */}
+              {(!selected || selected === 3) && (
+                <div
+                  onClick={() => handleCardClick(3)}
+                  className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+          border border-gray-700 hover:border-purple-500/50 transition-all cursor-pointer group"
+                >
+                  {selected === 3 && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelected(null);
+                      }}
+                      className="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold cursor-pointer select-none"
+                    >
+                      ×
+                    </span>
+                  )}
+
+                  <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Shopping</h3>
+                  <p className="text-sm text-gray-400">
+                    Order products, video and many more...
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         ) : (

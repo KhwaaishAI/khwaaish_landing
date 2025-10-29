@@ -73,11 +73,11 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
       {showWelcome && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10 transform -translate-y-1.5">
           {/* Static logo */}
-          <div className="mb-10">
+          <div className="mb-8">
             <img
               src="/images/LOGO.png"
               alt="Khwaaish Logo"
-              className="w-[30px] h-[26px] object-contain"
+              className="w-20 sm:w-28 object-contain"
             />
           </div>
 
