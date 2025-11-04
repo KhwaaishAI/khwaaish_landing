@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
 function App() {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const Location = import.meta.env.VITE_LOCATION;
+  const Number = import.meta.env.VITE_PHONE_NUMBER;
+
   // Sidebar open on desktop, hidden on mobile by default
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -12,14 +16,66 @@ function App() {
   const listRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
 
-  const openChatWith = (text: string) => {
+  const openChatWith = async (text: string) => {
     const t = text.trim();
     if (!t) return;
+
     setShowChat(true);
     setMessages((prev) => [
       ...prev,
       { id: crypto.randomUUID(), role: "user", text: t },
     ]);
+
+    let lowerText = text.toLowerCase();
+    const endpoint = lowerText.includes("zepto")
+      ? `${BASE_URL}/zepto`
+      : `${BASE_URL}/blinkit`;
+
+    try {
+      // Send API request
+      console.log("Starting API Call to ", endpoint);
+      console.log(Location);
+      console.log(Number);
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: text,
+          location: Location,
+          mobile_number: Number,
+        }),
+      });
+      console.log("API Called");
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ API Response:", result);
+
+      // Show system message in chat
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: JSON.stringify(result),
+        },
+      ]);
+    } catch (error) {
+      console.error("❌ Error while calling API:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: "Something went wrong while fetching data.",
+        },
+      ]);
+    }
+
     setSearchText("");
   };
 
@@ -213,7 +269,6 @@ function App() {
             <div className="flex items-center gap-3">
               <img src="/images/LOGO.png" alt="" />
             </div>
-
             {/* Greeting */}
             <div className="text-center space-y-2">
               <h2 className="text-2xl flex items-center sm:text-3xl font-semibold">
@@ -224,8 +279,50 @@ function App() {
               </p>
             </div>
 
-            {/* Search */}
-            {selected !== null && (
+            {/* Search bar */}
+            {selected === 1 && (
+              <div className="w-full relative">
+                <input
+                  type="text"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      openChatWith(searchText);
+                    }
+                  }}
+                  placeholder="I want 2 Uncle Chips form Blinkit"
+                  className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white placeholder-white/60"
+                  style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => openChatWith(searchText)}
+                    className={`p-2 ${
+                      searchText
+                        ? "bg-red-600 hover:bg-red-500"
+                        : "bg-white/20 hover:bg-white/30"
+                    } rounded-full transition-colors`}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+            {selected === 2 && (
               <div className="w-full relative">
                 <input
                   type="text"
@@ -267,6 +364,49 @@ function App() {
                 </div>
               </div>
             )}
+            {selected === 3 && (
+              <div className="w-full relative">
+                <input
+                  type="text"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      openChatWith(searchText);
+                    }
+                  }}
+                  placeholder="What is your household...."
+                  className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white placeholder-white/60"
+                  style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => openChatWith(searchText)}
+                    className={`p-2 ${
+                      searchText
+                        ? "bg-red-600 hover:bg-red-500"
+                        : "bg-white/20 hover:bg-white/30"
+                    } rounded-full transition-colors`}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Cards */}
             <div className="flex flex-wrap justify-center lg:flex-nowrap w-full gap-4">
               {/* GROCERIES */}
