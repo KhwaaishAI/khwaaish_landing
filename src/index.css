@@ -2,10 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hidden {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
 /* Global font */
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
-  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    sans-serif;
 }
 
 * {
@@ -17,4 +31,69 @@ html, body, #root {
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Add this to your global CSS or create a new CSS file */
+.typing-loader {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 40px;
+}
+
+.typing-loader-dot {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #888;
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+
+.typing-loader-dot:nth-child(1) {
+  left: 8px;
+  animation: typing-loader1 0.6s infinite;
+}
+
+.typing-loader-dot:nth-child(2) {
+  left: 8px;
+  animation: typing-loader2 0.6s infinite;
+}
+
+.typing-loader-dot:nth-child(3) {
+  left: 32px;
+  animation: typing-loader2 0.6s infinite;
+}
+
+.typing-loader-dot:nth-child(4) {
+  left: 56px;
+  animation: typing-loader3 0.6s infinite;
+}
+
+@keyframes typing-loader1 {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes typing-loader3 {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0);
+  }
+}
+
+@keyframes typing-loader2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(24px, 0);
+  }
 }
