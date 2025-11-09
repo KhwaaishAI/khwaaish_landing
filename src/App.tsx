@@ -19,18 +19,44 @@ function App() {
   const [selected, setSelected] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const TypingLoader = () => (
-    <div className="flex justify-start">
-      <div className="bg-gray-900/80 text-gray-100 border border-gray-800 max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4">
-        <div className="typing-loader">
-          <div className="typing-loader-dot"></div>
-          <div className="typing-loader-dot"></div>
-          <div className="typing-loader-dot"></div>
-          <div className="typing-loader-dot"></div>
+  const FlowerLoader = () => {
+    const [currentStage, setCurrentStage] = useState(0);
+
+    const loaderStages = [
+      "Thinking...",
+      "Processing your request...",
+      "Analyzing options...",
+      "Working on your khwaaish...",
+      "Opening the App...",
+    ];
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setCurrentStage((prev) => (prev + 1) % loaderStages.length);
+      }, 5000); // Change text every 1.5 seconds
+
+      return () => clearInterval(interval);
+    }, [loaderStages.length]);
+
+    return (
+      <div className="flex justify-start">
+        <div className="bg-gray-900/80 text-gray-100 border border-gray-800 max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3">
+          <div className="flex items-center space-x-2">
+            <div className="flower-loader">
+              <img
+                src="/images/Circle.png"
+                alt="Loading..."
+                className="flower-loader-image h-6"
+              />
+            </div>
+            <span className="text-gray-400 text-sm">
+              {loaderStages[currentStage]}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Grocery
   const openChatForGrocery = async (text: string) => {
@@ -49,7 +75,7 @@ function App() {
       ? `${BASE_URL}api/zepto`
       : `${BASE_URL}api/blinkit`;
 
-    await new Promise((resolve) => setTimeout(resolve, 6000));
+    await new Promise((resolve) => setTimeout(resolve, 25000));
 
     try {
       const response = await fetch(endpoint, {
@@ -116,7 +142,7 @@ function App() {
 
     const endpoint = `${BASE_URL}ride-booking/search`;
 
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 25000));
 
     try {
       const response = await fetch(endpoint, {
@@ -177,7 +203,7 @@ function App() {
 
     const endpoint = `${BASE_URL}amazon_aitomation/run`;
 
-    await new Promise((resolve) => setTimeout(resolve, 8000));
+    await new Promise((resolve) => setTimeout(resolve, 25000));
 
     try {
       // Send API request
@@ -237,7 +263,7 @@ function App() {
 
     const endpoint = `${BASE_URL}api/swiggy`;
 
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 25000));
 
     try {
       const response = await fetch(endpoint, {
@@ -844,7 +870,7 @@ function App() {
                   let text = m.text;
 
                   // Helper to parse safely
-                  const tryParse = (data) => {
+                  const tryParse = (data: any) => {
                     try {
                       const parsed = JSON.parse(data);
                       if (typeof parsed === "string") return tryParse(parsed);
@@ -918,7 +944,7 @@ function App() {
                           Available Rides
                         </h4>
                         <div className="grid gap-3 sm:grid-cols-2">
-                          {parsed.rides.map((ride, i) => (
+                          {parsed.rides.map((ride: any, i: any) => (
                             <div
                               key={i}
                               onClick={() => bookRide(ride, parsed.job_id)} // 👈 send both ride + job_id
@@ -991,7 +1017,7 @@ function App() {
                     </div>
                   );
                 })}
-                {isLoading && <TypingLoader />}
+                {isLoading && <FlowerLoader />}
               </div>
               <form
                 onSubmit={(e) => {
