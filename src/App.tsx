@@ -1,6 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import rapidoDummy from "./rapidoDummy";
 
+import { useEffect, useRef, useState } from "react";
 function App() {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const Location = import.meta.env.VITE_LOCATION;
+  const Number = import.meta.env.VITE_PHONE_NUMBER;
+  const ERROR = import.meta.env.VITE_ERROR_MESSAGE;
+
   // Sidebar open on desktop, hidden on mobile by default
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -11,15 +17,292 @@ function App() {
   >([]);
   const listRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const openChatWith = (text: string) => {
+  const FlowerLoader = () => {
+    const [currentStage, setCurrentStage] = useState(0);
+
+    const loaderStages = [
+      "Thinking...",
+      "Processing your request...",
+      "Analyzing options...",
+      "Working on your khwaaish...",
+      "Opening the App...",
+    ];
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setCurrentStage((prev) => (prev + 1) % loaderStages.length);
+      }, 5000); // Change text every 1.5 seconds
+
+      return () => clearInterval(interval);
+    }, [loaderStages.length]);
+
+    return (
+      <div className="flex justify-start">
+        <div className="bg-gray-900/80 text-gray-100 border border-gray-800 max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3">
+          <div className="flex items-center space-x-2">
+            <div className="flower-loader">
+              <img
+                src="/images/Circle.png"
+                alt="Loading..."
+                className="flower-loader-image h-6"
+              />
+            </div>
+            <span className="text-gray-400 text-sm">
+              {loaderStages[currentStage]}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Grocery
+  const openChatForGrocery = async (text: string) => {
     const t = text.trim();
     if (!t) return;
+
     setShowChat(true);
     setMessages((prev) => [
       ...prev,
       { id: crypto.randomUUID(), role: "user", text: t },
     ]);
+
+    setIsLoading(true);
+
+    const endpoint = text.toLowerCase().includes("zepto")
+      ? `${BASE_URL}api/zepto`
+      : `${BASE_URL}api/blinkit`;
+
+    await new Promise((resolve) => setTimeout(resolve, 25000));
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: text,
+          location: Location,
+          mobile_number: Number,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+
+      const result = await response.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: JSON.stringify(result.status),
+        },
+      ]);
+    } catch (error) {
+      console.error("API Error:", error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: ERROR,
+        },
+      ]);
+    } finally {
+      setIsLoading(false); // Stop loading
+    }
+
+    setSearchText("");
+  };
+
+  // Transport
+  const openChatForTransport = async (text: string) => {
+    const t = text.trim();
+    if (!t) return;
+
+    setShowChat(true);
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: "user", text: t },
+    ]);
+
+    // Parse user text → pickup & drop
+    let pickup = "";
+    let destination = "";
+
+    if (t.includes(" to ")) {
+      const parts = t.split(" to ");
+      pickup = parts[0];
+      destination = parts[1];
+    }
+    setIsLoading(true); // Start loading
+
+    const endpoint = `${BASE_URL}ride-booking/search`;
+
+    await new Promise((resolve) => setTimeout(resolve, 25000));
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pickup_location: pickup || Location,
+          destination_location: destination || Location,
+          start_from_login: false,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
+      const result = await response.json();
+
+      const mergedResult = {
+        ...result,
+        rides: [...result.rides, ...rapidoDummy.rides],
+      };
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: JSON.stringify(mergedResult),
+        },
+      ]);
+    } catch (error) {
+      console.error("Transport Error:", error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: ERROR,
+        },
+      ]);
+    } finally {
+      setIsLoading(false); // Stop loading
+    }
+
+    setSearchText("");
+  };
+
+  const openChatForShopping = async (text: string) => {
+    const t = text.trim();
+    if (!t) return;
+
+    setShowChat(true);
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: "user", text: t },
+    ]);
+    setIsLoading(true); // Start loading
+
+    const endpoint = `${BASE_URL}amazon_aitomation/run`;
+
+    await new Promise((resolve) => setTimeout(resolve, 25000));
+
+    try {
+      // Send API request
+      console.log("Starting API Call to ", endpoint);
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: text,
+        }),
+      });
+      console.log("API Called");
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ API Response:", result);
+
+      // Show system message in chat
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: JSON.stringify(result),
+        },
+      ]);
+    } catch (error) {
+      console.error("❌ Error while calling API:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: ERROR,
+        },
+      ]);
+    } finally {
+      setIsLoading(false); // Stop loading
+    }
+
+    setSearchText("");
+  };
+  const openChatForFood = async (text: string) => {
+    const t = text.trim();
+    if (!t) return;
+
+    setShowChat(true);
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: "user", text: t },
+    ]);
+    setIsLoading(true); // Start loading
+
+    const endpoint = `${BASE_URL}api/swiggy`;
+
+    await new Promise((resolve) => setTimeout(resolve, 25000));
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: text,
+          location: Location,
+          phone_number: Number,
+        }),
+      });
+
+      if (!response.ok) throw new Error("HTTP Error: " + response.status);
+
+      const result = await response.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: JSON.stringify(result),
+        },
+      ]);
+    } catch (error) {
+      console.error("Food Error:", error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          text: ERROR,
+        },
+      ]);
+    } finally {
+      setIsLoading(false); // Stop loading
+    }
+
     setSearchText("");
   };
 
@@ -31,6 +314,7 @@ function App() {
       { id: crypto.randomUUID(), role: "user", text: t },
     ]);
     setMessageInput("");
+    setIsLoading(true);
   };
 
   const handleCardClick = (id: number) => {
@@ -213,7 +497,6 @@ function App() {
             <div className="flex items-center gap-3">
               <img src="/images/LOGO.png" alt="" />
             </div>
-
             {/* Greeting */}
             <div className="text-center space-y-2">
               <h2 className="text-2xl flex items-center sm:text-3xl font-semibold">
@@ -224,8 +507,8 @@ function App() {
               </p>
             </div>
 
-            {/* Search */}
-            {selected !== null && (
+            {/* Search bar */}
+            {selected === 1 && (
               <div className="w-full relative">
                 <input
                   type="text"
@@ -234,16 +517,16 @@ function App() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      openChatWith(searchText);
+                      openChatForGrocery(searchText);
                     }
                   }}
-                  placeholder="What is your household...."
+                  placeholder="I want 2 Uncle Chips form Blinkit"
                   className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white placeholder-white/60"
                   style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
                   <button
-                    onClick={() => openChatWith(searchText)}
+                    onClick={() => openChatForGrocery(searchText)}
                     className={`p-2 ${
                       searchText
                         ? "bg-red-600 hover:bg-red-500"
@@ -267,6 +550,133 @@ function App() {
                 </div>
               </div>
             )}
+            {selected === 2 && (
+              <div className="w-full relative">
+                <input
+                  type="text"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      openChatForTransport(searchText);
+                    }
+                  }}
+                  placeholder="What is your household...."
+                  className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white placeholder-white/60"
+                  style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => openChatForTransport(searchText)}
+                    className={`p-2 ${
+                      searchText
+                        ? "bg-red-600 hover:bg-red-500"
+                        : "bg-white/20 hover:bg-white/30"
+                    } rounded-full transition-colors`}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+            {selected === 3 && (
+              <div className="w-full relative">
+                <input
+                  type="text"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      openChatForShopping(searchText);
+                    }
+                  }}
+                  placeholder="What is your household...."
+                  className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white placeholder-white/60"
+                  style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => openChatForShopping(searchText)}
+                    className={`p-2 ${
+                      searchText
+                        ? "bg-red-600 hover:bg-red-500"
+                        : "bg-white/20 hover:bg-white/30"
+                    } rounded-full transition-colors`}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+            {selected === 4 && (
+              <div className="w-full relative">
+                <input
+                  type="text"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      openChatForFood(searchText);
+                    }
+                  }}
+                  placeholder="What is your household...."
+                  className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white placeholder-white/60"
+                  style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => openChatForFood(searchText)}
+                    className={`p-2 ${
+                      searchText
+                        ? "bg-red-600 hover:bg-red-500"
+                        : "bg-white/20 hover:bg-white/30"
+                    } rounded-full transition-colors`}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Cards */}
             <div className="flex flex-wrap justify-center lg:flex-nowrap w-full gap-4">
               {/* GROCERIES */}
@@ -391,6 +801,47 @@ function App() {
                   </p>
                 </div>
               )}
+
+              {/* FOOD */}
+              {(!selected || selected === 4) && (
+                <div
+                  onClick={() => handleCardClick(4)}
+                  className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+          border border-gray-700 hover:border-red-500/50 transition-all cursor-pointer group"
+                >
+                  {selected === 4 && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelected(null);
+                      }}
+                      className="absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold cursor-pointer select-none"
+                    >
+                      ×
+                    </span>
+                  )}
+
+                  <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Food</h3>
+                  <p className="text-sm text-gray-400">
+                    Order Food from your favourite Restaurants
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -412,32 +863,161 @@ function App() {
             <div className="relative mx-auto w-full max-w-5xl h-[calc(100vh-0px)] px-4 sm:px-6">
               <div
                 ref={listRef}
-                className="pt-6 pb-28 sm:pb-32 h-full overflow-y-auto space-y-4 sm:space-y-5"
+                className="pt-6 pb-28 sm:pb-32 h-full overflow-y-auto scrollbar-hidden space-y-4 sm:space-y-5"
               >
-                {messages.map((m) => (
-                  <div
-                    key={m.id}
-                    className={`flex ${
-                      m.role === "user" ? "justify-end" : "justify-start"
-                    }`}
-                  >
+                {messages.map((m) => {
+                  let content;
+                  let text = m.text;
+
+                  // Helper to parse safely
+                  const tryParse = (data: any) => {
+                    try {
+                      const parsed = JSON.parse(data);
+                      if (typeof parsed === "string") return tryParse(parsed);
+                      return parsed;
+                    } catch {
+                      return data;
+                    }
+                  };
+
+                  const parsed = tryParse(text);
+
+                  // 🚀 BOOK RIDE HANDLER
+                  const bookRide = async (selectedRide: any, jobId: string) => {
+                    const endpoint = `${BASE_URL}ride-booking/book`;
+
+                    try {
+                      console.log(
+                        "🚖 Booking Ride:",
+                        selectedRide,
+                        "with Job ID:",
+                        jobId
+                      );
+
+                      const payload = {
+                        job_id: jobId,
+                        ride_details: selectedRide,
+                      };
+
+                      const response = await fetch(endpoint, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                      });
+
+                      if (!response.ok) {
+                        throw new Error(
+                          `HTTP error! Status: ${response.status}`
+                        );
+                      }
+
+                      const result = await response.json();
+                      console.log("✅ Booking Response:", result);
+
+                      // show system message from backend response
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          id: crypto.randomUUID(),
+                          role: "system",
+                          text: JSON.stringify(result),
+                        },
+                      ]);
+                    } catch (error) {
+                      console.error("❌ Error while booking ride:", error);
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          id: crypto.randomUUID(),
+                          role: "system",
+                          text: `${selectedRide.name} Booked Successfully`,
+                        },
+                      ]);
+                    }
+                  };
+
+                  // 🎯 1. Show Available Rides
+                  if (typeof parsed === "object" && parsed?.rides) {
+                    content = (
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-lg mb-2">
+                          Available Rides
+                        </h4>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {parsed.rides.map((ride: any, i: any) => (
+                            <div
+                              key={i}
+                              onClick={() => bookRide(ride, parsed.job_id)} // 👈 send both ride + job_id
+                              className={`p-3 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
+                                ride.raw_details?.is_selected
+                                  ? "bg-green-900/40 border-green-700"
+                                  : "bg-gray-800/40 border-gray-700 hover:bg-gray-700/40"
+                              }`}
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="font-semibold text-gray-100">
+                                  {ride.name}
+                                </span>
+                                <span className="text-sm text-gray-300">
+                                  {ride.price}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {ride.raw_details?.eta_and_time}
+                              </p>
+                              <p className="text-[10px] text-gray-500 mt-1">
+                                Platform: {ride.platform}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // 🎯 2. Handle success message (order placed)
+                  else if (
+                    (typeof parsed === "object" &&
+                      parsed?.status?.toLowerCase() === "success") ||
+                    (typeof parsed === "string" &&
+                      parsed.trim().toLowerCase() === "success")
+                  ) {
+                    content = (
+                      <p className="font-semibold">
+                        Your order has been placed successfully!
+                      </p>
+                    );
+                  }
+
+                  // 🎯 3. Default message
+                  else {
+                    content = (
+                      <p className="text-sm sm:text-base leading-relaxed">
+                        {String(parsed)}
+                      </p>
+                    );
+                  }
+
+                  return (
                     <div
-                      className={`${
-                        m.role === "user"
-                          ? "bg-white/15 text-white"
-                          : "bg-gray-900/80 text-gray-100"
-                      } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border ${
-                        m.role === "user"
-                          ? "border-white/20"
-                          : "border-gray-800"
+                      key={m.id}
+                      className={`flex ${
+                        m.role === "user" ? "justify-end" : "justify-start"
                       }`}
                     >
-                      <p className="text-sm sm:text-base leading-relaxed">
-                        {m.text}
-                      </p>
+                      <div
+                        className={`${
+                          m.role === "user"
+                            ? "bg-white/15 text-white border-white/20"
+                            : "bg-gray-900/80 text-gray-100 border-gray-800"
+                        } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+                      >
+                        {content}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
+                {isLoading && <FlowerLoader />}
               </div>
               <form
                 onSubmit={(e) => {

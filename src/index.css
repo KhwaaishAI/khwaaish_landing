@@ -2,10 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hidden {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
 /* Global font */
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
-  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    sans-serif;
 }
 
 * {
@@ -17,4 +31,29 @@ html, body, #root {
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Flower loading animation - small circular path */
+.flower-loader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 30px;
+  height: 30px;
+}
+
+.flower-loader-image {
+  width: 20px;
+  height: 20px;
+  animation: flower-circular-motion 2s linear infinite;
+}
+
+@keyframes flower-circular-motion {
+  0% {
+    transform: rotate(0deg) translateY(-6px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateY(-6px) rotate(-360deg);
+  }
 }
