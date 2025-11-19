@@ -19,6 +19,17 @@ function App() {
   const [selected, setSelected] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // ---------- NEW Blinkit-specific state ----------
+  const [blinkitSessionId, setBlinkitSessionId] = useState<string | null>(null);
+  const [pendingBlinkitQuery, setPendingBlinkitQuery] = useState<string | null>(
+    null
+  );
+  const [blinkitProducts, setBlinkitProducts] = useState<any[]>([]);
+  const [awaitingOtp, setAwaitingOtp] = useState(false);
+  const [awaitingUpi, setAwaitingUpi] = useState(false);
+  const [awaitingAddress, setAwaitingAddress] = useState(false);
+  // -------------------------------------------------
+
   const FlowerLoader = () => {
     const [currentStage, setCurrentStage] = useState(0);
 
@@ -33,7 +44,7 @@ function App() {
     useEffect(() => {
       const interval = setInterval(() => {
         setCurrentStage((prev) => (prev + 1) % loaderStages.length);
-      }, 5000); // Change text every 1.5 seconds
+      }, 5000); // Change text every 5 seconds
 
       return () => clearInterval(interval);
     }, [loaderStages.length]);
@@ -58,67 +69,366 @@ function App() {
     );
   };
 
-  // Grocery
-  const openChatForGrocery = async (text: string) => {
-    const t = text.trim();
-    if (!t) return;
-
-    setShowChat(true);
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", text: t },
-    ]);
-
-    setIsLoading(true);
-
-    const endpoint = text.toLowerCase().includes("zepto")
-      ? `${BASE_URL}api/zepto`
-      : `${BASE_URL}api/blinkit`;
-
-    await new Promise((resolve) => setTimeout(resolve, 25000));
-
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: text,
-          location: Location,
-          mobile_number: Number,
-        }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-
-      const result = await response.json();
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "system",
-          text: JSON.stringify(result.status),
-        },
-      ]);
-    } catch (error) {
-      console.error("API Error:", error);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "system",
-          text: ERROR,
-        },
-      ]);
-    } finally {
-      setIsLoading(false); // Stop loading
+  // ----------------- Blinkit (Grocery) Flow -----------------
+  // Helper - post JSON
+  const postJSON = async (url: string, body: any) => {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`HTTP ${res.status} - ${text}`);
     }
-
-    setSearchText("");
+    return res.json();
   };
 
-  // Transport
+  // Format and push system message
+  const pushSystem = (text: string) =>
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: "system", text },
+    ]);
+
+  // Format and push user message
+  const pushUser = (text: string) =>
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: "user", text },
+    ]);
+
+  // Start Blinkit login -> OTP flow (called when user first requests grocery)
+  const startBlinkitLoginFlow = async (userQuery: string) => {
+    try {
+      setShowChat(true);
+      pushUser(userQuery);
+
+      setPendingBlinkitQuery(userQuery);
+      setIsLoading(true);
+
+      // Call backend login
+      const loginUrl = `${BASE_URL}api/login`;
+      const payload = {
+        phone_number: Number,
+        location: Location,
+      };
+
+      const result = await postJSON(loginUrl, payload);
+      // assume result.session_id
+      const sid = result?.session_id || null;
+      if (!sid) {
+        throw new Error("No session_id returned from /api/login");
+      }
+
+      setBlinkitSessionId(sid);
+      setAwaitingOtp(true);
+      pushSystem(
+        "OTP has been sent to the phone number. Please enter the OTP here."
+      );
+    } catch (err) {
+      console.error("Blinkit login error:", err);
+      pushSystem(ERROR || "Something went wrong while starting Blinkit login.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Submit OTP
+  const submitBlinkitOtp = async (otp: string) => {
+    if (!blinkitSessionId) {
+      pushSystem("Session not found. Please start again.");
+      setAwaitingOtp(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const url = `${BASE_URL}api/submit-otp`;
+      const body = { session_id: blinkitSessionId, otp };
+      const res = await postJSON(url, body);
+
+      // assume res.success or res.session_id/proof
+      // If backend returns a new session_id, update it.
+      if (res?.session_id) setBlinkitSessionId(res.session_id);
+      if (res?.success === false)
+        throw new Error(res?.message || "OTP verification failed");
+
+      setAwaitingOtp(false);
+      pushSystem("OTP verified. Searching for products now...");
+
+      // Trigger search using pending query
+      if (pendingBlinkitQuery) {
+        await blinkitSearch(pendingBlinkitQuery);
+      } else {
+        pushSystem("No pending query found.");
+      }
+    } catch (err) {
+      console.error("submitOtp error:", err);
+      pushSystem("OTP verification failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Call search API and display products
+  const blinkitSearch = async (query: string) => {
+    setIsLoading(true);
+    try {
+      const url = `${BASE_URL}api/search`;
+      const body = { query };
+      const res = await postJSON(url, body);
+      console.log("Blinkit search response:", res);
+
+      // --- FIX STARTS HERE ---
+      // Extract dynamic key inside res.results
+      const resultKey = res?.results ? Object.keys(res.results)[0] : null;
+      const products = resultKey ? res.results[resultKey] : [];
+      // --- FIX ENDS HERE ---
+
+      // Save session ID for add-to-cart & checkout
+      if (res?.session_id) {
+        setBlinkitSessionId(res.session_id);
+      }
+
+      // Store products
+      setBlinkitProducts(products);
+
+      // Display in chat
+      if (Array.isArray(products) && products.length) {
+        const listText = products
+          .map((p: any, idx: number) => {
+            const name = p?.name;
+            const price = p?.price;
+            return `**${idx + 1}. ${name}**${price ? " — ₹" + price : ""}`;
+          })
+          .join("\n\n");
+
+        pushSystem(
+          `Found ${products.length} items:\n\n${listText}\n\n💡 **How to add items:**\n• Reply with "2 dairy milk silk"\n• Or "add 2 of item 1"\n• Use the item numbers shown above`
+        );
+      } else {
+        pushSystem("No products found for your query.");
+      }
+    } catch (err) {
+      console.error("blinkitSearch error:", err);
+      pushSystem(ERROR || "Search failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+      setPendingBlinkitQuery(null);
+    }
+  };
+
+  // Parse messages like:
+  // "2 dairy milk silk" -> quantity 2, product name "dairy milk silk"
+  // "add 2 of item 1" -> select product index 1 and qty 2
+  // "add item 1 qty 2" etc.
+  const parseAddToCartCommand = (text: string, products: any[]) => {
+    const t = text.trim().toLowerCase();
+
+    // 1) "add X of item N" or "add item N qty X"
+    const itemIndexMatch = t.match(/item\s*(\d+)/i);
+    const qtyMatch1 = t.match(
+      /(?:^|\b)(\d+)\b(?=\s*(?:x|pcs|pieces|qty|quantity|\b))/i
+    );
+
+    if (itemIndexMatch && qtyMatch1) {
+      const idx = parseInt(itemIndexMatch[1], 10) - 1;
+      const qty = parseInt(qtyMatch1[1], 10);
+      if (products[idx]) {
+        const name =
+          products[idx].name ||
+          products[idx].title ||
+          products[idx].product_name;
+        return { product_name: name, quantity: qty };
+      }
+    }
+
+    // 2) "add 2 of item 1" or "add 2 item 1"
+    const addOfItemMatch = t.match(
+      /(?:add\s*)?(\d+)\s*(?:of\s*)?item\s*(\d+)/i
+    );
+    if (addOfItemMatch) {
+      const qty = parseInt(addOfItemMatch[1], 10);
+      const idx = parseInt(addOfItemMatch[2], 10) - 1;
+      if (products[idx]) {
+        const name =
+          products[idx].name ||
+          products[idx].title ||
+          products[idx].product_name;
+        return { product_name: name, quantity: qty };
+      }
+    }
+
+    // 3) "2 dairy milk silk" -> first token number
+    const firstNumberMatch = t.match(/^(\d+)\s+(.+)$/);
+    if (firstNumberMatch) {
+      const qty = parseInt(firstNumberMatch[1], 10);
+      const namePart = firstNumberMatch[2].trim();
+      // try to match product by name substring
+      const matched = products.find((p: any) =>
+        (p.name || p.title || p.product_name || "")
+          .toLowerCase()
+          .includes(namePart)
+      );
+      if (matched) {
+        return {
+          product_name: matched.name || matched.title || matched.product_name,
+          quantity: qty,
+        };
+      }
+      // fallback: use raw string as product_name
+      return { product_name: namePart, quantity: qty };
+    }
+
+    // 4) "add item 2" default quantity 1
+    const addItemOnly = t.match(/item\s*(\d+)/i);
+    if (addItemOnly) {
+      const idx = parseInt(addItemOnly[1], 10) - 1;
+      if (products[idx]) {
+        const name =
+          products[idx].name ||
+          products[idx].title ||
+          products[idx].product_name;
+        return { product_name: name, quantity: 1 };
+      }
+    }
+
+    // 5) "add <product name>" default qty 1
+    const addNameMatch = t.match(/^(?:add\s+)?(.+)$/i);
+    if (addNameMatch) {
+      const namePart = addNameMatch[1].trim();
+      const matched = products.find((p: any) =>
+        (p.name || p.title || p.product_name || "")
+          .toLowerCase()
+          .includes(namePart)
+      );
+      if (matched) {
+        return {
+          product_name: matched.name || matched.title || matched.product_name,
+          quantity: 1,
+        };
+      }
+    }
+
+    return null;
+  };
+
+  // Add to cart
+  const blinkitAddToCart = async (product_name: string, quantity: number) => {
+    if (!blinkitSessionId) {
+      pushSystem("Session missing. Please login first.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const url = `${BASE_URL}api/add-to-cart`;
+      const body = { session_id: blinkitSessionId, product_name, quantity };
+      const res = await postJSON(url, body);
+
+      // Interpret backend response.
+      // Expecting something like { status: "success" } or { status: "need_upi" } / { status: "need_address" }
+      const status = (res?.status || "").toString().toLowerCase();
+      console.log("add-to-cart response:", res);
+      if (status === "success" || res?.success) {
+        pushSystem(`Added ${quantity} x ${product_name} to cart successfully.`);
+      } else if (status.includes("need_upi") || res?.requires_upi) {
+        setAwaitingUpi(true);
+        pushSystem(
+          "Payment requires UPI. Please provide your UPI ID (e.g. zeki@ybl)."
+        );
+      } else if (status.includes("need_address") || res?.requires_address) {
+        setAwaitingAddress(true);
+        pushSystem(
+          "We need your address to complete the order. Please provide house number and name (comma separated) or a single-line address."
+        );
+      } else {
+        // fallback: show raw result
+        pushSystem(`Add to cart response: ${JSON.stringify(res)}`);
+      }
+    } catch (err) {
+      console.error("add-to-cart error:", err);
+      pushSystem(ERROR || "Failed to add item to cart.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add address handler
+  const blinkitAddAddress = async (addressText: string) => {
+    if (!blinkitSessionId) {
+      pushSystem("Session missing. Please login first.");
+      setAwaitingAddress(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      // We try to parse into house_number & name if comma-separated, otherwise send as location
+      let house_number = "";
+      let name = "";
+      let location = addressText;
+
+      if (addressText.includes(",")) {
+        const parts = addressText.split(",").map((s) => s.trim());
+        house_number = parts[0] || "";
+        name = parts[1] || "";
+        location = parts.slice(2).join(", ") || location;
+      }
+
+      const url = `${BASE_URL}api/add-address`;
+      const body: any = {
+        session_id: blinkitSessionId,
+        location,
+      };
+      if (house_number) body.house_number = house_number;
+      if (name) body.name = name;
+
+      const res = await postJSON(url, body);
+      setAwaitingAddress(false);
+      pushSystem(
+        "Address added. If you still want to place order, please repeat the add-to-cart command or confirm next steps."
+      );
+      // Optionally you might want to proceed to checkout here if backend supports it.
+    } catch (err) {
+      console.error("add-address error:", err);
+      pushSystem(ERROR || "Failed to add address.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Submit UPI
+  const blinkitSubmitUpi = async (upiId: string) => {
+    if (!blinkitSessionId) {
+      pushSystem("Session missing. Please login first.");
+      setAwaitingUpi(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const url = `${BASE_URL}api/submit-upi`;
+      const body = { session_id: blinkitSessionId, upi_id: upiId };
+      const res = await postJSON(url, body);
+
+      setAwaitingUpi(false);
+      if (
+        res?.success ||
+        (res?.status && res.status.toLowerCase() === "success")
+      ) {
+        pushSystem("UPI submitted. Your order should be processed now.");
+      } else {
+        pushSystem(`UPI response: ${JSON.stringify(res)}`);
+      }
+    } catch (err) {
+      console.error("submit-upi error:", err);
+      pushSystem(ERROR || "Failed to submit UPI ID.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  // ------------------------------------------------------------
+
+  // Transport (unchanged)
   const openChatForTransport = async (text: string) => {
     const t = text.trim();
     if (!t) return;
@@ -306,9 +616,56 @@ function App() {
     setSearchText("");
   };
 
-  const handleSend = () => {
+  // ----------------- handleSend updated to route Blinkit messages -----------------
+  const handleSend = async () => {
     const t = messageInput.trim();
     if (!t) return;
+
+    // If Grocery selected -> route through blinkit flow handlers
+    if (selected === 1) {
+      // if waiting for OTP -> treat message input as OTP
+      if (awaitingOtp) {
+        pushUser(t);
+        setMessageInput("");
+        await submitBlinkitOtp(t);
+        return;
+      }
+
+      // if awaiting UPI -> treat message input as upi id
+      if (awaitingUpi) {
+        pushUser(t);
+        setMessageInput("");
+        await blinkitSubmitUpi(t);
+        return;
+      }
+
+      // if awaiting Address -> treat message input as address
+      if (awaitingAddress) {
+        pushUser(t);
+        setMessageInput("");
+        await blinkitAddAddress(t);
+        return;
+      }
+
+      // if there is a product list available -> try to parse add-to-cart command
+      if (blinkitProducts && blinkitProducts.length > 0) {
+        const parsed = parseAddToCartCommand(t, blinkitProducts);
+        if (parsed) {
+          pushUser(t);
+          setMessageInput("");
+          await blinkitAddToCart(parsed.product_name, parsed.quantity);
+          return;
+        }
+      }
+
+      // otherwise start the login -> otp -> search flow
+      // Save user query and start login
+      setMessageInput("");
+      await startBlinkitLoginFlow(t);
+      return;
+    }
+
+    // default behaviour for other categories: keep existing behavior (just push user and set loading)
     setMessages((prev) => [
       ...prev,
       { id: crypto.randomUUID(), role: "user", text: t },
@@ -316,6 +673,7 @@ function App() {
     setMessageInput("");
     setIsLoading(true);
   };
+  // -------------------------------------------------------------------------------
 
   const handleCardClick = (id: number) => {
     setSelected(id === selected ? null : id);
@@ -517,7 +875,9 @@ function App() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      openChatForGrocery(searchText);
+                      // For grocery we route the input to handleSend logic (which now starts blinkit flow)
+                      setMessageInput(searchText);
+                      handleSend();
                     }
                   }}
                   placeholder="I want 2 Uncle Chips form Blinkit"
@@ -526,7 +886,10 @@ function App() {
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
                   <button
-                    onClick={() => openChatForGrocery(searchText)}
+                    onClick={() => {
+                      setMessageInput(searchText);
+                      handleSend();
+                    }}
                     className={`p-2 ${
                       searchText
                         ? "bg-red-600 hover:bg-red-500"
@@ -832,7 +1195,7 @@ function App() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 a0 11-4 0 2 2 0 014 0z"
                       />
                     </svg>
                   </div>
@@ -989,12 +1352,40 @@ function App() {
                     );
                   }
 
-                  // 🎯 3. Default message
+                  // 🎯 3. Default message with markdown support
                   else {
+                    const renderTextWithFormatting = (text: string) => {
+                      const lines = text.split("\n");
+                      return lines.map((line, index) => {
+                        // Handle bold formatting **text**
+                        let formattedLine = line;
+                        const boldRegex = /\*\*(.*?)\*\*/g;
+                        formattedLine = formattedLine.replace(
+                          boldRegex,
+                          "<strong>$1</strong>"
+                        );
+
+                        // Handle emojis and other formatting
+                        const emojiRegex = /([🛍️📋🎯💡📝💬❌🔍💰📦])/g;
+                        formattedLine = formattedLine.replace(
+                          emojiRegex,
+                          '<span class="text-xl">$1</span>'
+                        );
+
+                        return (
+                          <p
+                            key={index}
+                            className="text-sm sm:text-base leading-relaxed mb-2 last:mb-0"
+                            dangerouslySetInnerHTML={{ __html: formattedLine }}
+                          />
+                        );
+                      });
+                    };
+
                     content = (
-                      <p className="text-sm sm:text-base leading-relaxed">
-                        {String(parsed)}
-                      </p>
+                      <div className="space-y-2">
+                        {renderTextWithFormatting(String(parsed))}
+                      </div>
                     );
                   }
 
