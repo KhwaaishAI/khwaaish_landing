@@ -2,7 +2,9 @@ import rapidoDummy from "./rapidoDummy";
 
 import { useEffect, useRef, useState } from "react";
 function App() {
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const BASE_URL = (import.meta as any).env?.DEV
+    ? "/"
+    : (import.meta as any).env?.VITE_API_BASE_URL || "/";
   const Location = import.meta.env.VITE_LOCATION;
   const Number = import.meta.env.VITE_PHONE_NUMBER;
   const ERROR = import.meta.env.VITE_ERROR_MESSAGE;
