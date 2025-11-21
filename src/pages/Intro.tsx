@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 
-interface IntroscreenProps {
-  onComplete: () => void;
-}
-
 const VALID_EMAIL = import.meta.env.VITE_APP_EMAIL;
 const VALID_PASSWORD = import.meta.env.VITE_APP_PASSWORD;
 
-export default function Introscreen({ onComplete }: IntroscreenProps) {
+interface IntroProps {
+  onLoginSuccess: () => void;
+}
+
+export default function Intro({ onLoginSuccess }: IntroProps) {
   const [showWelcome, setShowWelcome] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [animatedText, setAnimatedText] = useState("");
@@ -16,7 +16,7 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
 
   const welcomeText = "welcome to Khwaaish";
 
-  // Letter by letter animation
+  // Typing animation
   useEffect(() => {
     let index = 0;
     const interval = setInterval(() => {
@@ -31,7 +31,7 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Show login after 3 seconds
+  // Switch to login after 3 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowWelcome(false);
@@ -43,14 +43,14 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
     if (!trimmedEmail || !trimmedPassword) return;
 
     if (trimmedEmail === VALID_EMAIL && trimmedPassword === VALID_PASSWORD) {
-      onComplete();
+      onLoginSuccess();
     } else {
       alert("Invalid email or password. Please try again.");
     }
@@ -58,7 +58,7 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black">
-      {/* Rotating decorative frame - centered */}
+      {/* Rotating frame */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="animate-spin" style={{ animationDuration: "10s" }}>
           <img
@@ -72,7 +72,6 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
       {/* Welcome screen */}
       {showWelcome && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10 transform -translate-y-1.5">
-          {/* Static logo */}
           <div className="mb-8">
             <img
               src="/images/LOGO.png"
@@ -81,7 +80,6 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
             />
           </div>
 
-          {/* Animated text */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-wide">
             {animatedText}
             <span className="animate-pulse">|</span>
@@ -89,10 +87,9 @@ export default function Introscreen({ onComplete }: IntroscreenProps) {
         </div>
       )}
 
-      {/* Login form */}
+      {/* Login screen */}
       {showLogin && (
         <div className="absolute inset-0 flex flex-col items-center justify-center mb-12 z-10 px-4 transform -translate-y-1.5">
-          {/* Static logo */}
           <div className="mb-6">
             <img
               src="/images/LOGO.png"
