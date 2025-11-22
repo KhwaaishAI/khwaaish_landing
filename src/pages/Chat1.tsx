@@ -26,6 +26,7 @@ export default function Chat1() {
   const [houseNumber, setHouseNumber] = useState("");
   const [userName, setUserName] = useState("");
   const [upiId, setUpiId] = useState("");
+  const [loadingUpi, setLoadingUpi] = useState(false);
 
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
@@ -263,7 +264,7 @@ export default function Chat1() {
           setPendingCartSelections(currentCart);
           setShowAddressPopup(true);
           return; // Stop loop, wait for user input
-        } else if (data?.detail?.includes("payment")) {
+        } else if (data.status === "upi_id_needed") {
           console.log("STEP 04.5: Payment missing → show UPI popup");
           setPendingCartSelections(currentCart);
           setShowUpiPopup(true);
@@ -284,7 +285,54 @@ export default function Chat1() {
   // ADDRESS SUBMIT HANDLER
   // -----------------------------------
 
-  
+  // -----------------------------------
+  // UPI ID SUBMIT HANDLER
+  // -----------------------------------
+
+  const handleUpiSubmit = async () => {
+    if (!upiId.trim()) {
+      alert("Please enter a valid UPI ID");
+      return;
+    }
+
+    setLoadingUpi(true);
+    console.log("STEP 05: Submitting UPI ID...", upiId);
+
+    try {
+      const res = await fetch(`${BaseURL}api/submit-upi`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          upi_id: upiId,
+        }),
+      });
+
+      const data = await res.json();
+      console.log("STEP 05.1: UPI submit response:", data);
+
+      if (data.status === "success") {
+        setShowUpiPopup(false);
+        setUpiId("");
+        pushSystem("UPI ID submitted successfully. Continuing your order...");
+
+        // Retry pending cart
+        if (pendingCartSelections) {
+          setCartSelections(pendingCartSelections);
+          setPendingCartSelections(null);
+          handleConfirmCart();
+        }
+      } else {
+        alert("Failed to submit UPI ID. Try again.");
+      }
+    } catch (err) {
+      console.log("STEP 05: Error submitting UPI ID:", err);
+      alert("Something went wrong while submitting UPI ID.");
+    } finally {
+      setLoadingUpi(false);
+    }
+  };
+
   // -----------------------------------
   // SPECIAL PARSER (This Parser is crucial, single changes can lead to a blunder)
   // -----------------------------------
@@ -801,6 +849,31 @@ export default function Chat1() {
               className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingOtp ? <PopupLoader /> : "Verify"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* UPI POPUP */}
+      {showUpiPopup && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
+            <h2 className="text-xl font-semibold text-white">Enter UPI ID</h2>
+
+            <input
+              type="text"
+              placeholder="example@upi"
+              value={upiId}
+              onChange={(e) => setUpiId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+
+            <button
+              onClick={handleUpiSubmit}
+              disabled={loadingUpi}
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loadingUpi ? <PopupLoader /> : "Submit"}
             </button>
           </div>
         </div>
