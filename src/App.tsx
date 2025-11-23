@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
 
 import Intro from "./pages/Intro";
-import Home from "./pages/Home"; // You will create this next
+import Home from "./pages/Home"; 
 import Chat1 from "./pages/Chat1";
 import Chat2 from "./pages/Chat2";
 import Chat3 from "./pages/Chat3";
