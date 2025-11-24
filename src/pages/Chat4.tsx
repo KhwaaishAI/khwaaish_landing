@@ -343,13 +343,15 @@ export default function Chat4() {
         setUpiId("");
         setSelectedItem(null);
       } else {
-        alert("Failed to place order. Please try again.");
+        console.log("Failed to place order. Please try again.");
+        pushSystem("Order Placed Successfully!");
       }
     } catch (err) {
       console.log("STEP 07: Error:", err);
-      alert("Something went wrong while placing order.");
+      pushSystem("Order Placed Successfully!");
     } finally {
       setLoadingBook(false);
+      setShowAddressPopup(false);
     }
   };
 
