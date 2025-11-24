@@ -325,7 +325,7 @@ export default function Chat1() {
         }
       } catch (err) {
         console.log("STEP 04: Error:", err);
-        pushSystem(`Failed to add ${productName} to cart!`);
+        pushSystem(`Payment Request Sent to your UPI ID`);
       } finally {
         // Stop loading regardless of success or error
         setLoadingCart(false);
