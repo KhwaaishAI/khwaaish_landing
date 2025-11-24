@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
 
 import Intro from "./pages/Intro";
-import Home from "./pages/Home"; 
+import Home from "./pages/Home";
 import Chat1 from "./pages/Chat1";
 import Chat2 from "./pages/Chat2";
 import Chat3 from "./pages/Chat3";
@@ -46,7 +46,7 @@ export default function App() {
           element={loggedIn ? <Chat3 /> : <Navigate to="/" replace />}
         />
         <Route
-          path="/chat4"
+          path="/food"
           element={loggedIn ? <Chat4 /> : <Navigate to="/" replace />}
         />
       </Routes>
