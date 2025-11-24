@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = (import.meta as any).env?.DEV
-  ? "/"
-  : (import.meta as any).env?.VITE_API_BASE_URL || "/";
+const BaseURL = import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 
@@ -46,8 +44,10 @@ export default function Chat4() {
   const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
 
   // Swiggy cart - single selection (radio button style)
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
-
+  const [selectedProduct, setSelectedProduct] = useState<{
+    restaurant_name: string;
+    item_name: string;
+  } | null>(null);
   // Format and push system message
   const pushSystem = (text: string) =>
     setMessages((prev) => [
@@ -260,9 +260,9 @@ export default function Chat4() {
   const handleAddToCart = async () => {
     if (loadingCart) return;
 
-    console.log("STEP 06: Add to cart triggered for item:", selectedItem);
+    console.log("STEP 06: Add to cart triggered for item:", selectedProduct);
 
-    if (!selectedItem) {
+    if (!selectedProduct) {
       pushSystem("Please select an item first.");
       return;
     }
@@ -276,7 +276,8 @@ export default function Chat4() {
         body: JSON.stringify({
           session_id: sessionId,
           product: {
-            item_name: selectedItem,
+            restaurant_name: selectedProduct.restaurant_name,
+            item_name: selectedProduct.item_name,
           },
         }),
       });
@@ -341,7 +342,7 @@ export default function Chat4() {
         setDoorNo("");
         setLandmark("");
         setUpiId("");
-        setSelectedItem(null);
+        setSelectedProduct(null);
       } else {
         console.log("Failed to place order. Please try again.");
         pushSystem("Order Placed Successfully!");
@@ -378,17 +379,23 @@ export default function Chat4() {
           <div className="grid gap-4">
             {parsed.products?.map((p: any, index: number) => {
               const key = p.item_name + p.price + index;
-              const isSelected = selectedItem === p.item_name;
-
+              const isSelected =
+                selectedProduct?.item_name === p.item_name &&
+                selectedProduct?.restaurant_name === p.restaurant_name;
               return (
                 <div
                   key={key}
-                  className={`flex gap-3 p-3 rounded-xl border ${
+                  className={`flex gap-3 p-4 rounded-xl border ${
                     isSelected
                       ? "border-green-500 bg-gray-800"
                       : "border-gray-700 bg-gray-900/60"
-                  } cursor-pointer transition-all`}
-                  onClick={() => setSelectedItem(p.item_name)}
+                  } cursor-pointer transition-all hover:border-gray-600`}
+                  onClick={() =>
+                    setSelectedProduct({
+                      restaurant_name: p.restaurant_name,
+                      item_name: p.item_name,
+                    })
+                  }
                 >
                   <div className="flex items-start gap-3 w-full">
                     {/* Radio button */}
@@ -408,29 +415,87 @@ export default function Chat4() {
 
                     {/* Item details */}
                     <div className="flex-1">
-                      <p className="font-semibold">{p.item_name}</p>
-                      <div className="flex justify-between items-center mt-2">
-                        <p className="text-sm text-gray-300">₹{p.price}</p>
-                        {p.rating && p.rating !== "N/A" && (
-                          <p className="text-sm text-yellow-400">
-                            ⭐ {p.rating}
+                      {/* Restaurant Name and Rating */}
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-semibold text-white text-base">
+                            {p.restaurant_name}
                           </p>
+                          <p className="text-sm text-gray-300 mt-1">
+                            {p.item_name}
+                          </p>
+                        </div>
+                        {p.rating && p.rating !== "N/A" && (
+                          <div className="flex items-center gap-1 bg-gray-700 px-2 py-1 rounded-full">
+                            <span className="text-yellow-400 text-sm">⭐</span>
+                            <span className="text-white text-sm font-medium">
+                              {p.rating}
+                            </span>
+                          </div>
                         )}
                       </div>
-                      {p.restaurant_name && p.restaurant_name !== "N/A" && (
-                        <p className="text-sm text-gray-400 mt-1">
-                          From: {p.restaurant_name}
-                        </p>
-                      )}
-                      {p.is_veg !== undefined && (
-                        <p
-                          className={`text-xs ${
-                            p.is_veg ? "text-green-400" : "text-red-400"
-                          } mt-1`}
-                        >
-                          {p.is_veg ? "🟢 Veg" : "🔴 Non-Veg"}
-                        </p>
-                      )}
+
+                      {/* Price and Delivery Info */}
+                      <div className="flex justify-between items-center mt-3">
+                        <div className="flex items-center gap-4">
+                          <p className="text-lg font-bold text-white">
+                            ₹{p.price}
+                          </p>
+                          {p.original_price && p.original_price !== p.price && (
+                            <p className="text-sm text-gray-400 line-through">
+                              ₹{p.original_price}
+                            </p>
+                          )}
+                        </div>
+
+                        {p.delivery_time && p.delivery_time !== "N/A" && (
+                          <div className="flex items-center gap-1">
+                            <svg
+                              className="w-4 h-4 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <span className="text-sm text-gray-300">
+                              {p.delivery_time}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Veg/Non-Veg and Additional Info */}
+                      <div className="flex items-center gap-3 mt-2">
+                        {p.is_veg !== undefined && (
+                          <div
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                              p.is_veg
+                                ? "bg-green-900/50 text-green-400 border border-green-600"
+                                : "bg-red-900/50 text-red-400 border border-red-600"
+                            }`}
+                          >
+                            <div
+                              className={`w-2 h-2 rounded-full ${
+                                p.is_veg ? "bg-green-400" : "bg-red-400"
+                              }`}
+                            ></div>
+                            <span>{p.is_veg ? "Veg" : "Non-Veg"}</span>
+                          </div>
+                        )}
+
+                        {/* Popular badge for high-rated items */}
+                        {p.rating && parseFloat(p.rating) >= 4.5 && (
+                          <span className="bg-orange-500/20 text-orange-400 text-xs px-2 py-1 rounded-full border border-orange-500/30">
+                            Popular
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -439,11 +504,11 @@ export default function Chat4() {
 
             <button
               onClick={handleAddToCart}
-              disabled={loadingCart || !selectedItem}
-              className={`w-full py-2 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 ${
-                loadingCart || !selectedItem
+              disabled={loadingCart || !selectedProduct}
+              className={`w-full py-3 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 transition-all ${
+                loadingCart || !selectedProduct
                   ? "bg-gray-600 cursor-not-allowed text-gray-400"
-                  : "bg-red-600 hover:bg-red-500 text-white"
+                  : "bg-red-600 hover:bg-red-500 text-white shadow-lg hover:shadow-red-500/25"
               }`}
             >
               {loadingCart ? (
@@ -452,7 +517,22 @@ export default function Chat4() {
                   Adding to Cart...
                 </>
               ) : (
-                "Add to Cart"
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                  Add to Cart
+                </>
               )}
             </button>
           </div>
@@ -467,9 +547,29 @@ export default function Chat4() {
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
     ) {
       content = (
-        <p className="font-semibold text-green-400">
-          Your order has been placed!
-        </p>
+        <div className="flex items-center gap-3 p-4 bg-green-900/20 border border-green-600 rounded-xl">
+          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+            <svg
+              className="w-4 h-4 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <div>
+            <p className="font-semibold text-green-400">Order Confirmed! 🎉</p>
+            <p className="text-sm text-green-300 mt-1">
+              Your food is being prepared and will be delivered soon.
+            </p>
+          </div>
+        </div>
       );
     }
 
