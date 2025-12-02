@@ -42,7 +42,7 @@ export default function App() {
           element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
         />
         <Route
-          path="/chat3"
+          path="/shopping"
           element={loggedIn ? <Chat3 /> : <Navigate to="/" replace />}
         />
         <Route

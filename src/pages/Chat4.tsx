@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = import.meta.env.VITE_API_BASE_URL;
+const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 
@@ -414,6 +414,20 @@ export default function Chat4() {
                     </div>
 
                     {/* Item details */}
+                    {/* Product Image */}
+                    {p.image_url && (
+                      <div className="flex-shrink-0">
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="w-28 h-28 object-cover rounded-lg bg-gray-800"
+                          onError={(e) => {
+                            // Fallback if image fails to load
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )}
                     <div className="flex-1">
                       {/* Restaurant Name and Rating */}
                       <div className="flex justify-between items-start mb-2">
