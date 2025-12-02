@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-// const BaseURL = import.meta.env.VITE_API_BASE_URL;
 const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 
 import FlowerLoader from "../components/FlowerLoader";
