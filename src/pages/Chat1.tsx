@@ -7,7 +7,7 @@ import PopupLoader from "../components/PopupLoader";
 
 interface Message {
   id: string;
-  role: "user" | "assistant" | "system";
+  role: "user" | "system";
   content: string;
 }
 
@@ -21,29 +21,36 @@ export default function Chat1() {
   const [showPhonePopup, setShowPhonePopup] = useState(true);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
 
-  const [showAddressPopup, setShowAddressPopup] = useState(false);
   const [showUpiPopup, setShowUpiPopup] = useState(false);
 
-  const [houseNumber, setHouseNumber] = useState("");
-  const [userName, setUserName] = useState("");
   const [upiId, setUpiId] = useState("");
   const [loadingUpi, setLoadingUpi] = useState(false);
 
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
   const [otp, setOtp] = useState("");
-  const [sessionId, setSessionId] = useState("");
+  const [zeptoSessionId, setZeptoSessionId] = useState("");
   const [loadingPhone, setLoadingPhone] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingCart, setLoadingCart] = useState(false);
 
   const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
   const [cartSelections, setCartSelections] = useState<{
-    [id: string]: number;
+    [id: string]: { quantity: number; product: any };
   }>({});
-
-  const [apiProvider, setApiProvider] = useState<"blinkit" | "zepto">("zepto");
   const [holdSeconds] = useState(59);
+
+  const [instamartOtp, setInstamartOtp] = useState("");
+  const [instamartSessionId, setInstamartSessionId] = useState("");
+  const [loadingInstamartOtp, setLoadingInstamartOtp] = useState(false);
+  const [loadingInstamartCart, setLoadingInstamartCart] = useState(false);
+
+  const [showInstamartAddressPopup, setShowInstamartAddressPopup] =
+    useState(false);
+  const [instamartDoorNo, setInstamartDoorNo] = useState("");
+  const [instamartLandmark, setInstamartLandmark] = useState("");
+  const [loadingInstamartBook, setLoadingInstamartBook] = useState(false);
+  const [instamartCartItems, setInstamartCartItems] = useState<any[]>([]);
 
   // Format and push system message
   const pushSystem = (text: string) =>
@@ -57,17 +64,6 @@ export default function Chat1() {
       ...prev,
       { id: crypto.randomUUID(), role: "user", content: text },
     ]);
-
-  // useEffect(() => {
-  //   // Check if user message contains "zepto" to switch API provider
-  //   if (messageInput.toLowerCase().includes("zepto")) {
-  //     setApiProvider("zepto");
-  //     console.log("Switching to Zepto API");
-  //   } else if (messageInput.toLowerCase().includes("blinkit")) {
-  //     setApiProvider("blinkit");
-  //     console.log("Switching to Blinkit API");
-  //   }
-  // }, [messageInput]);
 
   // -------------------------------
   // LOGIN FLOW
@@ -86,33 +82,49 @@ export default function Chat1() {
     console.log("STEP 01.3 Login API request sending...");
 
     try {
-      // Determine API endpoint based on provider
-      const endpoint = "zepto/login";
-      const payload = {
+      const zeptoPayload = {
         mobile_number: phone,
         location: location,
       };
 
-      const res = await fetch(`${BaseURL}api/${endpoint}`, {
+      const instamartPayload = {
+        mobile_number: phone,
+        name: "Khwaaish User",
+        gmail: "user@khwaaish.com",
+        location: location,
+      };
+
+      const zeptoLogin = fetch(`${BaseURL}api/zepto/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(zeptoPayload),
       });
 
-      const data = await res.json();
-      console.log("STEP 01.4 Login API response:", data);
+      const instamartLogin = fetch(`${BaseURL}api/instamart/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(instamartPayload),
+      });
 
-      if (data.session_id) {
-        console.log(
-          "STEP 01.5: Login Successful, Session ID:",
-          data.session_id
-        );
-        setSessionId(data.session_id);
+      console.log("STEP 01.4: Calling both the APIs parallelly...");
+
+      const [zeptoRes, instamartRes] = await Promise.all([
+        zeptoLogin,
+        instamartLogin,
+      ]);
+
+      const [zeptoData, instamartData] = await Promise.all([
+        zeptoRes.json(),
+        instamartRes.json(),
+      ]);
+
+      console.log("STEP 01.5: Login API response:", zeptoData, instamartData);
+
+      if (zeptoData.session_id && instamartData.session_id) {
+        setZeptoSessionId(zeptoData.session_id);
+        setInstamartSessionId(instamartData.session_id);
         setShowPhonePopup(false);
         setShowOtpPopup(true);
-      } else {
-        console.log("STEP 01.6: Login Failed");
-        alert("Login failed. Try again.");
       }
     } catch (err) {
       console.log("STEP 01: Error:", err);
@@ -135,31 +147,47 @@ export default function Chat1() {
       return;
     }
     setLoadingOtp(true);
-    console.log("STEP 02.3: OTP API request sending...");
+    console.log("STEP 02.3: Both OTP API request sending...");
 
     try {
-      // Determine API endpoint based on provider
-      const endpoint = "zepto/enter-otp";
-
-      const res = await fetch(`${BaseURL}api/${endpoint}`, {
+      const zeptoOtpRes = fetch(`${BaseURL}api/zepto/enter-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          session_id: sessionId,
+          session_id: zeptoSessionId,
           otp: otp,
         }),
       });
 
-      const data = await res.json();
-      console.log("STEP 02.4: OTP API response:", data);
+      const instamartOtpRes = fetch(`${BaseURL}api/instamart/submit-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: instamartSessionId,
+          otp: otp,
+        }),
+      });
 
-      if (data.status === "success") {
+      const [zeptoRes, instamartRes] = await Promise.all([
+        zeptoOtpRes,
+        instamartOtpRes,
+      ]);
+
+      const [zeptoData, instamartData] = await Promise.all([
+        zeptoRes.json(),
+        instamartRes.json(),
+      ]);
+
+      console.log("STEP 02.4: OTP API response:", zeptoRes, instamartRes);
+
+      if (
+        zeptoData.status === "success" &&
+        instamartData.status === "success"
+      ) {
         console.log("STEP 02.5: OTP verification successful");
+        // setZeptoSessionId(zeptoData.session_id);
+        // setInstamartSessionId(instamartData.session_id);
         setShowOtpPopup(false);
-        // setShowChat(true); // allow chat now
-      } else {
-        console.log("STEP 02.6: OTP verification failed");
-        alert("Invalid OTP.");
       }
     } catch (err) {
       console.log("STEP 02: Error:", err);
@@ -189,33 +217,78 @@ export default function Chat1() {
     setMessageInput("");
     setIsLoading(true);
 
-    const endpoint = "zepto/search";
-    const searchPayload = { query: userText, max_items: 20 };
-
     console.log("STEP 03.2: Search API request sending...");
 
     try {
-      const response = await fetch(`${BaseURL}api/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(searchPayload),
-      });
+      const zeptoPayload = {
+        query: userText,
+        max_items: 20,
+      };
 
-      const data = await response.json();
-      console.log("STEP 03.3: Search API response:", data);
+      const instamartPayload = {
+        query: userText,
+      };
 
-      if (data.session_id) {
-        setSessionId(data.session_id);
-        console.log("STEP 03.4: Session ID updated to:", data.session_id);
+      const [zeptoRes, instamartRes] = await Promise.all([
+        fetch(`${BaseURL}api/zepto/search`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(zeptoPayload),
+        }),
+        fetch(`${BaseURL}api/instamart/search`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(instamartPayload),
+        }),
+      ]);
+
+      const [zeptoData, instamartData] = await Promise.all([
+        zeptoRes.json(),
+        instamartRes.json(),
+      ]);
+
+      console.log("STEP 03.3: Search API response:", zeptoData, instamartData);
+
+      if (zeptoData.session_id) {
+        // setSessionId(data.session_id);
+        console.log(
+          "STEP 03.4: Zepto Session ID updated to:",
+          zeptoData.session_id
+        );
+        setZeptoSessionId(zeptoData.session_id);
+      }
+      if (instamartData.session_id) {
+        // setSessionId(data.session_id);
+        console.log(
+          "STEP 03.4: Instamart Session ID updated to:",
+          instamartData.session_id
+        );
+        setInstamartSessionId(instamartData.session_id);
       }
 
       // Extract actual product list - handle different response formats
-      console.log(
-        "STEP 03.5: Extracting actual product list from response",
-        data
+      console.log("STEP 03.5: Extracting actual product list from response");
+
+      const zeptoProducts = zeptoData.products;
+
+      const instamartProducts = instamartData.results;
+
+      const zeptoProductsWithSource = zeptoProducts.map((product: any) => ({
+        ...product,
+        source: "zepto",
+      }));
+
+      const instamartProductsWithSource = instamartProducts.map(
+        (product: any) => ({
+          ...product,
+          source: "instamart",
+        })
       );
 
-      let productList = data.products;
+      let productList = [
+        ...zeptoProductsWithSource,
+        ...instamartProductsWithSource,
+      ];
 
       console.log("STEP 03.7: Extracted productList =", productList);
 
@@ -239,51 +312,87 @@ export default function Chat1() {
   // -----------------------------------
 
   const handleConfirmCart = async () => {
-    if (loadingCart) return;
+    if (loadingCart || loadingInstamartCart) return;
 
     console.log("STEP 04: handleConfirmCart() triggered with:", cartSelections);
-    console.log("STEP 04.1: API Provider:", apiProvider);
 
-    const selectedItems = Object.entries(cartSelections).filter(
-      ([_, qty]) => qty > 0
-    );
+    // Separate items by source
+    const zeptoItems: { product: any; quantity: number }[] = [];
+    const instamartItems: { product: any; quantity: number }[] = [];
 
-    if (selectedItems.length === 0) {
+    // Loop through all selected items and separate them by source
+    Object.values(cartSelections).forEach((item) => {
+      if (item.quantity > 0) {
+        // Check source based on product.source
+        if (item.product.source === "zepto") {
+          zeptoItems.push({ product: item.product, quantity: item.quantity });
+        } else if (item.product.source === "instamart") {
+          instamartItems.push({
+            product: item.product,
+            quantity: item.quantity,
+          });
+        }
+      }
+    });
+
+    if (zeptoItems.length === 0 && instamartItems.length === 0) {
       pushSystem("Please select at least one item.");
       return;
     }
 
-    const currentCart = { ...cartSelections };
-
     console.log(
-      "STEP 04.1a: Checking UPI ID - upiId:",
-      upiId,
-      "hasValue:",
-      !!upiId
+      `Found ${zeptoItems.length} Zepto items, ${instamartItems.length} Instamart items`
     );
 
-    // For Zepto: Show UPI popup immediately since UPI ID is required in the add-to-cart request
-    if (upiId == "") {
-      console.log("STEP 04.2: Zepto API - UPI ID required, showing UPI popup");
+    // Store current cart for UPI popup if needed
+    const currentCart = { ...cartSelections };
+
+    // Check if we need UPI for Zepto items
+    if (zeptoItems.length > 0 && !upiId) {
+      console.log("Zepto items found but no UPI ID, showing UPI popup");
       setPendingCartSelections(currentCart);
       setShowUpiPopup(true);
       return; // Wait for UPI input before proceeding
     }
 
-    for (const [productName, qty] of selectedItems) {
-      const endpoint = "zepto/add-to-cart";
-      const payload = {
-        product_name: productName,
-        quantity: qty,
-        upi_id: upiId, // UPI ID collected
-        hold_seconds: holdSeconds,
-      };
+    // Process Zepto items if any
+    if (zeptoItems.length > 0) {
+      console.log("Processing Zepto items:", zeptoItems);
+      await processZeptoCart(zeptoItems);
+    }
 
-      console.log("STEP 04.3: Add to cart API request sending...", payload);
+    // Process Instamart items if any
+    if (instamartItems.length > 0) {
+      console.log("Processing Instamart items:", instamartItems);
+      await processInstamartCart(instamartItems);
+    }
 
-      setLoadingCart(true);
+    // Don't reset cart selections yet for Instamart (wait for booking)
+    // Only reset if only Zepto items were processed
+    if (zeptoItems.length > 0 && instamartItems.length === 0) {
+      setCartSelections({});
+    }
+  };
 
-      try {
+  // Process Zepto cart items
+  const processZeptoCart = async (
+    items: { product: any; quantity: number }[]
+  ) => {
+    setLoadingCart(true);
+    console.log("STEP 04.3: Processing Zepto cart...");
+
+    try {
+      for (const item of items) {
+        const endpoint = "zepto/add-to-cart";
+        const payload = {
+          product_name: item.product.name,
+          quantity: item.quantity,
+          upi_id: upiId,
+          hold_seconds: holdSeconds,
+        };
+
+        console.log("Zepto API request:", payload);
+
         const res = await fetch(`${BaseURL}api/${endpoint}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -291,50 +400,154 @@ export default function Chat1() {
         });
 
         const data = await res.json();
-        console.log("STEP 04.4: Add to cart API response:", data);
+        console.log("Zepto API response:", data);
 
         if (data === null || data.order_placed) {
-          // Order completed
           pushSystem(
             JSON.stringify({
               status: "success",
-              message: "Your order has been completed!",
+              message: `Your Zepto order for ${item.product.name} has been completed!`,
             })
           );
         } else if (
           data.status === "error" &&
           data.message === "Cart is empty."
         ) {
-          pushSystem("The Item is Out of Stock now!");
-        } else if (data?.detail?.includes("address")) {
-          console.log("STEP 04.5: Address missing → show address popup");
-          setPendingCartSelections(currentCart);
-          setShowAddressPopup(true);
-          return; // Stop loop, wait for user input
-        } else if (
-          data.status === "upi_id_needed" &&
-          apiProvider === "blinkit"
-        ) {
-          console.log("STEP 04.6: Blinkit - Payment missing → show UPI popup");
-          setPendingCartSelections(currentCart);
-          setShowUpiPopup(true);
-          return; // Stop loop, wait for user input
+          pushSystem(`Zepto item "${item.product.name}" is Out of Stock now!`);
         } else {
           pushSystem(JSON.stringify(data));
         }
-      } catch (err) {
-        console.log("STEP 04: Error:", err);
-        pushSystem(`Payment Request Sent to your UPI ID`);
-      } finally {
-        // Stop loading regardless of success or error
-        setLoadingCart(false);
       }
+    } catch (err) {
+      console.log("Zepto cart error:", err);
+      pushSystem(`Payment Request Sent to your UPI ID for Zepto items`);
+    } finally {
+      setLoadingCart(false);
+    }
+  };
+
+  // Process Instamart cart items
+  // Process Instamart cart items
+  const processInstamartCart = async (
+    items: { product: any; quantity: number }[]
+  ) => {
+    setLoadingInstamartCart(true);
+    console.log("STEP 04.4: Processing Instamart cart...");
+
+    try {
+      // Store Instamart items for booking later
+      setInstamartCartItems(items);
+
+      for (const item of items) {
+        const payload = {
+          product_name: item.product.name, // Use actual product name
+          quantity: item.quantity,
+          session_id: instamartSessionId,
+        };
+
+        console.log("Instamart add-to-cart API request:", payload);
+
+        const res = await fetch(`${BaseURL}api/instamart/add-to-cart`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        console.log("Instamart add-to-cart API response:", data);
+
+        if (data.status === "success") {
+          pushSystem(
+            `Added ${item.quantity}x ${item.product.name} to Instamart cart`
+          );
+        } else {
+          pushSystem(
+            `Failed to add ${item.product.name} to Instamart cart: ${data.message}`
+          );
+        }
+      }
+
+      // After adding all items, show address popup for booking
+      setLoadingInstamartCart(false);
+
+      // Show Instamart address popup
+      if (items.length > 0) {
+        setTimeout(() => {
+          pushSystem(
+            "Instamart items added! Please provide delivery details to complete your order."
+          );
+          setShowInstamartAddressPopup(true);
+        }, 500);
+      }
+    } catch (err) {
+      console.log("Instamart cart error:", err);
+      pushSystem("Something went wrong with Instamart order");
+      setLoadingInstamartCart(false);
+    }
+  };
+
+  // Handle Instamart booking (address + UPI)
+  // Update the handleInstamartBook function:
+  const handleInstamartBook = async () => {
+    if (!instamartDoorNo.trim() || !instamartLandmark.trim() || !upiId.trim()) {
+      alert("Please fill all fields: Door Number, Landmark, and UPI ID");
+      return;
     }
 
-    // Reset cart selections after successful order
-    setCartSelections({});
-    // Reset UPI ID for Zepto for next order
-    setUpiId("");
+    setLoadingInstamartBook(true);
+    console.log("STEP 05: Booking Instamart order...");
+
+    try {
+      const bookPayload = {
+        session_id: instamartSessionId,
+        door_no: instamartDoorNo,
+        landmark: instamartLandmark,
+        upi_id: upiId,
+      };
+
+      console.log("Step 2: Booking Instamart order:", bookPayload);
+
+      const bookRes = await fetch(`${BaseURL}api/instamart/book`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookPayload),
+      });
+
+      const bookData = await bookRes.json();
+      console.log("Instamart book API response:", bookData);
+
+      if (bookData.status === "success") {
+        pushSystem("Your Instamart order has been booked successfully!");
+
+        // Reset everything
+        setInstamartCartItems([]);
+        setInstamartDoorNo("");
+        setInstamartLandmark("");
+        setShowInstamartAddressPopup(false);
+
+        // Clear cart selections for Instamart items
+        setCartSelections((prev) => {
+          const newSelections = { ...prev };
+          Object.keys(newSelections).forEach((key) => {
+            if (key.includes("instamart")) {
+              delete newSelections[key];
+            }
+          });
+          return newSelections;
+        });
+      } else {
+        pushSystem(
+          `Instamart booking failed: ${bookData.message || "Unknown error"}`
+        );
+      }
+    } catch (err: any) {
+      console.log("Instamart booking error:", err);
+      pushSystem(
+        `Error: ${err.message || "Something went wrong with Instamart booking"}`
+      );
+    } finally {
+      setLoadingInstamartBook(false);
+    }
   };
 
   // -----------------------------------
@@ -352,22 +565,36 @@ export default function Chat1() {
     }
 
     setLoadingUpi(true);
-    console.log("STEP 05: Submitting UPI ID...", upiId);
-    console.log("STEP 05.1: API Provider:", apiProvider);
+    console.log("Submitting UPI ID...", upiId);
 
     try {
       setShowUpiPopup(false);
-      pushSystem("UPI ID collected. Placing your order...");
 
-      // Retry the cart confirmation with the UPI ID now available
+      // If we have pending cart selections (Zepto items), process them
       if (pendingCartSelections) {
-        setCartSelections(pendingCartSelections);
+        pushSystem("UPI ID collected. Placing your Zepto order...");
+
+        // Process Zepto items
+        const zeptoItems: { product: any; quantity: number }[] = [];
+
+        Object.values(pendingCartSelections).forEach((item: any) => {
+          if (item.quantity > 0 && item.product.source === "zepto") {
+            zeptoItems.push({ product: item.product, quantity: item.quantity });
+          }
+        });
+
+        if (zeptoItems.length > 0) {
+          await processZeptoCart(zeptoItems);
+        }
+
+        // Clear pending selections after processing
         setPendingCartSelections(null);
-        // This will now proceed since UPI ID is available
-        handleConfirmCart();
+
+        // Also clear cart selections if they match pending
+        setCartSelections({});
       }
     } catch (err) {
-      console.log("STEP 05: Error submitting UPI ID:", err);
+      console.log("Error submitting UPI ID:", err);
       alert("Something went wrong while submitting UPI ID.");
     } finally {
       setLoadingUpi(false);
@@ -398,31 +625,61 @@ export default function Chat1() {
 
           <div className="grid gap-4">
             {parsed.products?.map((p: any) => {
-              const key = p.name + p.price;
-              const qty = cartSelections[key] || 0;
+              const key = `${p.name}|${p.price}|${p.source}`;
+              const qty = cartSelections[key]?.quantity || 0;
 
               return (
                 <div
-                  key={key}
+                  key={Math.random()}
                   className="flex gap-3 p-3 rounded-xl border border-gray-700 bg-gray-900/60"
                 >
-                  {/* <img
-                    src={p.image}
-                    alt={p.name}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  /> */}
+                  {/* Product Image */}
+                  {p.image_url && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={p.image_url}
+                        alt={p.name}
+                        className="w-28 h-28 object-cover rounded-lg bg-gray-800"
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  )}
 
                   <div className="flex-1">
+                    {/* Source badge */}
+                    <div className="mb-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          p.source === "zepto"
+                            ? "bg-blue-500/20 text-blue-400"
+                            : "bg-green-500/20 text-green-400"
+                        }`}
+                      >
+                        {p.source === "zepto" ? "Zepto" : "Instamart"}
+                      </span>
+                    </div>
                     <p className="font-semibold">{p.name}</p>
                     <p className="text-sm text-gray-300">₹{p.price}</p>
 
                     <div className="flex items-center gap-3 mt-2">
                       <button
                         onClick={() =>
-                          setCartSelections((prev: any) => ({
-                            ...prev,
-                            [key]: Math.max((prev[key] || 0) - 1, 0),
-                          }))
+                          setCartSelections((prev: any) => {
+                            const current = prev[key] || {
+                              quantity: 0,
+                              product: p,
+                            };
+                            return {
+                              ...prev,
+                              [key]: {
+                                ...current,
+                                quantity: Math.max(current.quantity - 1, 0),
+                              },
+                            };
+                          })
                         }
                         className="w-7 h-7 bg-gray-800 rounded-full flex items-center justify-center"
                       >
@@ -433,10 +690,19 @@ export default function Chat1() {
 
                       <button
                         onClick={() =>
-                          setCartSelections((prev: any) => ({
-                            ...prev,
-                            [key]: (prev[key] || 0) + 1,
-                          }))
+                          setCartSelections((prev: any) => {
+                            const current = prev[key] || {
+                              quantity: 0,
+                              product: p,
+                            };
+                            return {
+                              ...prev,
+                              [key]: {
+                                ...current,
+                                quantity: current.quantity + 1,
+                              },
+                            };
+                          })
                         }
                         className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center"
                       >
@@ -451,18 +717,24 @@ export default function Chat1() {
             <button
               onClick={handleConfirmCart}
               className={`w-full py-2 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 ${
-                loadingCart
+                loadingCart || loadingInstamartCart
                   ? "bg-gray-600 cursor-not-allowed text-gray-400"
                   : "bg-red-600 hover:bg-red-500 text-white"
               }`}
+              disabled={loadingCart || loadingInstamartCart}
             >
               {loadingCart ? (
                 <>
                   <PopupLoader />
-                  Processing...
+                  Processing Zepto...
+                </>
+              ) : loadingInstamartCart ? (
+                <>
+                  <PopupLoader />
+                  Processing Instamart...
                 </>
               ) : (
-                "Confirm"
+                "Confirm Order"
               )}
             </button>
           </div>
@@ -579,16 +851,36 @@ export default function Chat1() {
       {/* OTP POPUP */}
       {showOtpPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Enter OTP</h2>
+          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-3 border border-gray-700">
+            <h2 className="text-xl font-semibold text-white mb-4">Enter OTP</h2>
 
-            <input
-              type="text"
-              placeholder="OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-            />
+            <div>
+              <label htmlFor="zeptoOTP" className="text-lg">
+                Zepto OTP
+              </label>
+              <input
+                id="zeptoOTP"
+                type="text"
+                placeholder="OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="instamartOTP" className="text-lg">
+                Instamart OTP
+              </label>
+              <input
+                id="instamartOTP"
+                type="text"
+                placeholder="OTP"
+                value={instamartOtp}
+                onChange={(e) => setInstamartOtp(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+            </div>
 
             <button
               onClick={handleOtpSubmit}
@@ -622,6 +914,74 @@ export default function Chat1() {
             >
               {loadingUpi ? <PopupLoader /> : "Submit"}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* INSTAMART ADDRESS & UPI POPUP */}
+      {showInstamartAddressPopup && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
+            <h2 className="text-xl font-semibold text-white">
+              Instamart Delivery Details
+            </h2>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">
+                  Door/Flat Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., 101, Bldg A"
+                  value={instamartDoorNo}
+                  onChange={(e) => setInstamartDoorNo(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">
+                  Landmark
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Near Metro Station"
+                  value={instamartLandmark}
+                  onChange={(e) => setInstamartLandmark(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">
+                  UPI ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="example@upi"
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowInstamartAddressPopup(false)}
+                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleInstamartBook}
+                disabled={loadingInstamartBook}
+                className="flex-1 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loadingInstamartBook ? <PopupLoader /> : "Book Order"}
+              </button>
+            </div>
           </div>
         </div>
       )}
