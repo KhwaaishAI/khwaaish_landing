@@ -14,7 +14,6 @@ export default function Chat2() {
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
@@ -62,7 +61,6 @@ export default function Chat2() {
     setIsLoading(false);
   };
 
-  // Markdown + emojis renderer (same as old)
   const formatContent = (raw: string) => {
     const lines = raw.split("\n");
 

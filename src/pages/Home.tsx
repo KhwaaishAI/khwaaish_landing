@@ -165,7 +165,7 @@ export default function Home() {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 relative">
-          <div className="max-w-5xl mx-auto space-y-6">
+          <div className="max-w-6xl mx-auto space-y-6">
             {/* Logo */}
             <div className="flex items-center justify-center gap-3">
               <img src="/images/LOGO.png" alt="" />
@@ -181,12 +181,12 @@ export default function Home() {
             </div>
 
             {/* Cards */}
-            <div className="flex flex-wrap justify-center lg:flex-nowrap w-full gap-4">
+            <div className="flex flex-wrap justify-center gap-4">
               {/* GROCERIES */}
 
               <Link
                 to="/groceries"
-                className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+                className="relative w-full md:w-1/4 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
                 border border-gray-700 hover:border-green-500/50 transition-all cursor-pointer group"
               >
                 <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -213,7 +213,7 @@ export default function Home() {
               {/* TRANSPORT */}
               <Link
                 to="/transport"
-                className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+                className="relative w-full md:w-1/4 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
           border border-gray-700 hover:border-yellow-500/50 transition-all cursor-pointer group"
               >
                 <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -240,7 +240,7 @@ export default function Home() {
               {/* SHOPPING */}
               <Link
                 to="/shopping"
-                className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+                className="relative w-full md:w-1/4 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
           border border-gray-700 hover:border-purple-500/50 transition-all cursor-pointer group"
               >
                 <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -268,7 +268,7 @@ export default function Home() {
 
               <Link
                 to="/food"
-                className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+                className="relative w-full md:w-1/4 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
           border border-gray-700 hover:border-red-500/50 transition-all cursor-pointer group"
               >
                 <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -282,11 +282,63 @@ export default function Home() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 a0 11-4 0 2 2 0 014 0z"
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                     />
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Food</h3>
+                <p className="text-sm text-gray-400">
+                  Order Food from your favourite Restaurants
+                </p>
+              </Link>
+
+              {/* Nykaa */}
+              <Link
+                to="/nykaa"
+                className="relative w-full md:w-1/4 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+          border border-gray-700 hover:border-red-500/50 transition-all cursor-pointer group"
+              >
+                <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Nykaa</h3>
+                <p className="text-sm text-gray-400">
+                  Order Food from your favourite Restaurants
+                </p>
+              </Link>
+              <Link
+                to="/jiomart"
+                className="relative w-full md:w-1/4 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
+          border border-gray-700 hover:border-red-500/50 transition-all cursor-pointer group"
+              >
+                <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">JioMart</h3>
                 <p className="text-sm text-gray-400">
                   Order Food from your favourite Restaurants
                 </p>

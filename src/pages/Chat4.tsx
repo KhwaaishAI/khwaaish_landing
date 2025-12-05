@@ -17,13 +17,11 @@ export default function Chat4() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
-  // Swiggy specific popups
   const [showSignupPopup, setShowSignupPopup] = useState(true);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
   const [showLocationPopup, setShowLocationPopup] = useState(false);
   const [showAddressPopup, setShowAddressPopup] = useState(false);
 
-  // Swiggy form states
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [gmail, setGmail] = useState("");
@@ -33,7 +31,6 @@ export default function Chat4() {
   const [landmark, setLandmark] = useState("");
   const [upiId, setUpiId] = useState("");
 
-  // Loading states
   const [loadingSignup, setLoadingSignup] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
@@ -43,12 +40,10 @@ export default function Chat4() {
   const [sessionId, setSessionId] = useState("");
   const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
 
-  // Swiggy cart - single selection (radio button style)
   const [selectedProduct, setSelectedProduct] = useState<{
     restaurant_name: string;
     item_name: string;
   } | null>(null);
-  // Format and push system message
   const pushSystem = (text: string) =>
     setMessages((prev) => [
       ...prev,
@@ -61,9 +56,6 @@ export default function Chat4() {
       { id: crypto.randomUUID(), role: "user", content: text },
     ]);
 
-  // -------------------------------
-  // SIGNUP FLOW
-  // -------------------------------
   const handleSignup = async () => {
     console.log("STEP 01: Signup Workflow Started");
     console.log("STEP 01.1: Phone:", phone, " Name:", name, " Gmail:", gmail);
@@ -111,9 +103,6 @@ export default function Chat4() {
     setLoadingSignup(false);
   };
 
-  // -------------------------------
-  // OTP HANDLER
-  // -------------------------------
   const handleOtpSubmit = async () => {
     console.log("STEP 02: OTP workflow started");
     console.log("STEP 02.1: OTP entered:", otp);
@@ -153,9 +142,6 @@ export default function Chat4() {
     setLoadingOtp(false);
   };
 
-  // -------------------------------
-  // LOCATION HANDLER
-  // -------------------------------
   const handleLocationSubmit = async () => {
     if (!location.trim()) {
       alert("Please enter location");
@@ -166,10 +152,8 @@ export default function Chat4() {
     console.log("STEP 03: Location submitted:", location);
 
     try {
-      // Store location and close popup
       setShowLocationPopup(false);
 
-      // Continue with search using the stored message
       if (pendingCartSelections?.searchQuery) {
         await handleSearch(pendingCartSelections.searchQuery);
       }
@@ -181,9 +165,6 @@ export default function Chat4() {
     }
   };
 
-  // -------------------------------
-  // SEARCH HANDLER
-  // -------------------------------
   const handleSearch = async (query: string) => {
     console.log("STEP 04: Search triggered with:", query);
 
@@ -209,17 +190,14 @@ export default function Chat4() {
       const data = await response.json();
       console.log("STEP 04.2: Search API response:", data);
 
-      // Update session ID if provided
       if (data.session_id) {
         setSessionId(data.session_id);
         console.log("STEP 04.3: Session ID updated to:", data.session_id);
       }
 
-      // Extract results
       const results = data.results || data.items || [];
       console.log("STEP 04.4: Extracted results =", results);
 
-      // Pass to chatbot renderer
       pushSystem(
         JSON.stringify({
           type: "product_list",
@@ -234,9 +212,6 @@ export default function Chat4() {
     setIsLoading(false);
   };
 
-  // -------------------------------
-  // SEND MESSAGE
-  // -------------------------------
   const handleSend = async () => {
     console.log("STEP 05: handleSend() triggered with:", messageInput);
 
@@ -250,13 +225,9 @@ export default function Chat4() {
     const userText = messageInput;
     setMessageInput("");
 
-    // Trigger search
     await handleSearch(userText);
   };
 
-  // -------------------------------
-  // ADD TO CART HANDLER
-  // -------------------------------
   const handleAddToCart = async () => {
     if (loadingCart) return;
 
@@ -287,7 +258,6 @@ export default function Chat4() {
 
       if (data.status === "success" || data.message === "Item added to cart") {
         pushSystem("Item added to cart successfully!");
-        // Show address popup for booking
         setShowAddressPopup(true);
       } else {
         pushSystem("Failed to add item to cart. Please try again.");
@@ -300,9 +270,6 @@ export default function Chat4() {
     }
   };
 
-  // -------------------------------
-  // BOOK ORDER HANDLER
-  // -------------------------------
   const handleBookOrder = async () => {
     if (loadingBook) return;
 
@@ -338,7 +305,6 @@ export default function Chat4() {
           })
         );
         setShowAddressPopup(false);
-        // Reset form
         setDoorNo("");
         setLandmark("");
         setUpiId("");
@@ -356,9 +322,6 @@ export default function Chat4() {
     }
   };
 
-  // -----------------------------------
-  // RENDER MESSAGE
-  // -----------------------------------
   const renderMessage = (m: Message) => {
     let parsed: any;
 
@@ -370,7 +333,6 @@ export default function Chat4() {
 
     let content: React.ReactNode = null;
 
-    // Product list with radio selection
     if (typeof parsed === "object" && parsed?.type === "product_list") {
       content = (
         <div className="space-y-3">
@@ -422,7 +384,6 @@ export default function Chat4() {
                           alt={p.name}
                           className="w-28 h-28 object-cover rounded-lg bg-gray-800"
                           onError={(e) => {
-                            // Fallback if image fails to load
                             e.currentTarget.style.display = "none";
                           }}
                         />
@@ -554,7 +515,6 @@ export default function Chat4() {
       );
     }
 
-    // Order success
     else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
@@ -587,7 +547,6 @@ export default function Chat4() {
       );
     }
 
-    // Normal formatted text
     else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
@@ -636,9 +595,6 @@ export default function Chat4() {
     );
   };
 
-  // -------------------------------
-  // UI - KEEP THE SAME STRUCTURE AS ZEPTO
-  // -------------------------------
   return (
     <div className="min-h-screen w-screen bg-black text-white">
       {/* ALL POPUPS - RENDERED AT TOP LEVEL */}

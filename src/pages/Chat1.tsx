@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-// const BaseURL = import.meta.env.VITE_API_BASE_URL;
 const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 
 import FlowerLoader from "../components/FlowerLoader";
@@ -43,7 +42,6 @@ export default function Chat1() {
 
   const [instamartOtp, setInstamartOtp] = useState("");
   const [instamartSessionId, setInstamartSessionId] = useState("");
-  const [loadingInstamartOtp, setLoadingInstamartOtp] = useState(false);
   const [loadingInstamartCart, setLoadingInstamartCart] = useState(false);
 
   const [showInstamartAddressPopup, setShowInstamartAddressPopup] =
@@ -53,7 +51,6 @@ export default function Chat1() {
   const [loadingInstamartBook, setLoadingInstamartBook] = useState(false);
   const [instamartCartItems, setInstamartCartItems] = useState<any[]>([]);
 
-  // Format and push system message
   const pushSystem = (text: string) =>
     setMessages((prev) => [
       ...prev,
@@ -66,9 +63,6 @@ export default function Chat1() {
       { id: crypto.randomUUID(), role: "user", content: text },
     ]);
 
-  // -------------------------------
-  // LOGIN FLOW
-  // -------------------------------
 
   const handleLogin = async () => {
     console.log("STEP 01: Login Workflow Started");
@@ -135,9 +129,6 @@ export default function Chat1() {
     setLoadingPhone(false);
   };
 
-  // -------------------------------
-  // OTP HANDLER
-  // -------------------------------
 
   const handleOtpSubmit = async () => {
     console.log("STEP 02: OTP workflow started");
@@ -186,8 +177,6 @@ export default function Chat1() {
         instamartData.status === "success"
       ) {
         console.log("STEP 02.5: OTP verification successful");
-        // setZeptoSessionId(zeptoData.session_id);
-        // setInstamartSessionId(instamartData.session_id);
         setShowOtpPopup(false);
       }
     } catch (err) {
@@ -198,9 +187,6 @@ export default function Chat1() {
     setLoadingOtp(false);
   };
 
-  // -------------------------------
-  // SEND MESSAGE
-  // -------------------------------
   const handleSend = async () => {
     console.log("STEP 03: handleSend() triggered with:", messageInput);
 
@@ -211,7 +197,6 @@ export default function Chat1() {
 
     setShowChat(true);
 
-    // Push user message
     pushUser(messageInput);
 
     const userText = messageInput;
@@ -251,7 +236,6 @@ export default function Chat1() {
       console.log("STEP 03.3: Search API response:", zeptoData, instamartData);
 
       if (zeptoData.session_id) {
-        // setSessionId(data.session_id);
         console.log(
           "STEP 03.4: Zepto Session ID updated to:",
           zeptoData.session_id
@@ -259,7 +243,6 @@ export default function Chat1() {
         setZeptoSessionId(zeptoData.session_id);
       }
       if (instamartData.session_id) {
-        // setSessionId(data.session_id);
         console.log(
           "STEP 03.4: Instamart Session ID updated to:",
           instamartData.session_id
@@ -267,7 +250,6 @@ export default function Chat1() {
         setInstamartSessionId(instamartData.session_id);
       }
 
-      // Extract actual product list - handle different response formats
       console.log("STEP 03.5: Extracting actual product list from response");
 
       const zeptoProducts = zeptoData.products;
@@ -293,7 +275,6 @@ export default function Chat1() {
 
       console.log("STEP 03.7: Extracted productList =", productList);
 
-      // Pass to chatbot renderer
       pushSystem(
         JSON.stringify({
           type: "product_list",
@@ -308,23 +289,17 @@ export default function Chat1() {
     setIsLoading(false);
   };
 
-  // -----------------------------------
-  // ADD TO CART HANDLER
-  // -----------------------------------
 
   const handleConfirmCart = async () => {
     if (loadingCart || loadingInstamartCart) return;
 
     console.log("STEP 04: handleConfirmCart() triggered with:", cartSelections);
 
-    // Separate items by source
     const zeptoItems: { product: any; quantity: number }[] = [];
     const instamartItems: { product: any; quantity: number }[] = [];
 
-    // Loop through all selected items and separate them by source
     Object.values(cartSelections).forEach((item) => {
       if (item.quantity > 0) {
-        // Check source based on product.source
         if (item.product.source === "zepto") {
           zeptoItems.push({ product: item.product, quantity: item.quantity });
         } else if (item.product.source === "instamart") {
@@ -345,37 +320,29 @@ export default function Chat1() {
       `Found ${zeptoItems.length} Zepto items, ${instamartItems.length} Instamart items`
     );
 
-    // Store current cart for UPI popup if needed
     const currentCart = { ...cartSelections };
 
-    // Check if we need UPI for Zepto items
     if (zeptoItems.length > 0 && !upiId) {
       console.log("Zepto items found but no UPI ID, showing UPI popup");
       setPendingCartSelections(currentCart);
       setShowUpiPopup(true);
-      return; // Wait for UPI input before proceeding
     }
 
-    // Process Zepto items if any
     if (zeptoItems.length > 0) {
       console.log("Processing Zepto items:", zeptoItems);
       await processZeptoCart(zeptoItems);
     }
 
-    // Process Instamart items if any
     if (instamartItems.length > 0) {
       console.log("Processing Instamart items:", instamartItems);
       await processInstamartCart(instamartItems);
     }
 
-    // Don't reset cart selections yet for Instamart (wait for booking)
-    // Only reset if only Zepto items were processed
     if (zeptoItems.length > 0 && instamartItems.length === 0) {
       setCartSelections({});
     }
   };
 
-  // Process Zepto cart items
   const processZeptoCart = async (
     items: { product: any; quantity: number }[]
   ) => {
@@ -427,8 +394,6 @@ export default function Chat1() {
     }
   };
 
-  // Process Instamart cart items
-  // Process Instamart cart items
   const processInstamartCart = async (
     items: { product: any; quantity: number }[]
   ) => {
@@ -436,12 +401,10 @@ export default function Chat1() {
     console.log("STEP 04.4: Processing Instamart cart...");
 
     try {
-      // Store Instamart items for booking later
       setInstamartCartItems(items);
 
       for (const item of items) {
         const payload = {
-          product_name: item.product.name, // Use actual product name
           quantity: item.quantity,
           session_id: instamartSessionId,
         };
@@ -468,10 +431,8 @@ export default function Chat1() {
         }
       }
 
-      // After adding all items, show address popup for booking
       setLoadingInstamartCart(false);
 
-      // Show Instamart address popup
       if (items.length > 0) {
         setTimeout(() => {
           pushSystem(
@@ -487,8 +448,6 @@ export default function Chat1() {
     }
   };
 
-  // Handle Instamart booking (address + UPI)
-  // Update the handleInstamartBook function:
   const handleInstamartBook = async () => {
     if (!instamartDoorNo.trim() || !instamartLandmark.trim() || !upiId.trim()) {
       alert("Please fill all fields: Door Number, Landmark, and UPI ID");
@@ -520,13 +479,11 @@ export default function Chat1() {
       if (bookData.status === "success") {
         pushSystem("Your Instamart order has been booked successfully!");
 
-        // Reset everything
         setInstamartCartItems([]);
         setInstamartDoorNo("");
         setInstamartLandmark("");
         setShowInstamartAddressPopup(false);
 
-        // Clear cart selections for Instamart items
         setCartSelections((prev) => {
           const newSelections = { ...prev };
           Object.keys(newSelections).forEach((key) => {
@@ -551,13 +508,7 @@ export default function Chat1() {
     }
   };
 
-  // -----------------------------------
-  // ADDRESS SUBMIT HANDLER
-  // -----------------------------------
 
-  // -----------------------------------
-  // UPI ID SUBMIT HANDLER
-  // -----------------------------------
 
   const handleUpiSubmit = async () => {
     if (!upiId.trim()) {
@@ -571,11 +522,9 @@ export default function Chat1() {
     try {
       setShowUpiPopup(false);
 
-      // If we have pending cart selections (Zepto items), process them
       if (pendingCartSelections) {
         pushSystem("UPI ID collected. Placing your Zepto order...");
 
-        // Process Zepto items
         const zeptoItems: { product: any; quantity: number }[] = [];
 
         Object.values(pendingCartSelections).forEach((item: any) => {
@@ -588,10 +537,8 @@ export default function Chat1() {
           await processZeptoCart(zeptoItems);
         }
 
-        // Clear pending selections after processing
         setPendingCartSelections(null);
 
-        // Also clear cart selections if they match pending
         setCartSelections({});
       }
     } catch (err) {
@@ -602,9 +549,6 @@ export default function Chat1() {
     }
   };
 
-  // -----------------------------------
-  // SPECIAL PARSER (This Parser is crucial, single changes can lead to a blunder)
-  // -----------------------------------
   const renderMessage = (m: Message) => {
     let parsed: any;
 
@@ -616,9 +560,6 @@ export default function Chat1() {
 
     let content: React.ReactNode = null;
 
-    // -----------------------------
-    // 1. Product list
-    // -----------------------------
     if (typeof parsed === "object" && parsed?.type === "product_list") {
       content = (
         <div className="space-y-3">
@@ -642,7 +583,6 @@ export default function Chat1() {
                         alt={p.name}
                         className="w-28 h-28 object-cover rounded-lg bg-gray-800"
                         onError={(e) => {
-                          // Fallback if image fails to load
                           e.currentTarget.style.display = "none";
                         }}
                       />
@@ -743,9 +683,6 @@ export default function Chat1() {
       );
     }
 
-    // -----------------------------
-    // 2. Order success
-    // -----------------------------
     else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
@@ -754,9 +691,6 @@ export default function Chat1() {
       content = <p className="font-semibold">Your order has been placed!</p>;
     }
 
-    // -----------------------------
-    // 3. Normal formatted text
-    // -----------------------------
     else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
@@ -808,9 +742,6 @@ export default function Chat1() {
     );
   };
 
-  // -------------------------------
-  // UI
-  // -------------------------------
   return (
     <div className="min-h-screen w-screen bg-black text-white">
       {/* ALL POPUPS - RENDERED AT TOP LEVEL */}
