@@ -39,8 +39,9 @@ export default function App() {
           path="/groceries"
           element={loggedIn ? <Chat1 /> : <Navigate to="/" replace />}
         />
+        {/* Transport */}
         <Route
-          path="/chat2"
+          path="/transport"
           element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
         />
         <Route

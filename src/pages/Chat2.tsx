@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 const API_ENDPOINT = import.meta.env.VITE_CHAT2_API;
+const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
+const ELEVENLABS_STT_URL = "https://api.elevenlabs.io/v1/speech-to-text";
 
 interface Message {
   id: number;
@@ -13,6 +15,9 @@ export default function Chat2() {
   const [messageInput, setMessageInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,6 +64,70 @@ export default function Chat2() {
     }
 
     setIsLoading(false);
+  };
+
+  const handleVoiceToggle = async () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+
+      audioChunksRef.current = [];
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        if (!ELEVENLABS_API_KEY) {
+          console.error("VITE_ELEVENLABS_API_KEY is not set");
+          stream.getTracks().forEach((t) => t.stop());
+          setIsRecording(false);
+          return;
+        }
+
+        try {
+          const res = await fetch(ELEVENLABS_STT_URL, {
+            method: "POST",
+            headers: {
+              "xi-api-key": ELEVENLABS_API_KEY,
+              "Content-Type": "audio/webm",
+            },
+            body: blob,
+          });
+
+          if (!res.ok) {
+            console.error("ElevenLabs STT error", res.status, res.statusText);
+            return;
+          }
+
+          const data = await res.json();
+          const text = data?.text || data?.transcript || "";
+          if (text) {
+            setMessageInput((prev) => (prev ? prev + " " + text : text));
+          }
+        } catch (err) {
+          console.error("ElevenLabs STT request failed", err);
+        } finally {
+          stream.getTracks().forEach((t) => t.stop());
+          setIsRecording(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Microphone access denied or failed", err);
+    }
   };
 
   const formatContent = (raw: string) => {
@@ -127,6 +196,36 @@ export default function Chat2() {
         className="px-4 sm:px-6 py-4 bg-black/70 border-t border-white/10 backdrop-blur"
       >
         <div className="flex items-center gap-3 rounded-full px-4 py-3 border border-gray-800 bg-white/10 backdrop-blur">
+          <button
+            type="button"
+            onClick={handleVoiceToggle}
+            className={`p-2 rounded-full border ${
+              isRecording
+                ? "bg-red-600 border-red-400"
+                : "bg-white/10 border-white/30 hover:bg-white/20"
+            } transition-colors`}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 14a3 3 0 003-3V7a3 3 0 10-6 0v4a3 3 0 003 3z" 
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 11a7 7 0 01-14 0m7 7v3"
+              />
+            </svg>
+          </button>
+
           <input
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
