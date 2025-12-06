@@ -23,6 +23,8 @@ export default function Chat6() {
   const [showUpiPopup, setShowUpiPopup] = useState(false);
 
   const [upiId, setUpiId] = useState("");
+  const [dayText, setDayText] = useState("");
+  const [slotText, setSlotText] = useState("");
   const [loadingUpi, setLoadingUpi] = useState(false);
 
   const [phone, setPhone] = useState("");
@@ -221,11 +223,11 @@ export default function Chat6() {
       !!upiId
     );
 
-    setPendingCartSelections(currentCart);
-    // if (upiId == "") {
-    //   console.log("STEP 04.2: D-Mart API - UPI ID required, showing UPI popup");
-    //   setShowUpiPopup(true);
-    // }
+    if (upiId == "") {
+      console.log("STEP 04.2: D-Mart API - UPI ID required, showing UPI popup");
+      setPendingCartSelections(currentCart);
+      setShowUpiPopup(true);
+    }
 
     for (const [name, qty] of selectedItems) {
       const endpoint = "dmart/add-to-cart";
@@ -515,6 +517,20 @@ export default function Chat6() {
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
             <h2 className="text-xl font-semibold text-white">Enter UPI ID</h2>
 
+            <input
+              type="text"
+              placeholder="Day text"
+              value={dayText}
+              onChange={(e) => setDayText(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+            <input
+              type="text"
+              placeholder="Slot text"
+              value={slotText}
+              onChange={(e) => setSlotText(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
             <input
               type="text"
               placeholder="example@upi"
