@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+const BaseURL = import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 
@@ -10,32 +10,33 @@ interface Message {
   content: string;
 }
 
-export default function NykaaChat() {
+export default function Chat6() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
-  const [showLoginPopup, setShowLoginPopup] = useState(true);
+  const [showPhonePopup, setShowPhonePopup] = useState(true);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
-  const [showSizePopup, setShowSizePopup] = useState(false);
+
   const [showUpiPopup, setShowUpiPopup] = useState(false);
 
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [selectedSize, setSelectedSize] = useState("");
   const [upiId, setUpiId] = useState("");
+  const [loadingUpi, setLoadingUpi] = useState(false);
 
-  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [otp, setOtp] = useState("");
+  const [sessionId, setSessionId] = useState("");
+  const [loadingPhone, setLoadingPhone] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingCart, setLoadingCart] = useState(false);
-  const [loadingPayment, setLoadingPayment] = useState(false);
 
-  const [sessionId, setSessionId] = useState("");
-  const [pendingProduct, setPendingProduct] = useState<any>(null);
-
-  const sizes = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+  const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
+  const [cartSelections, setCartSelections] = useState<{
+    [id: string]: number;
+  }>({});
 
   const pushSystem = (text: string) =>
     setMessages((prev) => [
@@ -51,24 +52,27 @@ export default function NykaaChat() {
 
   const handleLogin = async () => {
     console.log("STEP 01: Login Workflow Started");
-    console.log("STEP 01.1: Phone:", phone);
+    console.log("STEP 01.1: Phone:", phone, " Location:", location);
 
-    if (!phone.trim()) {
-      console.log("STEP 01.2: Missing phone number");
-      alert("Please enter your phone number");
+    if (!phone.trim() || !location.trim()) {
+      console.log("STEP 01.2: Missing phone or location");
       return;
     }
 
-    setLoadingLogin(true);
-    console.log("STEP 01.3 Login API request sending...");
+    setLoadingPhone(true);
 
     try {
-      const res = await fetch(`${BaseURL}api/nykaa/login`, {
+      const endpoint = "dmart/login";
+      const payload = {
+        mobile_number: phone,
+        location: location,
+      };
+      console.log("STEP 01.3 Login API request sending...", payload);
+
+      const res = await fetch(`${BaseURL}api/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mobile_number: phone,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -80,7 +84,7 @@ export default function NykaaChat() {
           data.session_id
         );
         setSessionId(data.session_id);
-        setShowLoginPopup(false);
+        setShowPhonePopup(false);
         setShowOtpPopup(true);
       } else {
         console.log("STEP 01.6: Login Failed");
@@ -91,7 +95,7 @@ export default function NykaaChat() {
       alert("Something went wrong!");
     }
 
-    setLoadingLogin(false);
+    setLoadingPhone(false);
   };
 
   const handleOtpSubmit = async () => {
@@ -106,7 +110,9 @@ export default function NykaaChat() {
     console.log("STEP 02.3: OTP API request sending...");
 
     try {
-      const res = await fetch(`${BaseURL}api/nykaa/enter-otp`, {
+      const endpoint = "dmart/verify-otp";
+
+      const res = await fetch(`${BaseURL}api/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -133,36 +139,55 @@ export default function NykaaChat() {
     setLoadingOtp(false);
   };
 
-  const handleSearch = async (query: string) => {
-    console.log("STEP 03: Search triggered with:", query);
+  const handleSend = async () => {
+    console.log("STEP 03: handleSend() triggered with:", messageInput);
 
+    if (!messageInput.trim()) {
+      console.log("STEP 03.1: Empty message, stopping.");
+      return;
+    }
+
+    setShowChat(true);
+
+    pushUser(messageInput);
+
+    const userText = messageInput;
+    setMessageInput("");
     setIsLoading(true);
 
+    const endpoint = "dmart/search";
+    const searchPayload = { query: userText, max_items: 30 };
+
+    console.log("STEP 03.2: Search API request sending...");
+
     try {
-      const response = await fetch(`${BaseURL}api/nykaa/search`, {
+      const response = await fetch(`${BaseURL}api/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: query,
-          max_items: 10,
-        }),
+        body: JSON.stringify(searchPayload),
       });
 
       const data = await response.json();
-      console.log("STEP 03.2: Search API response:", data);
+      console.log("STEP 03.3: Search API response:", data);
 
       if (data.session_id) {
         setSessionId(data.session_id);
-        console.log("STEP 03.3: Session ID updated to:", data.session_id);
+        console.log("STEP 03.4: Session ID updated to:", data.session_id);
       }
 
-      const products = data.products || data.results || [];
-      console.log("STEP 03.4: Extracted products =", products);
+      console.log(
+        "STEP 03.5: Extracting actual product list from response",
+        data
+      );
+
+      let productList = data.products;
+
+      console.log("STEP 03.7: Extracted productList =", productList);
 
       pushSystem(
         JSON.stringify({
           type: "product_list",
-          products: products,
+          products: productList,
         })
       );
     } catch (err) {
@@ -173,73 +198,106 @@ export default function NykaaChat() {
     setIsLoading(false);
   };
 
-  const handleSend = async () => {
-    if (!messageInput.trim()) {
-      console.log("STEP 03: Empty message, stopping.");
-      return;
-    }
-
-    setShowChat(true);
-    pushUser(messageInput);
-    const userText = messageInput;
-    setMessageInput("");
-
-    await handleSearch(userText);
-  };
-
-  const handleAddToCart = async () => {
+  const handleConfirmCart = async () => {
     if (loadingCart) return;
 
-    console.log("STEP 04: Add to cart triggered for product:", pendingProduct);
+    console.log("STEP 04: handleConfirmCart() triggered with:", cartSelections);
 
-    if (!pendingProduct || !selectedSize) {
-      pushSystem("Please select a product and size first.");
+    const selectedItems = Object.entries(cartSelections).filter(
+      ([_, qty]) => qty > 0
+    );
+
+    if (selectedItems.length === 0) {
+      pushSystem("Please select at least one item.");
       return;
     }
 
-    if (upiId === "") {
-      setShowUpiPopup(true);
+    const currentCart = { ...cartSelections };
+
+    console.log(
+      "STEP 04.1: Checking UPI ID - upiId:",
+      upiId,
+      "hasValue:",
+      !!upiId
+    );
+
+    setPendingCartSelections(currentCart);
+    // if (upiId == "") {
+    //   console.log("STEP 04.2: D-Mart API - UPI ID required, showing UPI popup");
+    //   setShowUpiPopup(true);
+    // }
+
+    for (const [name, qty] of selectedItems) {
+      const endpoint = "dmart/add-to-cart";
+      const payload = {
+        product_name: name,
+        quantity: qty,
+      };
+
+      console.log("STEP 04.3: Add to cart API request sending...", payload);
+
+      setLoadingCart(true);
+
+      try {
+        const res = await fetch(`${BaseURL}api/${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        console.log("STEP 04.4: Add to cart API response:", data);
+
+        if (data === null || data.order_placed) {
+          pushSystem(
+            JSON.stringify({
+              status: "success",
+              message: "Your order has been completed!",
+            })
+          );
+        } else if (
+          data.status === "error" &&
+          data.message === "Cart is empty."
+        ) {
+          pushSystem("The Item is Out of Stock now!");
+        } else {
+          pushSystem(JSON.stringify(data));
+        }
+      } catch (err) {
+        console.log("STEP 04: Error:", err);
+        pushSystem(`Payment Request Sent to your UPI ID`);
+      } finally {
+        setLoadingCart(false);
+      }
+    }
+
+    setCartSelections({});
+    setUpiId("");
+  };
+
+  const handleUpiSubmit = async () => {
+    if (!upiId.trim()) {
+      alert("Please enter a valid UPI ID");
       return;
     }
 
-    setLoadingCart(true);
-    setLoadingPayment(true);
+    setLoadingUpi(true);
+    console.log("STEP 05: Submitting UPI ID...", upiId);
 
     try {
-      const res = await fetch(`${BaseURL}api/nykaa/add-to-cart`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_name: pendingProduct.name,
-          size: selectedSize,
-          upi_id: upiId,
-          hold_seconds: 59,
-        }),
-      });
+      setShowUpiPopup(false);
+      pushSystem("UPI ID collected. Placing your order...");
 
-      const data = await res.json();
-      console.log("STEP 04.1: Add to cart API response:", data);
-
-      if (data.session_id) {
-        setSessionId(data.session_id);
-        console.log("STEP 04.2: Session ID updated to:", data.session_id);
-      }
-
-      if (data.status === "success") {
-        pushSystem("Item added to cart successfully!");
-      } else if (data.status === "upi_required") {
-        pushSystem("I need your address to complete the order");
-        setShowUpiPopup(true);
-      } else {
-        pushSystem("Failed to add item to cart. Please try again.");
+      if (pendingCartSelections) {
+        setCartSelections(pendingCartSelections);
+        setPendingCartSelections(null);
+        handleConfirmCart();
       }
     } catch (err) {
-      console.log("STEP 04: Error:", err);
-      pushSystem("Failed to add item to cart!");
+      console.log("STEP 05: Error submitting UPI ID:", err);
+      alert("Something went wrong while submitting UPI ID.");
     } finally {
-      setShowSizePopup(false);
-      setShowUpiPopup(false);
-      setLoadingCart(false);
+      setLoadingUpi(false);
     }
   };
 
@@ -257,138 +315,96 @@ export default function NykaaChat() {
     if (typeof parsed === "object" && parsed?.type === "product_list") {
       content = (
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold mb-2">
-            Here are some fashion finds:
-          </h3>
+          <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
           <div className="grid gap-4">
-            {parsed.products?.map((p: any, index: number) => {
-              const key = p.brand + p.name + p.price + index;
+            {parsed.products?.map((p: any) => {
+              const key = p.title + p.dmart_price;
+              const qty = cartSelections[key] || 0;
 
               return (
                 <div
                   key={key}
-                  className="flex gap-4 p-4 rounded-xl border border-gray-700 bg-gray-900/60 cursor-pointer transition-all hover:border-gray-600"
-                  onClick={() => {
-                    setPendingProduct(p);
-                    setShowSizePopup(true);
-                  }}
+                  className="flex gap-3 p-3 rounded-xl border border-gray-700 bg-gray-900/60"
                 >
-                  {/* Product Image */}
-                  {p.image_url && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={p.image_url}
-                        alt={p.name}
-                        className="w-20 h-24 object-cover rounded-lg bg-gray-800"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
+                  <img
+                    src={p.image_url}
+                    alt={p.name}
+                    className="w-16 h-16 object-cover rounded-lg"
+                  />
 
-                  {/* Product details */}
-                  <div className="flex-1 min-w-0">
-                    {/* Brand and Name */}
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-white text-base truncate">
-                          {p.brand}
-                        </p>
-                        <p className="text-sm text-gray-300 mt-1 line-clamp-2">
-                          {p.name}
-                        </p>
-                      </div>
-                      {p.rating && (
-                        <div className="flex items-center gap-1 bg-gray-700 px-2 py-1 rounded-full flex-shrink-0 ml-2">
-                          <span className="text-yellow-400 text-sm">⭐</span>
-                          <span className="text-white text-sm font-medium">
-                            {p.rating}
-                          </span>
-                          {p.rating_count && (
-                            <span className="text-gray-400 text-xs">
-                              ({p.rating_count})
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">{p.title}</p>
+                    <p className="text-sm text-gray-300">₹{p.dmart_price}</p>
 
-                    {/* Price and Discount */}
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <p className="text-lg font-bold text-white">
-                          {p.price}
-                        </p>
-                        {p.original_price && p.original_price !== p.price && (
-                          <p className="text-sm text-gray-400 line-through">
-                            {p.original_price}
-                          </p>
-                        )}
-                        {p.discount && (
-                          <p className="text-sm text-green-400 bg-green-900/30 px-2 py-1 rounded">
-                            {p.discount}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                    <div className="flex items-center gap-3 mt-2">
+                      <button
+                        onClick={() =>
+                          setCartSelections((prev: any) => ({
+                            ...prev,
+                            [key]: Math.max((prev[key] || 0) - 1, 0),
+                          }))
+                        }
+                        className="w-7 h-7 bg-gray-800 rounded-full flex items-center justify-center"
+                      >
+                        -
+                      </button>
 
-                    {/* Select button */}
-                    <div className="flex justify-end mt-3">
-                      <button className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium transition-colors">
-                        Select Size
+                      <span className="w-6 text-center">{qty}</span>
+
+                      <button
+                        onClick={() =>
+                          setCartSelections((prev: any) => ({
+                            ...prev,
+                            [key]: (prev[key] || 0) + 1,
+                          }))
+                        }
+                        className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center"
+                      >
+                        +
                       </button>
                     </div>
                   </div>
                 </div>
               );
             })}
+
+            <button
+              onClick={handleConfirmCart}
+              className={`w-full py-2 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 ${
+                loadingCart
+                  ? "bg-gray-600 cursor-not-allowed text-gray-400"
+                  : "bg-red-600 hover:bg-red-500 text-white"
+              }`}
+            >
+              {loadingCart ? (
+                <>
+                  <PopupLoader />
+                  Processing...
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </button>
           </div>
         </div>
       );
-    }
-
-    else if (
+    } else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
     ) {
-      content = (
-        <div className="flex items-center gap-3 p-4 bg-green-900/20 border border-green-600 rounded-xl">
-          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <div>
-            <p className="font-semibold text-green-400">Order Confirmed! 🎉</p>
-            <p className="text-sm text-green-300 mt-1">
-              Your fashion item will be delivered soon.
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    else {
+      content = <p className="font-semibold">Your order has been placed!</p>;
+    } else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
           let formatted = line;
+
           formatted = formatted.replace(
             /\*\*(.*?)\*\*/g,
             "<strong>$1</strong>"
           );
+
           formatted = formatted.replace(
             /([🛍️📋🎯💡📝💬❌🔍💰📦])/g,
             '<span class="text-xl">$1</span>'
@@ -421,7 +437,8 @@ export default function NykaaChat() {
             m.role === "user"
               ? "bg-white/15 text-white border-white/20"
               : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          } 
+          max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
         >
           {content}
         </div>
@@ -432,12 +449,13 @@ export default function NykaaChat() {
   return (
     <div className="min-h-screen w-screen bg-black text-white">
       {/* ALL POPUPS - RENDERED AT TOP LEVEL */}
-
-      {/* LOGIN POPUP */}
-      {showLoginPopup && (
+      {/* PHONE NUMBER POPUP */}
+      {showPhonePopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Login to Nykaa</h2>
+            <h2 className="text-xl font-semibold text-white">
+              Enter your details
+            </h2>
 
             <input
               type="text"
@@ -447,12 +465,20 @@ export default function NykaaChat() {
               className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
             />
 
+            <input
+              type="text"
+              placeholder="Location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+
             <button
               onClick={handleLogin}
-              disabled={loadingLogin}
+              disabled={loadingPhone}
               className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loadingLogin ? <PopupLoader /> : "Send OTP"}
+              {loadingPhone ? <PopupLoader /> : "Continue"}
             </button>
           </div>
         </div>
@@ -477,50 +503,7 @@ export default function NykaaChat() {
               disabled={loadingOtp}
               className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loadingOtp ? <PopupLoader /> : "Verify OTP"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* SIZE SELECTION POPUP */}
-      {showSizePopup && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Select Size</h2>
-
-            {pendingProduct && (
-              <div className="bg-gray-800 p-3 rounded-lg mb-4">
-                <p className="font-semibold">{pendingProduct.brand}</p>
-                <p className="text-sm text-gray-300">{pendingProduct.name}</p>
-                <p className="text-green-400 font-semibold mt-1">
-                  {pendingProduct.price}
-                </p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-2">
-              {sizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`p-3 rounded-lg border-2 transition-all ${
-                    selectedSize === size
-                      ? "border-red-500 bg-red-500/20 text-white"
-                      : "border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500"
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={handleAddToCart}
-              disabled={loadingCart || !selectedSize}
-              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loadingCart ? <PopupLoader /> : "Add to Cart"}
+              {loadingOtp ? <PopupLoader /> : "Verify"}
             </button>
           </div>
         </div>
@@ -530,22 +513,22 @@ export default function NykaaChat() {
       {showUpiPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Payment</h2>
+            <h2 className="text-xl font-semibold text-white">Enter UPI ID</h2>
 
             <input
               type="text"
-              placeholder="UPI ID"
+              placeholder="example@upi"
               value={upiId}
               onChange={(e) => setUpiId(e.target.value)}
               className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
             />
 
             <button
-              onClick={handleAddToCart}
-              disabled={loadingPayment}
+              onClick={handleUpiSubmit}
+              disabled={loadingUpi}
               className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loadingPayment ? <PopupLoader /> : "Pay Now"}
+              {loadingUpi ? <PopupLoader /> : "Submit"}
             </button>
           </div>
         </div>
@@ -763,7 +746,7 @@ export default function NykaaChat() {
                   </svg>
                 </button>
                 <div className="p-2 hover:bg-gray-900 rounded-full transition-colors">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-red-500 rounded-full flex items-center justify-center text-sm font-semibold">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-sm font-semibold">
                     L
                   </div>
                 </div>
@@ -827,14 +810,16 @@ export default function NykaaChat() {
                   </div>
                 </div>
 
-                {/* Card */}
+                {/* Cards */}
                 <div className="flex flex-wrap justify-center lg:flex-nowrap w-full gap-4">
+                  {/* GROCERIES */}
+
                   <Link
-                    to="/shopping"
+                    to="/groceries"
                     className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
-          border border-gray-700 hover:border-purple-500/50 transition-all cursor-pointer group"
+                  border border-gray-700 hover:border-green-500/50 transition-all cursor-pointer group"
                   >
-                    <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                       <svg
                         className="w-6 h-6"
                         fill="none"
@@ -845,13 +830,13 @@ export default function NykaaChat() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                         />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Shopping</h3>
+                    <h3 className="text-lg font-semibold mb-2">Groceries</h3>
                     <p className="text-sm text-gray-400">
-                      Order products, video and many more...
+                      Order fresh groceries from your nearest stations
                     </p>
                   </Link>
                 </div>

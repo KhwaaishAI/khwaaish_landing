@@ -9,6 +9,8 @@ import Chat3 from "./pages/Chat3";
 import Chat4 from "./pages/Chat4";
 import Chat5 from "./pages/Chat5";
 import Chat6 from "./pages/Chat6";
+import Chat7 from "./pages/Chat7";
+import Chat8 from "./pages/Chat8";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -58,6 +60,14 @@ export default function App() {
         <Route
           path="/jiomart"
           element={loggedIn ? <Chat6 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/tatacliq"
+          element={loggedIn ? <Chat7 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dmart"
+          element={loggedIn ? <Chat8 /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>

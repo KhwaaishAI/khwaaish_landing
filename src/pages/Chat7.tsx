@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+// const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+const BaseURL = import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 
@@ -10,7 +11,7 @@ interface Message {
   content: string;
 }
 
-export default function NykaaChat() {
+export default function TataCliq() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -63,7 +64,7 @@ export default function NykaaChat() {
     console.log("STEP 01.3 Login API request sending...");
 
     try {
-      const res = await fetch(`${BaseURL}api/nykaa/login`, {
+      const res = await fetch(`${BaseURL}api/tatacliq/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -106,7 +107,7 @@ export default function NykaaChat() {
     console.log("STEP 02.3: OTP API request sending...");
 
     try {
-      const res = await fetch(`${BaseURL}api/nykaa/enter-otp`, {
+      const res = await fetch(`${BaseURL}api/tatacliq/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -139,12 +140,12 @@ export default function NykaaChat() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${BaseURL}api/nykaa/search`, {
+      const response = await fetch(`${BaseURL}api/tatacliq/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query: query,
-          max_items: 10,
+          max_items: 30,
         }),
       });
 
@@ -206,14 +207,14 @@ export default function NykaaChat() {
     setLoadingPayment(true);
 
     try {
-      const res = await fetch(`${BaseURL}api/nykaa/add-to-cart`, {
+      const res = await fetch(`${BaseURL}api/tatacliq/add-to-cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          product_name: pendingProduct.name,
+          product_url: pendingProduct.url,
           size: selectedSize,
           upi_id: upiId,
-          hold_seconds: 59,
+          hold_seconds: 60,
         }),
       });
 
@@ -347,9 +348,7 @@ export default function NykaaChat() {
           </div>
         </div>
       );
-    }
-
-    else if (
+    } else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
@@ -379,9 +378,7 @@ export default function NykaaChat() {
           </div>
         </div>
       );
-    }
-
-    else {
+    } else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
           let formatted = line;
