@@ -11,6 +11,8 @@ import Chat5 from "./pages/Chat5";
 import Chat6 from "./pages/Chat6";
 import Chat7 from "./pages/Chat7";
 import Chat8 from "./pages/Chat8";
+import Ola from "./pages/Ola";
+import Pharmeasy from "./pages/Pharmeasy";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -68,6 +70,14 @@ export default function App() {
         <Route
           path="/dmart"
           element={loggedIn ? <Chat8 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/ola"
+          element={loggedIn ? <Ola /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/pharmeasy"
+          element={loggedIn ? <Pharmeasy /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
