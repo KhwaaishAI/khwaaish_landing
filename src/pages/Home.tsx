@@ -34,6 +34,11 @@ export default function Home() {
       return;
     }
 
+    if (selectedCompany === "Pharmeasy") {
+      navigate("/pharmeasy", { state: { initialMessage: text, userName } });
+      return;
+    }
+
     setMessages((prev) => [...prev, { text, sender: "user" }]);
     // Simulate AI response
     setTimeout(() => {

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { LuSend } from "react-icons/lu";
 
 interface HomeChatBarProps {
@@ -28,6 +29,7 @@ export default function HomeChatBar({
   selectedCompany,
   onSelectCompany,
 }: HomeChatBarProps) {
+  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showCompanies, setShowCompanies] = useState(false);
   const [inputText, setInputText] = useState("");
@@ -49,10 +51,26 @@ export default function HomeChatBar({
   };
 
   const handleSend = () => {
-    if (inputText.trim() && onSendMessage) {
+    if (!inputText.trim()) return;
+
+    if (activeCompany === "Ola") {
+      navigate("/ola", {
+        state: {
+          initialMessage: inputText,
+          userName: "Aniket",
+        },
+      });
+    } else if (activeCompany === "Pharmeasy") {
+      navigate("/pharmeasy", {
+        state: {
+          initialMessage: inputText,
+          userName: "Aniket",
+        },
+      });
+    } else if (onSendMessage) {
       onSendMessage(inputText);
-      setInputText("");
     }
+    setInputText("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
