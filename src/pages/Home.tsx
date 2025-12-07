@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // 1. Import navigation hook
 import HomeSidebar from "../components/home/HomeSidebar";
 import HomeTopBar from "../components/home/HomeTopBar";
 import HomeHero from "../components/home/HomeHero";
@@ -13,6 +14,7 @@ import AuthToast from "../components/auth/AuthToast";
 export default function Home() {
   type AuthStep = "none" | "welcome" | "phone" | "otp" | "profile" | "dob";
 
+  const navigate = useNavigate(); // 2. Initialize navigation
   const [authStep, setAuthStep] = useState<AuthStep>("none");
   const [toastMessage, setToastMessage] = useState("");
 
@@ -45,7 +47,11 @@ export default function Home() {
         />
         <div className="flex-1 flex flex-col items-center">
           <HomeHero />
-          <HomeChatBar />
+          
+          {/* 3. Added onClick wrapper to navigate to Oyo page */}
+          <div className="w-full flex justify-center cursor-pointer" onClick={() => navigate('/oyo')}>
+            <HomeChatBar />
+          </div>
         </div>
       </main>
 

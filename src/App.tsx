@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
 
+// Existing Pages
 import Intro from "./pages/Intro";
 import Home from "./pages/Home";
 import Chat1 from "./pages/Chat1";
@@ -10,8 +11,11 @@ import Chat4 from "./pages/Chat4";
 import Chat5 from "./pages/Chat5";
 import Chat6 from "./pages/Chat6";
 
+// New Component Import
+import OyoChat from "./components/oyo/OyoChat";
+
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(true);
 
   return (
     <BrowserRouter>
@@ -39,27 +43,39 @@ export default function App() {
           path="/groceries"
           element={loggedIn ? <Chat1 /> : <Navigate to="/" replace />}
         />
+        
         {/* Transport */}
         <Route
           path="/transport"
           element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
         />
+        
         <Route
           path="/shopping"
           element={loggedIn ? <Chat3 /> : <Navigate to="/" replace />}
         />
+        
         <Route
           path="/food"
           element={loggedIn ? <Chat4 /> : <Navigate to="/" replace />}
         />
+        
         <Route
           path="/nykaa"
           element={loggedIn ? <Chat5 /> : <Navigate to="/" replace />}
         />
+        
         <Route
           path="/jiomart"
           element={loggedIn ? <Chat6 /> : <Navigate to="/" replace />}
         />
+
+        {/* === NEW OYO / HOTELS ROUTE === */}
+        <Route
+          path="/oyo"
+          element={loggedIn ? <OyoChat /> : <Navigate to="/" replace />}
+        />
+
       </Routes>
     </BrowserRouter>
   );
