@@ -338,7 +338,7 @@ export default function Chat4() {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
-          <div className="grid gap-4">
+          <div className="flex overflow-auto gap-4">
             {parsed.products?.map((p: any, index: number) => {
               const key = p.item_name + p.price + index;
               const isSelected =
@@ -347,7 +347,7 @@ export default function Chat4() {
               return (
                 <div
                   key={key}
-                  className={`flex gap-3 p-4 rounded-xl border ${
+                  className={`flex gap-3 p-4 min-w-64 rounded-xl border ${
                     isSelected
                       ? "border-green-500 bg-gray-800"
                       : "border-gray-700 bg-gray-900/60"

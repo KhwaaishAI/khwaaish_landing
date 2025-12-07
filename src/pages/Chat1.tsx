@@ -62,7 +62,6 @@ export default function Chat1() {
       { id: crypto.randomUUID(), role: "user", content: text },
     ]);
 
-
   const handleLogin = async () => {
     console.log("STEP 01: Login Workflow Started");
     console.log("STEP 01.1: Phone:", phone, " Location:", location);
@@ -127,7 +126,6 @@ export default function Chat1() {
 
     setLoadingPhone(false);
   };
-
 
   const handleOtpSubmit = async () => {
     console.log("STEP 02: OTP workflow started");
@@ -287,7 +285,6 @@ export default function Chat1() {
 
     setIsLoading(false);
   };
-
 
   const handleConfirmCart = async () => {
     if (loadingCart || loadingInstamartCart) return;
@@ -507,8 +504,6 @@ export default function Chat1() {
     }
   };
 
-
-
   const handleUpiSubmit = async () => {
     if (!upiId.trim()) {
       alert("Please enter a valid UPI ID");
@@ -564,7 +559,7 @@ export default function Chat1() {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
-          <div className="grid gap-4">
+          <div className="flex overflow-auto gap-4">
             {parsed.products?.map((p: any) => {
               const key = `${p.name}|${p.price}|${p.source}`;
               const qty = cartSelections[key]?.quantity || 0;
@@ -572,7 +567,7 @@ export default function Chat1() {
               return (
                 <div
                   key={Math.random()}
-                  className="flex gap-3 p-3 rounded-xl border border-gray-700 bg-gray-900/60"
+                  className="flex gap-3 p-3 min-w-64 rounded-xl border border-gray-700 bg-gray-900/60"
                 >
                   {/* Product Image */}
                   {p.image_url && (
@@ -680,17 +675,13 @@ export default function Chat1() {
           </div>
         </div>
       );
-    }
-
-    else if (
+    } else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
     ) {
       content = <p className="font-semibold">Your order has been placed!</p>;
-    }
-
-    else {
+    } else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
           let formatted = line;

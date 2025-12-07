@@ -410,7 +410,7 @@ export default function Chat6() {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
-          <div className="grid gap-4">
+          <div className="flex overflow-auto gap-4">
             {parsed.products?.map((p: any) => {
               const key = p.title + p.dmart_price;
               const qty = cartSelections[key] || 0;
@@ -418,7 +418,7 @@ export default function Chat6() {
               return (
                 <div
                   key={key}
-                  className="flex gap-3 p-3 rounded-xl border border-gray-700 bg-gray-900/60"
+                  className="flex gap-3 p-3 min-w-64 rounded-xl border border-gray-700 bg-gray-900/60"
                 >
                   <img
                     src={p.image_url}

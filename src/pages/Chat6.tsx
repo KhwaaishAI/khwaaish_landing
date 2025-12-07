@@ -52,7 +52,6 @@ export default function Chat6() {
       { id: crypto.randomUUID(), role: "user", content: text },
     ]);
 
-
   const handleLogin = async () => {
     console.log("STEP 01: Login Workflow Started");
     console.log("STEP 01.1: Phone:", phone, " Location:", location);
@@ -100,7 +99,6 @@ export default function Chat6() {
 
     setLoadingPhone(false);
   };
-
 
   const handleOtpSubmit = async () => {
     console.log("STEP 02: OTP workflow started");
@@ -202,7 +200,6 @@ export default function Chat6() {
     setIsLoading(false);
   };
 
-
   const handleConfirmCart = async () => {
     if (loadingCart) return;
 
@@ -283,7 +280,6 @@ export default function Chat6() {
     setUpiId("");
   };
 
-
   const handleUpiSubmit = async () => {
     if (!upiId.trim()) {
       alert("Please enter a valid UPI ID");
@@ -326,7 +322,7 @@ export default function Chat6() {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
-          <div className="grid gap-4">
+          <div className="flex max-w-5xl overflow-auto gap-4">
             {parsed.products?.map((p: any) => {
               const key = p.name + p.price;
               const qty = cartSelections[key] || 0;
@@ -334,19 +330,21 @@ export default function Chat6() {
               return (
                 <div
                   key={key}
-                  className="flex gap-3 p-3 rounded-xl border border-gray-700 bg-gray-900/60"
+                  className="flex flex-col gap-3 p-3 min-w-52 rounded-xl border border-gray-700 bg-gray-900/60"
                 >
-                  {/* <img
-                    src={p.image}
+                  <img
+                    src={p.image_url}
                     alt={p.name}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  /> */}
+                    className="w-48 h-40 object-cover rounded-lg"
+                  />
 
-                  <div className="flex-1">
-                    <p className="font-semibold">{p.name}</p>
-                    <p className="text-sm text-gray-300">₹{p.price}</p>
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <p className="font-semibold">{p.name}</p>
+                      <p className="text-sm text-gray-300">₹{p.price}</p>
+                    </div>
 
-                    <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-end justify-end  gap-3 mt-2">
                       <button
                         onClick={() =>
                           setCartSelections((prev: any) => ({
@@ -378,9 +376,10 @@ export default function Chat6() {
               );
             })}
 
+          </div>
             <button
               onClick={handleConfirmCart}
-              className={`w-full py-2 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 ${
+              className={`px-4 py-2 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 ${
                 loadingCart
                   ? "bg-gray-600 cursor-not-allowed text-gray-400"
                   : "bg-red-600 hover:bg-red-500 text-white"
@@ -395,20 +394,15 @@ export default function Chat6() {
                 "Confirm"
               )}
             </button>
-          </div>
         </div>
       );
-    }
-
-    else if (
+    } else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
     ) {
       content = <p className="font-semibold">Your order has been placed!</p>;
-    }
-
-    else {
+    } else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
           let formatted = line;

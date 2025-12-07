@@ -261,14 +261,14 @@ export default function NykaaChat() {
             Here are some fashion finds:
           </h3>
 
-          <div className="grid gap-4">
+          <div className="flex overflow-auto  gap-4">
             {parsed.products?.map((p: any, index: number) => {
               const key = p.brand + p.name + p.price + index;
 
               return (
                 <div
                   key={key}
-                  className="flex gap-4 p-4 rounded-xl border border-gray-700 bg-gray-900/60 cursor-pointer transition-all hover:border-gray-600"
+                  className="flex gap-4 p-4 min-w-64 rounded-xl border border-gray-700 bg-gray-900/60 cursor-pointer transition-all hover:border-gray-600"
                   onClick={() => {
                     setPendingProduct(p);
                     setShowSizePopup(true);
