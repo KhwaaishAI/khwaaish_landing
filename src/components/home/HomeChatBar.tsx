@@ -1,6 +1,7 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import AddOnSelector from "../pharmeasy/AddOnSelector";
 import type { AddOn } from "../pharmeasy/AddOnSelector";
+import { availableAddOns } from "../pharmeasy/AddOnSelector";
 import AddOnChip from "../pharmeasy/AddOnChip";
 import { usePharmEasyFlow } from "../pharmeasy/PharmEasyFlowContext";
 
@@ -27,32 +28,36 @@ export default function HomeChatBar({ placeholder }: HomeChatBarProps) {
     }
   }
 
-  // Check if PharmEasy is selected and user has entered ordering instructions
-  useEffect(() => {
-    const hasPharmEasy = selectedAddOns.some((a) => a.id === "pharmeasy");
-    const hasOrderingInstruction = inputValue.trim().length > 0;
+  // Handle message send/submit
+  const handleSend = () => {
+    const trimmedValue = inputValue.trim();
     
-    // Keywords that indicate ordering intent
-    const orderingKeywords = [
-      "order", "buy", "purchase", "get", "need", "want", 
-      "medicine", "medicines", "tablet", "tablets", "prescription",
-      "deliver", "delivery", "book", "place"
-    ];
-    
-    const hasOrderingIntent = orderingKeywords.some(keyword => 
-      inputValue.toLowerCase().includes(keyword)
-    );
-
-    if (hasPharmEasy && (hasOrderingInstruction || hasOrderingIntent)) {
-      if (!isActive) {
-        setActive(true);
-        setStep("booking");
+    // If user has entered any text (medicine name), start the PharmEasy flow
+    if (trimmedValue.length > 0) {
+      // Auto-select PharmEasy add-on if not already selected
+      const hasPharmEasy = selectedAddOns.some((a) => a.id === "pharmeasy");
+      if (!hasPharmEasy) {
+        const pharmEasyAddOn = availableAddOns.find((a) => a.id === "pharmeasy");
+        if (pharmEasyAddOn) {
+          setSelectedAddOns((s) => [...s, pharmEasyAddOn]);
+        }
       }
-    } else if (!hasPharmEasy && isActive) {
-      setActive(false);
-      setStep("none");
+      
+      // Start the PharmEasy flow
+      setActive(true);
+      setStep("booking");
+      // Clear the input after starting the flow
+      setInputValue("");
     }
-  }, [selectedAddOns, inputValue, isActive, setActive, setStep]);
+  };
+
+  // Handle Enter key press
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   return (
     <div className="mt-24 flex justify-center px-6">
@@ -123,12 +128,16 @@ export default function HomeChatBar({ placeholder }: HomeChatBarProps) {
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="flex-1 bg-transparent text-sm sm:text-base text-white placeholder-white/70 outline-none"
             placeholder={placeholder ?? "Ask anything..."}
           />
           <button
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-white/10 text-white/90"
-            onClick={(e) => e.stopPropagation()}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-white/10 text-white/90 hover:bg-white/20 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSend();
+            }}
           >
             <svg
               className="h-4 w-4"

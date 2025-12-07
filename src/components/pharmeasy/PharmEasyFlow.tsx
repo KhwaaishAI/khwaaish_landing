@@ -51,7 +51,7 @@ export function PharmEasyFlow() {
     switch (currentStep) {
       case "booking":
         return (
-          <div className="flex items-center justify-center min-h-[60vh] p-6">
+          <div className="flex items-center justify-center min-h-screen p-6">
             <BookingDetails />
           </div>
         );
@@ -158,7 +158,7 @@ export function PharmEasyFlow() {
   };
 
   return (
-    <div className="fixed inset-0 z-40 overflow-y-auto bg-background/95 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/95 backdrop-blur-sm">
       {renderStep()}
     </div>
   );

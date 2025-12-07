@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 const OrderBooking = () => {
-  const { orderData, updateSelectedProducts } = usePharmEasyFlow();
+  const { orderData, updateSelectedProducts, setStep } = usePharmEasyFlow();
   const [sortBy, setSortBy] = useState("relevance");
 
   // Convert selected products from context to display format
@@ -148,7 +148,12 @@ const OrderBooking = () => {
           <StatusIndicator type="waiting" text="Waiting for the details confirmation...." />
           
           <Button 
-            className="bg-secondary hover:bg-secondary/80 text-foreground"
+            onClick={() => {
+              if (products.length > 0) {
+                setStep("address");
+              }
+            }}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             disabled={products.length === 0}
           >
             Confirm

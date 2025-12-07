@@ -44,7 +44,9 @@ function HomeContent() {
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }
-            : {}
+            : {
+                backgroundColor: '#000000',
+              }
         }
       >
         <HomeTopBar
