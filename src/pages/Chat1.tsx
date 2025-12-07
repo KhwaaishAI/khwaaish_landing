@@ -559,119 +559,134 @@ export default function Chat1() {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
-          <div className="flex overflow-auto gap-4">
-            {parsed.products?.map((p: any) => {
-              const key = `${p.name}|${p.price}|${p.source}`;
-              const qty = cartSelections[key]?.quantity || 0;
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {parsed.products?.map((p: any, index: number) => {
+                const key = `${p.name}|${p.price}|${p.source}`;
+                const qty = cartSelections[key]?.quantity || 0;
 
-              return (
-                <div
-                  key={Math.random()}
-                  className="flex gap-3 p-3 min-w-64 rounded-xl border border-gray-700 bg-gray-900/60"
-                >
-                  {/* Product Image */}
-                  {p.image_url && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={p.image_url}
-                        alt={p.name}
-                        className="w-28 h-28 object-cover rounded-lg bg-gray-800"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
+                return (
+                  <div
+                    key={key + index}
+                    className="flex flex-col bg-[#11121a] border border-gray-800/80 rounded-2xl overflow-hidden shadow-sm hover:border-gray-600 transition-colors"
+                  >
+                    {p.image_url && (
+                      <div className="relative w-full h-32 bg-gray-800">
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )}
 
-                  <div className="flex-1">
-                    {/* Source badge */}
-                    <div className="mb-2">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          p.source === "zepto"
-                            ? "bg-blue-500/20 text-blue-400"
-                            : "bg-green-500/20 text-green-400"
-                        }`}
-                      >
-                        {p.source === "zepto" ? "Zepto" : "Instamart"}
-                      </span>
-                    </div>
-                    <p className="font-semibold">{p.name}</p>
-                    <p className="text-sm text-gray-300">₹{p.price}</p>
+                    <div className="flex-1 flex flex-col px-3 py-3 gap-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className={`text-[10px] px-2 py-1 rounded-full ${
+                            p.source === "zepto"
+                              ? "bg-blue-500/15 text-blue-300"
+                              : "bg-green-500/15 text-green-300"
+                          }`}
+                        >
+                          {p.source === "zepto" ? "Zepto" : "Instamart"}
+                        </span>
+                      </div>
 
-                    <div className="flex items-center gap-3 mt-2">
-                      <button
-                        onClick={() =>
-                          setCartSelections((prev: any) => {
-                            const current = prev[key] || {
-                              quantity: 0,
-                              product: p,
-                            };
-                            return {
-                              ...prev,
-                              [key]: {
-                                ...current,
-                                quantity: Math.max(current.quantity - 1, 0),
-                              },
-                            };
-                          })
-                        }
-                        className="w-7 h-7 bg-gray-800 rounded-full flex items-center justify-center"
-                      >
-                        -
-                      </button>
+                      <div className="space-y-1 min-h-[48px]">
+                        <p className="text-sm font-semibold text-white line-clamp-2">
+                          {p.name}
+                        </p>
+                      </div>
 
-                      <span className="w-6 text-center">{qty}</span>
+                      <div className="flex items-baseline justify-between mt-1">
+                        <p className="text-base font-bold text-white">₹{p.price}</p>
+                        {p.original_price && p.original_price !== p.price && (
+                          <p className="text-xs text-gray-400 line-through">
+                            ₹{p.original_price}
+                          </p>
+                        )}
+                      </div>
 
-                      <button
-                        onClick={() =>
-                          setCartSelections((prev: any) => {
-                            const current = prev[key] || {
-                              quantity: 0,
-                              product: p,
-                            };
-                            return {
-                              ...prev,
-                              [key]: {
-                                ...current,
-                                quantity: current.quantity + 1,
-                              },
-                            };
-                          })
-                        }
-                        className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center"
-                      >
-                        +
-                      </button>
+                      <div className="mt-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              setCartSelections((prev: any) => {
+                                const current = prev[key] || {
+                                  quantity: 0,
+                                  product: p,
+                                };
+                                return {
+                                  ...prev,
+                                  [key]: {
+                                    ...current,
+                                    quantity: Math.max(current.quantity - 1, 0),
+                                  },
+                                };
+                              })
+                            }
+                            className="w-7 h-7 bg-gray-800 rounded-full flex items-center justify-center text-sm"
+                          >
+                            -
+                          </button>
+                          <span className="w-6 text-center text-sm">{qty}</span>
+                          <button
+                            onClick={() =>
+                              setCartSelections((prev: any) => {
+                                const current = prev[key] || {
+                                  quantity: 0,
+                                  product: p,
+                                };
+                                return {
+                                  ...prev,
+                                  [key]: {
+                                    ...current,
+                                    quantity: current.quantity + 1,
+                                  },
+                                };
+                              })
+                            }
+                            className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center text-sm"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
 
-            <button
-              onClick={handleConfirmCart}
-              className={`w-full py-2 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 ${
-                loadingCart || loadingInstamartCart
-                  ? "bg-gray-600 cursor-not-allowed text-gray-400"
-                  : "bg-red-600 hover:bg-red-500 text-white"
-              }`}
-              disabled={loadingCart || loadingInstamartCart}
-            >
-              {loadingCart ? (
-                <>
-                  <PopupLoader />
-                  Processing Zepto...
-                </>
-              ) : loadingInstamartCart ? (
-                <>
-                  <PopupLoader />
-                  Processing Instamart...
-                </>
-              ) : (
-                "Confirm Order"
-              )}
-            </button>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleConfirmCart}
+                className={`px-5 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 ${
+                  loadingCart || loadingInstamartCart
+                    ? "bg-gray-600 cursor-not-allowed text-gray-400"
+                    : "bg-red-600 hover:bg-red-500 text-white shadow-lg hover:shadow-red-500/25"
+                }`}
+                disabled={loadingCart || loadingInstamartCart}
+              >
+                {loadingCart ? (
+                  <>
+                    <PopupLoader />
+                    Processing Zepto...
+                  </>
+                ) : loadingInstamartCart ? (
+                  <>
+                    <PopupLoader />
+                    Processing Instamart...
+                  </>
+                ) : (
+                  "Confirm Order"
+                )}
+              </button>
+            </div>
           </div>
         </div>
       );

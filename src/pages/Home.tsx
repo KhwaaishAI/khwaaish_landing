@@ -246,7 +246,7 @@ export default function Home() {
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                     <img src="/logo/ola.jpg" alt="Ola" className="w-full h-full object-contain" />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Ola</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">Travels</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Book cabs in a single message.
                   </p>
@@ -274,9 +274,9 @@ export default function Home() {
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                     <img src="/logo/nkyaa.jpg" alt="Nykaa" className="w-full h-full object-contain" />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Nykaa</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">Beauty</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Beauty &amp; personal care shopping.
+                    personal care shopping.
                   </p>
                 </Link>
 
@@ -288,7 +288,7 @@ export default function Home() {
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                     <img src="/logo/jiomart.jpg" alt="JioMart" className="w-full h-full object-contain" />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">JioMart</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">Essentials</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Daily essentials &amp; groceries.
                   </p>
@@ -302,7 +302,7 @@ export default function Home() {
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                     <img src="/logo/tatacliq.jpg" alt="Tata Cliq" className="w-full h-full object-contain" />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Tata Cliq</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">Fasion</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Fashion &amp; lifestyle picks.
                   </p>
@@ -316,7 +316,7 @@ export default function Home() {
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                     <img src="/logo/dmart.jpg" alt="D-Mart" className="w-full h-full object-contain" />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">D-Mart</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">Supermarket</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Discount supermarket deals.
                   </p>
