@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = import.meta.env.VITE_API_BASE_URL;
+const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 
@@ -34,6 +34,7 @@ export default function Chat6() {
   const [loadingPhone, setLoadingPhone] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingCart, setLoadingCart] = useState(false);
+  const [loadingOrder, setLoadingOrder] = useState(false);
 
   const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
   const [cartSelections, setCartSelections] = useState<{
@@ -200,6 +201,82 @@ export default function Chat6() {
     setIsLoading(false);
   };
 
+  // NEW FUNCTION: Handle order placement
+  const handlePlaceOrder = async () => {
+    if (loadingOrder) return;
+
+    console.log("STEP 06: handlePlaceOrder() triggered");
+    console.log("STEP 06.1: Order details:", {
+      session_id: sessionId,
+      day_text: dayText,
+      slot_text: slotText,
+      upi_id: upiId,
+      hold_seconds: 60,
+    });
+
+    // Validate all required fields
+    if (!sessionId || !dayText || !slotText || !upiId) {
+      console.log("STEP 06.2: Missing required fields for order");
+      pushSystem("Please fill in all order details (day, slot, and UPI ID)");
+      return;
+    }
+
+    setLoadingOrder(true);
+    pushSystem("Placing your order with delivery details...");
+
+    try {
+      const endpoint = "dmart/order";
+      const payload = {
+        session_id: sessionId,
+        day_text: dayText,
+        slot_text: slotText,
+        upi_id: upiId,
+        hold_seconds: 60,
+      };
+
+      console.log("STEP 06.3: Order API request sending...", payload);
+
+      const res = await fetch(`${BaseURL}api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      console.log("STEP 06.4: Order API response:", data);
+
+      if (data.status === "success" || data.order_placed) {
+        pushSystem(
+          JSON.stringify({
+            status: "success",
+            message: `Order placed successfully! Delivery scheduled for ${dayText} during ${slotText}. Payment request sent to ${upiId}`,
+            order_details: data,
+          })
+        );
+
+        // Reset order details
+        setDayText("");
+        setSlotText("");
+        setUpiId("");
+      } else {
+        pushSystem(
+          JSON.stringify({
+            status: "error",
+            message: "Order placement failed. Please try again.",
+            details: data,
+          })
+        );
+      }
+    } catch (err) {
+      console.log("STEP 06: Error:", err);
+      pushSystem(
+        "Something went wrong while placing the order. Please try again."
+      );
+    } finally {
+      setLoadingOrder(false);
+    }
+  };
+
   const handleConfirmCart = async () => {
     if (loadingCart) return;
 
@@ -223,24 +300,28 @@ export default function Chat6() {
       !!upiId
     );
 
-    if (upiId == "") {
-      console.log("STEP 04.2: D-Mart API - UPI ID required, showing UPI popup");
+    // MODIFIED: Now we also need day and slot text
+    if (!upiId || !dayText || !slotText) {
+      console.log("STEP 04.2: Order details required, showing order popup");
       setPendingCartSelections(currentCart);
       setShowUpiPopup(true);
+      return;
     }
 
-    for (const [name, qty] of selectedItems) {
-      const endpoint = "dmart/add-to-cart";
-      const payload = {
-        product_name: name,
-        quantity: qty,
-      };
+    setLoadingCart(true);
+    pushSystem("Adding items to cart...");
 
-      console.log("STEP 04.3: Add to cart API request sending...", payload);
+    try {
+      // First add all items to cart
+      for (const [name, qty] of selectedItems) {
+        const endpoint = "dmart/add-to-cart";
+        const payload = {
+          product_name: name,
+          quantity: qty,
+        };
 
-      setLoadingCart(true);
+        console.log("STEP 04.3: Add to cart API request sending...", payload);
 
-      try {
         const res = await fetch(`${BaseURL}api/${endpoint}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -251,53 +332,63 @@ export default function Chat6() {
         console.log("STEP 04.4: Add to cart API response:", data);
 
         if (data === null || data.order_placed) {
-          pushSystem(
-            JSON.stringify({
-              status: "success",
-              message: "Your order has been completed!",
-            })
-          );
+          // Item added successfully
         } else if (
           data.status === "error" &&
           data.message === "Cart is empty."
         ) {
           pushSystem("The Item is Out of Stock now!");
-        } else {
-          pushSystem(JSON.stringify(data));
         }
-      } catch (err) {
-        console.log("STEP 04: Error:", err);
-        pushSystem(`Payment Request Sent to your UPI ID`);
-      } finally {
-        setLoadingCart(false);
       }
-    }
 
-    setCartSelections({});
-    setUpiId("");
+      // NEW: After adding all items to cart, place the order
+      console.log("STEP 04.5: All items added to cart, now placing order...");
+      await handlePlaceOrder();
+    } catch (err) {
+      console.log("STEP 04: Error:", err);
+      pushSystem("Error processing cart items. Please try again.");
+    } finally {
+      setLoadingCart(false);
+      setCartSelections({});
+    }
   };
 
   const handleUpiSubmit = async () => {
-    if (!upiId.trim()) {
-      alert("Please enter a valid UPI ID");
+    if (!upiId.trim() || !dayText.trim() || !slotText.trim()) {
+      alert("Please enter all order details (Day, Slot, and UPI ID)");
       return;
     }
 
     setLoadingUpi(true);
-    console.log("STEP 05: Submitting UPI ID...", upiId);
+    console.log("STEP 05: Submitting order details...", {
+      dayText,
+      slotText,
+      upiId,
+    });
 
     try {
       setShowUpiPopup(false);
-      pushSystem("UPI ID collected. Placing your order...");
+      pushSystem(
+        `Order details collected: Delivery on ${dayText} during ${slotText}. UPI: ${upiId}`
+      );
 
+      // If there are pending cart selections, process them
       if (pendingCartSelections) {
         setCartSelections(pendingCartSelections);
         setPendingCartSelections(null);
-        handleConfirmCart();
+
+        // Wait a bit for state update then confirm cart
+        setTimeout(() => {
+          handleConfirmCart();
+        }, 100);
+      } else {
+        // If no pending cart, just place the order (for cases where cart was already processed)
+        pushSystem("Processing order with provided details...");
+        await handlePlaceOrder();
       }
     } catch (err) {
-      console.log("STEP 05: Error submitting UPI ID:", err);
-      alert("Something went wrong while submitting UPI ID.");
+      console.log("STEP 05: Error submitting order details:", err);
+      alert("Something went wrong while submitting order details.");
     } finally {
       setLoadingUpi(false);
     }
@@ -385,7 +476,7 @@ export default function Chat6() {
                   Processing...
                 </>
               ) : (
-                "Confirm"
+                "Confirm Order"
               )}
             </button>
           </div>
@@ -396,7 +487,20 @@ export default function Chat6() {
         parsed?.status?.toLowerCase() === "success") ||
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
     ) {
-      content = <p className="font-semibold">Your order has been placed!</p>;
+      content = (
+        <div className="space-y-2">
+          <p className="font-semibold text-green-400">🎉 Order Successful!</p>
+          {parsed.message && <p className="text-gray-300">{parsed.message}</p>}
+          {parsed.order_details && (
+            <div className="mt-2 p-3 bg-gray-800/50 rounded-lg">
+              <p className="text-sm text-gray-400">Order Details:</p>
+              <pre className="text-xs mt-1 overflow-auto">
+                {JSON.stringify(parsed.order_details, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      );
     } else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
@@ -511,40 +615,70 @@ export default function Chat6() {
         </div>
       )}
 
-      {/* UPI POPUP */}
+      {/* ORDER DETAILS POPUP (formerly UPI popup) */}
       {showUpiPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Enter UPI ID</h2>
+            <h2 className="text-xl font-semibold text-white">Order Details</h2>
 
-            <input
-              type="text"
-              placeholder="Day text"
-              value={dayText}
-              onChange={(e) => setDayText(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-            />
-            <input
-              type="text"
-              placeholder="Slot text"
-              value={slotText}
-              onChange={(e) => setSlotText(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-            />
-            <input
-              type="text"
-              placeholder="example@upi"
-              value={upiId}
-              onChange={(e) => setUpiId(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-            />
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">
+                  Delivery Day
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Tomorrow, Monday, etc."
+                  value={dayText}
+                  onChange={(e) => setDayText(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">
+                  Delivery Slot
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Morning, Afternoon, Evening"
+                  value={slotText}
+                  onChange={(e) => setSlotText(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">
+                  UPI ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="example@upi"
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-400 mt-2">
+              Payment will be held for 60 seconds for UPI confirmation
+            </p>
 
             <button
               onClick={handleUpiSubmit}
               disabled={loadingUpi}
               className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loadingUpi ? <PopupLoader /> : "Submit"}
+              {loadingUpi ? (
+                <>
+                  <PopupLoader />
+                  Processing...
+                </>
+              ) : (
+                "Place Order"
+              )}
             </button>
           </div>
         </div>
