@@ -3,12 +3,12 @@ import { useState } from "react";
 
 import Intro from "./pages/Intro";
 import Home from "./pages/Home";
-import Chat1 from "./pages/Chat1";
+import Chat1 from "./pages/ZeptoInstamart";
 import Chat2 from "./pages/Chat2";
 import Chat3 from "./pages/Chat3";
 import Chat4 from "./pages/Chat4";
 import Chat5 from "./pages/Chat5";
-import Chat6 from "./pages/Chat6";
+import Chat6 from "./pages/Jiomart";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(true);

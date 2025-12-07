@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
+import { useLocation } from "react-router-dom";
 
 interface Message {
   id: string;
@@ -11,15 +12,18 @@ interface Message {
 }
 
 export default function Chat6() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginButton, setShowLoginButton] = useState(false);
+  const [hasShownLoginPrompt, setHasShownLoginPrompt] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
-  const [showPhonePopup, setShowPhonePopup] = useState(true);
+  const [showPhonePopup, setShowPhonePopup] = useState(false);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
-
   const [showUpiPopup, setShowUpiPopup] = useState(false);
 
   const [upiId, setUpiId] = useState("");
@@ -40,18 +44,97 @@ export default function Chat6() {
 
   const [holdSeconds] = useState(59);
 
-  const pushSystem = (text: string) =>
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "system", content: text },
-    ]);
+  const pushSystem = useCallback(
+    (text: string) =>
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "system", content: text },
+      ]),
+    []
+  );
 
-  const pushUser = (text: string) =>
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", content: text },
-    ]);
+  const pushUser = useCallback(
+    (text: string) =>
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "user", content: text },
+      ]),
+    []
+  );
 
+  const uselocation = useLocation();
+  const { userInput } = uselocation.state || {};
+
+  // Auto-send when component mounts with userInput
+  useEffect(() => {
+    if (userInput && userInput.trim() && !hasShownLoginPrompt) {
+      // Set the message input
+      setShowChat(true);
+      
+      // Show user's message immediately
+      pushUser(userInput);
+
+      // Wait 2 seconds, then show login prompt
+      const timer = setTimeout(() => {
+        showLoginPrompt();
+      }, 2000);
+
+    }
+  }, []);
+
+  // Function to show login prompt
+  const showLoginPrompt = () => {
+    if (!hasShownLoginPrompt) {
+      pushSystem("To proceed further, please login to your account.");
+      setShowLoginButton(true);
+      setHasShownLoginPrompt(true);
+    }
+  };
+
+  // Handle login button click
+  const handleLoginClick = () => {
+    setShowPhonePopup(true);
+    setShowLoginButton(false);
+  };
+
+  // Modified handleAutoSend to only run after login
+  const handleAutoSend = async (text: string) => {
+    console.log("Auto-sending:", text);
+
+    if (!text.trim() || !isLoggedIn) return;
+
+    setIsLoading(true);
+
+    const endpoint = "jiomart/search";
+    const searchPayload = { query: text, max_items: 20 };
+
+    try {
+      const response = await fetch(`${BaseURL}api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(searchPayload),
+      });
+
+      const data = await response.json();
+      console.log("Search API response:", data);
+
+      if (data.session_id) {
+        setSessionId(data.session_id);
+      }
+
+      pushSystem(
+        JSON.stringify({
+          type: "product_list",
+          products: data.products || [],
+        })
+      );
+    } catch (err) {
+      console.log("Error:", err);
+      pushSystem("Something went wrong! " + err);
+    }
+
+    setIsLoading(false);
+  };
 
   const handleLogin = async () => {
     console.log("STEP 01: Login Workflow Started");
@@ -101,7 +184,6 @@ export default function Chat6() {
     setLoadingPhone(false);
   };
 
-
   const handleOtpSubmit = async () => {
     console.log("STEP 02: OTP workflow started");
     console.log("STEP 02.1: OTP entered:", otp);
@@ -131,6 +213,12 @@ export default function Chat6() {
       if (data.status === "success") {
         console.log("STEP 02.5: OTP verification successful");
         setShowOtpPopup(false);
+        setIsLoggedIn(true);
+
+        // Auto-send the user's query after successful login
+        if (userInput && userInput.trim()) {
+          handleAutoSend(userInput);
+        }
       } else {
         console.log("STEP 02.6: OTP verification failed");
         alert("Invalid OTP.");
@@ -152,9 +240,21 @@ export default function Chat6() {
     }
 
     setShowChat(true);
-
     pushUser(messageInput);
 
+    // If not logged in, show login prompt after 2 seconds
+    if (!isLoggedIn) {
+      const userText = messageInput;
+      setMessageInput("");
+
+      // Wait 2 seconds, then show login prompt
+      setTimeout(() => {
+        showLoginPrompt();
+      }, 2000);
+      return;
+    }
+
+    // If logged in, proceed with search
     const userText = messageInput;
     setMessageInput("");
     setIsLoading(true);
@@ -201,7 +301,6 @@ export default function Chat6() {
 
     setIsLoading(false);
   };
-
 
   const handleConfirmCart = async () => {
     if (loadingCart) return;
@@ -283,7 +382,6 @@ export default function Chat6() {
     setUpiId("");
   };
 
-
   const handleUpiSubmit = async () => {
     if (!upiId.trim()) {
       alert("Please enter a valid UPI ID");
@@ -321,7 +419,23 @@ export default function Chat6() {
 
     let content: React.ReactNode = null;
 
-    if (typeof parsed === "object" && parsed?.type === "product_list") {
+    // Check if this is the login prompt message
+    if (
+      parsed === "To proceed further, please login to your account." &&
+      showLoginButton
+    ) {
+      content = (
+        <div className="space-y-3">
+          <p>{parsed}</p>
+          <button
+            onClick={handleLoginClick}
+            className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold"
+          >
+            Login
+          </button>
+        </div>
+      );
+    } else if (typeof parsed === "object" && parsed?.type === "product_list") {
       content = (
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
@@ -398,17 +512,13 @@ export default function Chat6() {
           </div>
         </div>
       );
-    }
-
-    else if (
+    } else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
     ) {
       content = <p className="font-semibold">Your order has been placed!</p>;
-    }
-
-    else {
+    } else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
           let formatted = line;

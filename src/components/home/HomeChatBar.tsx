@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface HomeChatBarProps {
   placeholder?: string;
@@ -11,12 +12,12 @@ interface Brand {
   icon: string; // local or URL icon
 }
 
-// Add icons for visual match 🎨
+// Add icons for visual match
 const BRANDS: Brand[] = [
   {
     id: "instamart",
-    name: "Instamart",
-    route: "/instamart",
+    name: "Zepto & Instamart",
+    route: "/groceries",
     icon: "/icons/instamart.png",
   },
   {
@@ -49,7 +50,9 @@ export default function HomeChatBar({ placeholder }: HomeChatBarProps) {
 
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [showBrandList, setShowBrandList] = useState(false);
+  const [userInput, setUserInput] = useState("");
 
+  const navigate = useNavigate();
   // Close popup when clicking OUTSIDE
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -68,6 +71,11 @@ export default function HomeChatBar({ placeholder }: HomeChatBarProps) {
     inputRef.current?.focus();
   };
 
+  const handleSend = () => {
+    if (selectedBrand) {
+      navigate(selectedBrand.route, { state: { userInput } });
+    }
+  };
   return (
     <div className="mt-24 flex justify-center px-6">
       <div
@@ -84,6 +92,16 @@ export default function HomeChatBar({ placeholder }: HomeChatBarProps) {
       >
         {/* INPUT */}
         <input
+          type="text"
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (!userInput.trim()) return;
+              handleSend();
+            }
+          }}
           ref={inputRef}
           className="flex-1 bg-transparent text-sm sm:text-base text-white placeholder-white/70 outline-none px-4"
           placeholder={placeholder ?? "Ask anything..."}

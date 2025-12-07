@@ -3,13 +3,7 @@ import { useEffect, useState } from "react";
 const FlowerLoader = () => {
   const [currentStage, setCurrentStage] = useState(0);
 
-  const loaderStages = [
-    "Thinking...",
-    "Processing your request...",
-    "Analyzing options...",
-    "Working on your khwaaish...",
-    "Opening the App...",
-  ];
+  const loaderStages = ["Executing your Khwaaish....."];
 
   useEffect(() => {
     const interval = setInterval(() => {

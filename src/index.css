@@ -57,3 +57,14 @@ body {
     transform: rotate(360deg) translateY(-6px) rotate(-360deg);
   }
 }
+
+/* Hide scrollbar for Chrome, Safari and Edge */
+.tailwind-scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+.tailwind-scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE & Edge */
+}

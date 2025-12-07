@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
@@ -11,13 +11,18 @@ interface Message {
 }
 
 export default function Chat1() {
+  const [selectedUpi, setSelectedUpi] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginButton, setShowLoginButton] = useState(false);
+  const [hasShownLoginPrompt, setHasShownLoginPrompt] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
-  const [showPhonePopup, setShowPhonePopup] = useState(true);
+  const [showPhonePopup, setShowPhonePopup] = useState(false);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
 
   const [showUpiPopup, setShowUpiPopup] = useState(false);
@@ -50,6 +55,28 @@ export default function Chat1() {
   const [loadingInstamartBook, setLoadingInstamartBook] = useState(false);
   const [instamartCartItems, setInstamartCartItems] = useState<any[]>([]);
 
+  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [allProductsList, setAllProductsList] = useState([]);
+
+  const zeptoInputRef = useRef<HTMLInputElement>(null);
+  const instamartInputRef = useRef<HTMLInputElement>(null);
+
+  const UPI_DOMAINS = [
+    "@ybl",
+    "@ibl",
+    "@okicici",
+    "@oksbi",
+    "@okhdfcbank",
+    "@paytm",
+    "@pthdfc",
+    "@upi",
+    "@idfcbank",
+    "@kotak",
+    "@axl",
+    "@sbi",
+    "@kbl",
+  ];
+
   const pushSystem = (text: string) =>
     setMessages((prev) => [
       ...prev,
@@ -62,6 +89,46 @@ export default function Chat1() {
       { id: crypto.randomUUID(), role: "user", content: text },
     ]);
 
+  const uselocation = useLocation();
+  const { userInput } = uselocation.state || {};
+
+  // Auto-send when component mounts with userInput
+  useEffect(() => {
+    if (userInput && userInput.trim() && !hasShownLoginPrompt) {
+      // Set the message input
+      setShowChat(true);
+
+      // Show user's message immediately
+      pushUser(userInput);
+
+      // Set message input to empty
+      setMessageInput(userInput);
+
+      setIsLoading(true);
+
+      // Wait 2 seconds, then show login prompt
+      const timer = setTimeout(() => {
+        showLoginPrompt();
+      }, 2000);
+    }
+  }, []);
+
+  // Function to show login prompt
+  const showLoginPrompt = () => {
+    if (!hasShownLoginPrompt) {
+      setIsLoading(false);
+
+      pushSystem("To proceed further, please login to your account.");
+      setShowLoginButton(true);
+      setHasShownLoginPrompt(true);
+    }
+  };
+
+  // Handle login button click
+  const handleLoginClick = () => {
+    setShowPhonePopup(true);
+    setShowLoginButton(false);
+  };
 
   const handleLogin = async () => {
     console.log("STEP 01: Login Workflow Started");
@@ -128,10 +195,10 @@ export default function Chat1() {
     setLoadingPhone(false);
   };
 
-
   const handleOtpSubmit = async () => {
     console.log("STEP 02: OTP workflow started");
-    console.log("STEP 02.1: OTP entered:", otp);
+    console.log("STEP 02.1: Zepto OTP entered:", otp);
+    console.log("STEP 02.2: Instamart OTP entered:", instamartOtp);
 
     if (!otp.trim()) {
       console.log("STEP 02.2: Missing OTP");
@@ -178,6 +245,8 @@ export default function Chat1() {
         console.log("STEP 02.5: OTP verification successful");
         setShowOtpPopup(false);
       }
+
+      handleSend();
     } catch (err) {
       console.log("STEP 02: Error:", err);
       alert("Something went wrong!");
@@ -196,7 +265,7 @@ export default function Chat1() {
 
     setShowChat(true);
 
-    pushUser(messageInput);
+    // pushUser(messageInput);
 
     const userText = messageInput;
     setMessageInput("");
@@ -273,7 +342,7 @@ export default function Chat1() {
       ];
 
       console.log("STEP 03.7: Extracted productList =", productList);
-
+      setAllProductsList(productList);
       pushSystem(
         JSON.stringify({
           type: "product_list",
@@ -287,7 +356,6 @@ export default function Chat1() {
 
     setIsLoading(false);
   };
-
 
   const handleConfirmCart = async () => {
     if (loadingCart || loadingInstamartCart) return;
@@ -507,8 +575,6 @@ export default function Chat1() {
     }
   };
 
-
-
   const handleUpiSubmit = async () => {
     if (!upiId.trim()) {
       alert("Please enter a valid UPI ID");
@@ -548,6 +614,55 @@ export default function Chat1() {
     }
   };
 
+  const handleAddToCart = (product: any) => {
+    const key = `${product.name}|${product.price}|${product.source}`;
+    setCartSelections((prev) => {
+      const current = prev[key] || {
+        quantity: 0,
+        product: product,
+      };
+      return {
+        ...prev,
+        [key]: {
+          ...current,
+          quantity: current.quantity + 1,
+          product: product,
+        },
+      };
+    });
+  };
+
+  const handleIncreaseQuantity = (key: string) => {
+    setCartSelections((prev) => {
+      const current = prev[key];
+      return {
+        ...prev,
+        [key]: {
+          ...current,
+          quantity: current.quantity + 1,
+        },
+      };
+    });
+  };
+
+  const handleDecreaseQuantity = (key: string) => {
+    setCartSelections((prev) => {
+      const current = prev[key];
+      if (!current || current.quantity <= 1) {
+        const newSelections = { ...prev };
+        delete newSelections[key];
+        return newSelections;
+      }
+      return {
+        ...prev,
+        [key]: {
+          ...current,
+          quantity: current.quantity - 1,
+        },
+      };
+    });
+  };
+
   const renderMessage = (m: Message) => {
     let parsed: any;
 
@@ -559,138 +674,281 @@ export default function Chat1() {
 
     let content: React.ReactNode = null;
 
-    if (typeof parsed === "object" && parsed?.type === "product_list") {
+    if (
+      parsed === "To proceed further, please login to your account." &&
+      showLoginButton
+    ) {
       content = (
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
+          <p>{parsed}</p>
+          <button
+            onClick={handleLoginClick}
+            className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold"
+          >
+            Login
+          </button>
+        </div>
+      );
+    } else if (typeof parsed === "object" && parsed?.type === "product_list") {
+      content = (
+        <div className="space-y-6">
+          {/* Title */}
+          <h3 className="text-lg font-semibold">
+            Here are the few best deals we got for you
+          </h3>
 
-          <div className="grid gap-4">
-            {parsed.products?.map((p: any) => {
-              const key = `${p.name}|${p.price}|${p.source}`;
-              const qty = cartSelections[key]?.quantity || 0;
+          {/* Group by source */}
+          {["zepto", "instamart"].map((source) => {
+            const items = parsed.products?.filter(
+              (p: any) => p.source === source
+            );
 
-              return (
-                <div
-                  key={Math.random()}
-                  className="flex gap-3 p-3 rounded-xl border border-gray-700 bg-gray-900/60"
-                >
-                  {/* Product Image */}
-                  {p.image_url && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={p.image_url}
-                        alt={p.name}
-                        className="w-28 h-28 object-cover rounded-lg bg-gray-800"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
+            if (!items?.length) return null;
 
-                  <div className="flex-1">
-                    {/* Source badge */}
-                    <div className="mb-2">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          p.source === "zepto"
-                            ? "bg-blue-500/20 text-blue-400"
-                            : "bg-green-500/20 text-green-400"
-                        }`}
-                      >
-                        {p.source === "zepto" ? "Zepto" : "Instamart"}
-                      </span>
-                    </div>
-                    <p className="font-semibold">{p.name}</p>
-                    <p className="text-sm text-gray-300">₹{p.price}</p>
+            return (
+              <div key={source} className="space-y-4 flex ">
+                <div className="flex flex-col w-[78%]">
+                  {/* Source Heading */}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-7 h-7 rounded-md flex items-center justify-center text-white font-bold ${
+                        source === "zepto" ? "bg-[#7B3FFD]" : "bg-green-500"
+                      }`}
+                    >
+                      {source === "zepto" ? (
+                        <img src="/zepto.png" alt="" />
+                      ) : (
+                        <img src="/instamart.png" alt="" />
+                      )}
+                    </span>
+                    <h2 className="text-lg font-semibold">
+                      Best deals you can grab on{" "}
+                      {source === "zepto" ? "Zepto" : "Swiggy Instamart"} right
+                      now
+                    </h2>
+                  </div>
 
-                    <div className="flex items-center gap-3 mt-2">
-                      <button
-                        onClick={() =>
-                          setCartSelections((prev: any) => {
-                            const current = prev[key] || {
-                              quantity: 0,
-                              product: p,
-                            };
-                            return {
-                              ...prev,
-                              [key]: {
-                                ...current,
-                                quantity: Math.max(current.quantity - 1, 0),
-                              },
-                            };
-                          })
-                        }
-                        className="w-7 h-7 bg-gray-800 rounded-full flex items-center justify-center"
-                      >
-                        -
-                      </button>
+                  {/* Product horizontal scrollable list */}
+                  <div className="flex gap-4 overflow-x-auto tailwind-scrollbar-hide pb-2">
+                    {items.map((p: any) => {
+                      const key = `${p.name}|${p.price}|${p.source}`;
+                      const currentItem = cartSelections[key];
+                      const qty = currentItem?.quantity || 0;
 
-                      <span className="w-6 text-center">{qty}</span>
+                      return (
+                        <div
+                          key={key}
+                          className="min-w-[160px] bg-[#111] p-3 rounded-xl border border-gray-800 relative"
+                        >
+                          {/* Discount badge */}
+                          {p.discount && (
+                            <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-[2px] rounded-md">
+                              {p.discount}% OFF
+                            </span>
+                          )}
 
-                      <button
-                        onClick={() =>
-                          setCartSelections((prev: any) => {
-                            const current = prev[key] || {
-                              quantity: 0,
-                              product: p,
-                            };
-                            return {
-                              ...prev,
-                              [key]: {
-                                ...current,
-                                quantity: current.quantity + 1,
-                              },
-                            };
-                          })
-                        }
-                        className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center"
-                      >
-                        +
-                      </button>
-                    </div>
+                          {/* Product image with + button overlay */}
+                          <div className="relative">
+                            <img
+                              src={p.image_url}
+                              alt={p.name}
+                              className="w-full h-32 object-cover rounded-md bg-gray-900"
+                              onError={(e) =>
+                                (e.currentTarget.style.display = "none")
+                              }
+                            />
+                            {/* + button on image */}
+                            <button
+                              onClick={() => handleAddToCart(p)}
+                              className="absolute bottom-2 right-2 w-8 h-8 bg-white text-black text-3xl rounded flex items-center justify-center transition-colors active:scale-95 shadow-lg"
+                            >
+                              +
+                            </button>
+                            {qty > 0 && (
+                              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md">
+                                {qty} in cart
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Delivery Time + Rating */}
+                          <div className="flex items-center justify-between mt-2 text-xs">
+                            <span className="text-gray-300">
+                              {p.delivery_time || "24 min"}
+                            </span>
+                            <span className="bg-green-700/30 px-2 py-[2px] rounded text-green-400">
+                              ⭐ 4.1
+                            </span>
+                          </div>
+
+                          {/* Name */}
+                          <p className="text-sm font-semibold mt-1 line-clamp-2">
+                            {p.name}
+                          </p>
+
+                          {/* Price */}
+                          <div className="mt-1">
+                            <span className="font-bold text-white">
+                              ₹{p.price}
+                            </span>
+                            {p.mrp && (
+                              <span className="text-gray-400 line-through text-sm ml-2">
+                                ₹{p.mrp}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              );
-            })}
+                {/* Show All Products Button - Redesigned as card */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setShowAllProducts(true)}
+                    className="min-w-[160px] mt-4 h-64 bg-[#111] p-3 rounded-xl border border-gray-800 hover:border-gray-600 transition-colors flex flex-col items-center justify-center"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center mb-2">
+                      <svg
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-semibold text-center">
+                      View All Products
+                    </span>
+                    <span className="text-xs text-gray-400 text-center mt-1">
+                      Browse full collection
+                    </span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
 
+          {/* Cart Summary & Action Buttons */}
+          <div className="space-y-4 pt-4 border-t border-gray-700">
+            {/* Cart Summary */}
+            {Object.keys(cartSelections).length > 0 && (
+              <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                <h4 className="font-semibold text-xl mb-2">Selected Items</h4>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {Object.entries(cartSelections).map(
+                    ([key, item]: [string, any]) => (
+                      <div
+                        key={key}
+                        className="flex justify-between items-center py-2 border-b border-gray-700 last:border-0"
+                      >
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="h-14 w-14 bg-gray-800 rounded-md overflow-hidden">
+                            <img
+                              src={item.product.image_url}
+                              alt={item.product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium line-clamp-1">
+                              {item.product.name}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {item.product.source === "zepto"
+                                ? "Zepto"
+                                : "Instamart"}
+                            </p>
+                            <div className="text-sm font-medium mt-1">
+                              ₹{(item.product.price * item.quantity).toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleDecreaseQuantity(key)}
+                            className="w-10 h-10 text-2xl border border-gray-300 rounded flex items-center justify-center"
+                          >
+                            -
+                          </button>
+                          <span className="w-8 text-center font-medium">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => handleIncreaseQuantity(key)}
+                            className="w-10 h-10 text-2xl border border-gray-300 rounded flex items-center justify-center "
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Confirm Order Button */}
             <button
               onClick={handleConfirmCart}
-              className={`w-full py-2 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 ${
-                loadingCart || loadingInstamartCart
-                  ? "bg-gray-600 cursor-not-allowed text-gray-400"
-                  : "bg-red-600 hover:bg-red-500 text-white"
+              disabled={
+                loadingCart ||
+                loadingInstamartCart ||
+                Object.keys(cartSelections).length === 0
+              }
+              className={`px-4 py-3 rounded-xl font-semibold mt-2 flex items-center justify-center gap-2 ${
+                loadingCart ||
+                loadingInstamartCart ||
+                Object.keys(cartSelections).length === 0
+                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                  : "bg-red-600 text-white hover:bg-red-500"
               }`}
-              disabled={loadingCart || loadingInstamartCart}
             >
               {loadingCart ? (
                 <>
-                  <PopupLoader />
-                  Processing Zepto...
+                  <PopupLoader /> Processing Zepto...
                 </>
               ) : loadingInstamartCart ? (
                 <>
-                  <PopupLoader />
-                  Processing Instamart...
+                  <PopupLoader /> Processing Instamart...
                 </>
+              ) : Object.keys(cartSelections).length === 0 ? (
+                "Add items to cart"
               ) : (
-                "Confirm Order"
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                  Confirm Order ({Object.keys(cartSelections).length} items)
+                </>
               )}
             </button>
           </div>
         </div>
       );
-    }
-
-    else if (
+    } else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
     ) {
       content = <p className="font-semibold">Your order has been placed!</p>;
-    }
-
-    else {
+    } else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
           let formatted = line;
@@ -731,49 +989,190 @@ export default function Chat1() {
           className={`${
             m.role === "user"
               ? "bg-white/15 text-white border-white/20"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
+              : " text-gray-100 border-black"
           } 
-          max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+        max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
         >
           {content}
         </div>
       </div>
     );
   };
-
   return (
     <div className="min-h-screen w-screen bg-black text-white">
       {/* ALL POPUPS - RENDERED AT TOP LEVEL */}
+      {showAllProducts && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-end z-[99999]">
+          <div className="w-1/3 bg-[#0E131F] h-full p-5 border-l border-white/10 overflow-hidden">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">All Products</h2>
+              <button
+                onClick={() => setShowAllProducts(false)}
+                className="text-gray-300 text-2xl hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Products Grid */}
+            <div className="overflow-y-auto tailwind-scrollbar-hide h-[calc(100%-4rem)] pr-2">
+              <div className="grid grid-cols-3 gap-4">
+                {allProductsList.map((p: any, i) => {
+                  const key = `${p.name}|${p.price}|${p.source}`;
+                  const currentItem = cartSelections[key];
+                  const qty = currentItem?.quantity || 0;
+
+                  return (
+                    <div
+                      key={i}
+                      className="bg-[#141923] p-4 rounded-xl border border-white/10 gap-4"
+                    >
+                      {/* Product Image with + button */}
+                      <div className="relative">
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="w-30 h-30 rounded-md object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            e.currentTarget.parentElement!.innerHTML =
+                              '<div class="w-20 h-20 bg-gray-800 rounded-md flex items-center justify-center text-gray-400">No Image</div>';
+                          }}
+                        />
+                        <button
+                          onClick={() => handleAddToCart(p)}
+                          className="absolute bottom-2 right-0 text-2xl w-8 h-8 bg-white text-black rounded flex items-center justify-center transition-colors active:scale-95 shadow-lg"
+                        >
+                          +
+                        </button>
+                        {qty > 0 && (
+                          <div className="absolute -top-2 -left-2 bg-red-600 text-white text-xs px-2 py-1 rounded-md">
+                            {qty}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Product Details */}
+                      <div className="flex-1">
+                        <h3 className="font-medium line-clamp-2">{p.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="font-bold text-white">
+                            ₹{p.price}
+                          </span>
+                          {p.mrp && (
+                            <span className="text-gray-400 line-through text-sm">
+                              ₹{p.mrp}
+                            </span>
+                          )}
+                          {p.discount && (
+                            <span className="text-green-400 text-xs bg-green-900/30 px-1.5 py-0.5 rounded">
+                              {p.discount}% OFF
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
+                          <span>{p.delivery_time || "24 min"}</span>
+                          <span className="flex items-center gap-1">
+                            <span className="text-yellow-400">⭐</span>
+                            <span>4.1</span>
+                          </span>
+                        </div>
+                        <div className="mt-2">
+                          <span
+                            className={`text-xs px-2 py-1 rounded ${
+                              p.source === "zepto"
+                                ? "bg-purple-900/30 text-purple-300"
+                                : "bg-green-900/30 text-green-300"
+                            }`}
+                          >
+                            {p.source === "zepto" ? "Zepto" : "Instamart"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Quantity Controls */}
+                      {qty > 0 && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleDecreaseQuantity(key)}
+                            className="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded flex items-center justify-center"
+                          >
+                            -
+                          </button>
+                          <span className="font-medium w-8 text-center">
+                            {qty}
+                          </span>
+                          <button
+                            onClick={() => handleIncreaseQuantity(key)}
+                            className="w-8 h-8 bg-red-600 hover:bg-red-500 rounded flex items-center justify-center"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PHONE NUMBER POPUP */}
       {showPhonePopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">
-              Enter your details
-            </h2>
+          <div className="bg-[#0E0E0E]  rounded-2xl p-5 border border-white/10 space-y-5 relative">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg  text-white">Sign in now</h2>
 
-            <input
-              type="text"
-              placeholder="Mobile Number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-            />
+              <button onClick={() => setShowPhonePopup(false)}>
+                <span className="text-white text-xl">&times;</span>
+              </button>
+            </div>
 
-            <input
-              type="text"
-              placeholder="Location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-            />
+            {/* Map Image */}
+            <div className="relative w-full">
+              <img
+                src="/MapImage.png"
+                alt="Map"
+                className="w-full h-full object-cover rounded"
+              />
+            </div>
 
+            {/* Location Input */}
+            <div className="space-y-1">
+              <label className="text-gray-300 text-lg">Enter Location</label>
+              <input
+                type="text"
+                placeholder="eg : Pune"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full px-3 py-3 rounded-lg bg-transparent text-lg border border-white/20 text-white placeholder-gray-500 outline-none"
+              />
+            </div>
+
+            {/* Mobile Input */}
+            <div className="space-y-1">
+              <label className="text-gray-300 text-lg">Mobile Number</label>
+              <input
+                type="text"
+                placeholder="Enter your mobile"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-3 py-3 rounded-lg bg-transparent text-lg border border-white/20 text-white placeholder-gray-500 outline-none"
+              />
+            </div>
+
+            {/* Confirm Button */}
             <button
               onClick={handleLogin}
               disabled={loadingPhone}
-              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 bg-red-600 hover:bg-red-500 rounded-full text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loadingPhone ? <PopupLoader /> : "Continue"}
+              {loadingPhone ? <PopupLoader /> : "Confirm"}
             </button>
           </div>
         </div>
@@ -782,43 +1181,107 @@ export default function Chat1() {
       {/* OTP POPUP */}
       {showOtpPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-3 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white mb-4">Enter OTP</h2>
+          <div className="bg-[#0E131F] w-[360px] rounded-2xl border border-[#2A2F3A] p-5">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">
+                OTP Authentication
+              </h2>
+              <button
+                onClick={() => setShowOtpPopup(false)}
+                className="text-gray-400 text-xl"
+              >
+                ✕
+              </button>
+            </div>
 
-            <div>
-              <label htmlFor="zeptoOTP" className="text-lg">
-                Zepto OTP
-              </label>
+            {/* ---- ZEPTO SECTION ---- */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <img src="/zepto.png" className="w-6 h-6 rounded" />
+                <span className="text-white font-medium">Zepto</span>
+              </div>
+
+              <p className="text-gray-400 text-sm mb-3">
+                Enter the 6-digit OTP from Myntra
+              </p>
+
+              {/* ZEPTO OTP BOXES */}
+              <div
+                className="flex gap-3 mb-2"
+                onClick={() => zeptoInputRef.current?.focus()}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-10 h-10 rounded-xl border border-[#2f3340] bg-[#1a1f2b] flex items-center justify-center text-white text-xl cursor-text"
+                  >
+                    {otp[i] || ""}
+                  </div>
+                ))}
+              </div>
+
+              {/* Hidden but focusable input */}
               <input
-                id="zeptoOTP"
+                ref={zeptoInputRef}
                 type="text"
-                placeholder="OTP"
+                maxLength={6}
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                className="absolute w-0 h-0 opacity-0"
+                autoFocus
               />
+
+              <div className="border-b border-gray-700 mt-4"></div>
             </div>
 
-            <div>
-              <label htmlFor="instamartOTP" className="text-lg">
-                Instamart OTP
-              </label>
+            {/* ---- INSTAMART SECTION ---- */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-1">
+                <img src="/instamart.png" className="w-6 h-6 rounded" />
+                <span className="text-white font-medium">Swiggy instamart</span>
+              </div>
+
+              <p className="text-gray-400 text-sm mb-3">
+                Enter the 6-digit OTP from Nykaa
+              </p>
+
+              {/* OTP INPUT (single input, styled like boxes) */}
+              {/* INSTAMART OTP BOXES */}
+              <div
+                className="flex gap-3 flex-wrap mb-2"
+                onClick={() => instamartInputRef.current?.focus()}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-10 h-10 rounded-xl border border-[#2f3340] bg-[#1a1f2b] flex items-center justify-center text-white text-xl cursor-text"
+                  >
+                    {instamartOtp[i] || ""}
+                  </div>
+                ))}
+              </div>
+
+              {/* Hidden but focusable input */}
               <input
-                id="instamartOTP"
+                ref={instamartInputRef}
                 type="text"
-                placeholder="OTP"
+                maxLength={6}
                 value={instamartOtp}
-                onChange={(e) => setInstamartOtp(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                onChange={(e) =>
+                  setInstamartOtp(e.target.value.replace(/\D/g, ""))
+                }
+                className="absolute w-0 h-0 opacity-0"
               />
             </div>
 
+            {/* Button */}
             <button
               onClick={handleOtpSubmit}
               disabled={loadingOtp}
-              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 bg-red-600 hover:bg-red-500 rounded-full text-white font-semibold text-lg disabled:opacity-50"
             >
-              {loadingOtp ? <PopupLoader /> : "Verify"}
+              {loadingOtp ? "..." : "Verify OTP"}
             </button>
           </div>
         </div>
@@ -826,25 +1289,129 @@ export default function Chat1() {
 
       {/* UPI POPUP */}
       {showUpiPopup && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Enter UPI ID</h2>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center pt-6 z-[9999]">
+          <div className="bg-[#111] p-5 rounded-2xl border border-gray-800 max-h-[90vh] overflow-y-auto ">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">Pay with UPI</h2>
+              <button onClick={() => setShowUpiPopup(false)}>
+                <span className="text-gray-400 text-xl">✕</span>
+              </button>
+            </div>
 
-            <input
-              type="text"
-              placeholder="example@upi"
-              value={upiId}
-              onChange={(e) => setUpiId(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-            />
+            {/* UPI Options */}
+            <div className="space-y-5">
+              {[
+                {
+                  id: "gpay",
+                  name: "Google Pay",
+                  logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyVO9LUWF81Ov6LZR50eDNu5rNFCpkn0LwYQ&s",
+                },
+                {
+                  id: "phonepe",
+                  name: "PhonePe",
+                  logo: "https://play-lh.googleusercontent.com/6iyA2zVz5PyyMjK5SIxdUhrb7oh9cYVXJ93q6DZkmx07Er1o90PXYeo6mzL4VC2Gj9s",
+                },
+                {
+                  id: "paytm",
+                  name: "Paytm",
+                  logo: "https://play-lh.googleusercontent.com/WDGsMRuVENnZPEpV4DEaXw12qtMY3em85xpmZqcXzeh0iT_eXFtAU9VUj-Z7xNQQd5DMqrkKSs9D0qbI1rlt=w240-h480-rw",
+                },
+                {
+                  id: "other",
+                  name: "Other UPI",
+                  logo: "https://images.seeklogo.com/logo-png/33/1/unified-payment-interface-upi-logo-png_seeklogo-333088.png",
+                },
+              ].map((opt) => {
+                const isOpen = selectedUpi === opt.id;
 
-            <button
-              onClick={handleUpiSubmit}
-              disabled={loadingUpi}
-              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loadingUpi ? <PopupLoader /> : "Submit"}
-            </button>
+                return (
+                  <div key={opt.id} className="border-b border-white/10 pb-1">
+                    {/* Row */}
+                    <button
+                      onClick={() => setSelectedUpi(opt.id)}
+                      className="w-full flex items-center justify-between py-1"
+                    >
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={opt.logo}
+                          className="w-8 h-8 rounded-md object-contain"
+                        />
+                        <span className="text-white text-sm font-medium">
+                          {opt.name}
+                        </span>
+                      </div>
+                      <span className="text-gray-400 text-lg">
+                        {isOpen ? "▾" : "▸"}
+                      </span>
+                    </button>
+
+                    {/* Expanded */}
+                    <div
+                      className={`transition-all duration-300 overflow-hidden ${
+                        isOpen ? "max-h-56 mt-2" : "max-h-0"
+                      }`}
+                    >
+                      {/* Input + Domain Selector */}
+                      <div className="flex items-center gap-2">
+                        {/* User input */}
+                        <input
+                          type="text"
+                          placeholder="Enter UPI ID"
+                          value={
+                            opt.id === "other"
+                              ? upiId
+                              : upiId.split("@")[0] || ""
+                          }
+                          onChange={(e) => {
+                            const username = e.target.value.replace(/\s+/g, "");
+                            const domain =
+                              opt.id === "other"
+                                ? ""
+                                : upiId.includes("@")
+                                ? "@" + upiId.split("@")[1]
+                                : "@ybl";
+                            setUpiId(username + domain);
+                          }}
+                          className="flex-1 px-3 py-2 rounded-lg bg-[#2b2e38] border border-gray-700 text-white outline-none"
+                        />
+
+                        {/* Domain dropdown except for Other UPI */}
+                        {opt.id !== "other" && (
+                          <select
+                            value={
+                              upiId.includes("@")
+                                ? "@" + upiId.split("@")[1]
+                                : "@ybl"
+                            }
+                            onChange={(e) => {
+                              const username = upiId.split("@")[0] || "";
+                              setUpiId(username + e.target.value);
+                            }}
+                            className="px-3 py-2 rounded-lg bg-[#2b2e38] border border-gray-700 text-white text-sm outline-none"
+                          >
+                            {UPI_DOMAINS.map((d) => (
+                              <option key={d} value={d}>
+                                {d}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+
+                      {/* Pay Button */}
+                      <button
+                        onClick={handleUpiSubmit}
+                        disabled={loadingUpi}
+                        className="w-full py-2 bg-[#e02020] hover:bg-[#ff3b3b] rounded-xl text-white font-semibold mt-3 flex items-center justify-center disabled:opacity-60"
+                      >
+                        {loadingUpi ? <PopupLoader /> : "Pay"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
