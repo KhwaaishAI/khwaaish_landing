@@ -1,8 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+// Components
 import HomeSidebar from "../components/home/HomeSidebar";
 import HomeTopBar from "../components/home/HomeTopBar";
 import HomeHero from "../components/home/HomeHero";
 import HomeChatBar from "../components/home/HomeChatBar";
+
+// Auth Popups
 import AuthWelcomePopup from "../components/auth/AuthWelcomePopup";
 import AuthPhonePopup from "../components/auth/AuthPhonePopup";
 import AuthOtpPopup from "../components/auth/AuthOtpPopup";
@@ -11,6 +16,8 @@ import AuthDobPopup from "../components/auth/AuthDobPopup";
 import AuthToast from "../components/auth/AuthToast";
 
 export default function Home() {
+  const navigate = useNavigate();
+
   type AuthStep = "none" | "welcome" | "phone" | "otp" | "profile" | "dob";
 
   const [authStep, setAuthStep] = useState<AuthStep>("none");
@@ -25,16 +32,18 @@ export default function Home() {
 
   return (
     <div className="min-h-screen w-screen flex bg-black text-white">
+      {/* Sidebar - Hidden on mobile, visible on medium screens and up */}
       <div className="hidden md:block h-full">
         <HomeSidebar />
       </div>
 
+      {/* Main Background Area */}
       <main
         className="flex-1 relative flex flex-col"
         style={{
           backgroundImage: "url('/images/khwaaish_bg.jpg')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       >
         <HomeTopBar
@@ -43,12 +52,24 @@ export default function Home() {
             showToast("Login started");
           }}
         />
+        
         <div className="flex-1 flex flex-col items-center">
           <HomeHero />
-          <HomeChatBar />
+          
+          {/* 
+            Wrapper to make the Chat Bar clickable. 
+            When clicked, it navigates to your new '/food' Chat Screen.
+          */}
+          <div 
+            className="w-full flex justify-center cursor-pointer" 
+            onClick={() => navigate('/food')}
+          >
+            <HomeChatBar />
+          </div>
         </div>
       </main>
 
+      {/* --- Auth Modals --- */}
       {authStep === "welcome" && (
         <AuthWelcomePopup
           onContinuePhone={() => {

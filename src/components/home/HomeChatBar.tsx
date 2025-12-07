@@ -1,84 +1,49 @@
-import { useRef } from "react";
+import React from 'react';
+import { Plus, Mic, X } from 'lucide-react';
 
-interface HomeChatBarProps {
-  placeholder?: string;
-}
-
-export default function HomeChatBar({ placeholder }: HomeChatBarProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
+export default function HomeChatBar() {
   return (
-    <div className="mt-24 flex justify-center px-6">
-      <div
-        className="relative flex flex-col justify-between cursor-text"
-        style={{
-          width: 791,
-          height: 160,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: "#FFFFFFBF",
-          background: "#00000059",
-        }}
-      
-        onClick={() => inputRef.current?.focus()}
-      >
-        <div className="px-8 pt-5 text-xs text-white/70">Ask anything...</div>
-        <div className="flex items-center gap-4 px-8 pb-6">
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/5 text-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <svg
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-          </button>
-          <input
-            ref={inputRef}
-            className="flex-1 bg-transparent text-sm sm:text-base text-white placeholder-white/70 outline-none"
-            placeholder={placeholder ?? "Ask anything..."}
-          />
-          <button
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-white/10 text-white/90"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3 3 0 014.24 4.24l-9.2 9.2a1 1 0 01-1.41-1.42l8.49-8.49" />
-            </svg>
-          </button>
-          <button
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-white/10 text-white/90"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 14a3 3 0 003-3V7a3 3 0 10-6 0v4a3 3 0 003 3z" />
-              <path d="M19 11a7 7 0 01-14 0" />
-              <path d="M12 18v3" />
-            </svg>
+    <div className="absolute bottom-10 left-0 right-0 px-4 md:px-10 flex justify-center">
+      <div className="w-full max-w-4xl bg-[#2a2a2a] rounded-3xl p-4 flex flex-col gap-4 shadow-lg border border-white/5">
+        
+        {/* Input Placeholder Label */}
+        <span className="text-gray-400 text-sm px-1">
+          What is your Khwaaish?
+        </span>
+
+        {/* Input Controls Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            
+            {/* Plus Button */}
+            <button className="w-10 h-10 rounded-full bg-[#404040] flex items-center justify-center text-white hover:bg-[#505050] transition-colors">
+              <Plus size={20} />
+            </button>
+
+            {/* === SWIGGY BUTTON (Added Here) === */}
+            <div className="flex items-center gap-2 bg-[#d65e34] text-white pl-1 pr-3 py-1 rounded-full text-sm font-medium transition-transform hover:scale-105 cursor-pointer">
+              {/* White Circle with Icon */}
+              <div className="bg-white w-6 h-6 rounded-full flex items-center justify-center">
+                 {/* Simulated Swiggy Logo Icon */}
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d65e34" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s-8-6-8-12a8 8 0 0 1 16 0c0 6-8 12-8 12z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                 </svg>
+              </div>
+              
+              <span className="mb-0.5">Swiggy</span>
+              
+              {/* Close (X) Icon */}
+              <button className="ml-1 text-white/80 hover:text-white">
+                <X size={14} />
+              </button>
+            </div>
+
+          </div>
+
+          {/* Mic Button */}
+          <button className="w-10 h-10 rounded-full bg-[#404040] flex items-center justify-center text-white hover:bg-[#505050] transition-colors">
+            <Mic size={18} />
           </button>
         </div>
       </div>
