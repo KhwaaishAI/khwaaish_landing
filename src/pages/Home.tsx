@@ -9,12 +9,16 @@ import AuthOtpPopup from "../components/auth/AuthOtpPopup";
 import AuthProfilePopup from "../components/auth/AuthProfilePopup";
 import AuthDobPopup from "../components/auth/AuthDobPopup";
 import AuthToast from "../components/auth/AuthToast";
+import { PharmEasyFlowProvider, usePharmEasyFlow } from "../components/pharmeasy/PharmEasyFlowContext";
+import { PharmEasyFlow } from "../components/pharmeasy/PharmEasyFlow";
 
-export default function Home() {
+
+function HomeContent() {
   type AuthStep = "none" | "welcome" | "phone" | "otp" | "profile" | "dob";
-
+  const [isModalOpen, setIsModalOpen] = useState(true);
   const [authStep, setAuthStep] = useState<AuthStep>("none");
   const [toastMessage, setToastMessage] = useState("");
+  const { isActive } = usePharmEasyFlow();
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -30,12 +34,18 @@ export default function Home() {
       </div>
 
       <main
-        className="flex-1 relative flex flex-col"
-        style={{
-          backgroundImage: "url('/images/khwaaish_bg.jpg')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+        className={`flex-1 relative flex flex-col transition-all duration-300 ${
+          isActive ? "bg-black" : ""
+        }`}
+        style={
+          !isActive
+            ? {
+                backgroundImage: "url('/images/khwaaish_bg.jpg')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }
+            : {}
+        }
       >
         <HomeTopBar
           onLoginClick={() => {
@@ -101,6 +111,15 @@ export default function Home() {
       )}
 
       <AuthToast message={toastMessage} />
+      <PharmEasyFlow />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <PharmEasyFlowProvider>
+      <HomeContent />
+    </PharmEasyFlowProvider>
   );
 }
