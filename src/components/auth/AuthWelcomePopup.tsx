@@ -1,3 +1,6 @@
+import { FcGoogle } from "react-icons/fc";
+import { BsTelephone } from "react-icons/bs";
+
 interface AuthWelcomePopupProps {
   onContinuePhone: () => void;
   onContinueGoogle: () => void;
@@ -10,7 +13,7 @@ export default function AuthWelcomePopup({
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60">
       <div
-        className="relative flex flex-col items-center justify-between bg-black/95 border border-white/20 shadow-2xl text-white px-10 pt-10 pb-8 font-[Poppins]"
+        className="relative flex flex-col items-center justify-evenly bg-black/95 border border-white/20 shadow-2xl text-white px-10 pt-10 pb-8 font-[Poppins]"
         style={{
           width: 512,
           height: 517,
@@ -29,14 +32,12 @@ export default function AuthWelcomePopup({
           </div>
         </div>
 
-        <div className="w-full space-y-4 mt-6">
+        <div className="w-full space-y-4  mt-6">
           <button
             onClick={onContinuePhone}
             className="w-full h-11 rounded-full bg-white/5 border border-white/30 text-sm flex items-center justify-center gap-2 hover:bg-white/10"
           >
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/40 text-[10px]">
-              +
-            </span>
+            <BsTelephone className="h-4 w-4" />
             <span>Continue with Phone Number</span>
           </button>
 
@@ -50,7 +51,7 @@ export default function AuthWelcomePopup({
             onClick={onContinueGoogle}
             className="w-full h-11 rounded-full bg-white text-black text-sm flex items-center justify-center gap-2 hover:bg-white/90"
           >
-            <span className="h-4 w-4 rounded-full bg-red-500" />
+            <FcGoogle className="h-5 w-5" />
             <span>Continue with Google</span>
           </button>
 

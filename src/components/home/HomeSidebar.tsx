@@ -1,6 +1,14 @@
-export default function HomeSidebar() {
+import { BsPencilSquare, BsWallet2 } from "react-icons/bs";
+import { IoPerson } from "react-icons/io5";
+
+
+interface HomeSidebarProps {
+  userName?: string;
+}
+
+export default function HomeSidebar({ userName }: HomeSidebarProps) {
   return (
-    <aside className="h-full w-64 bg-black border-r border-black/60 flex flex-col justify-between">
+    <aside className="h-screen sticky top-0 w-64 bg-[#171717] border-r border-white/10 flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
           <div className="flex items-center gap-2">
@@ -17,18 +25,7 @@ export default function HomeSidebar() {
 
         <nav className="mt-8 space-y-2 px-4 text-sm text-white/80">
           <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 bg-white/10 text-white">
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 5h16" />
-              <path d="M8 5v14" />
-            </svg>
+            <BsPencilSquare className="h-4 w-4" />
             <span>New Chat</span>
           </button>
 
@@ -49,35 +46,24 @@ export default function HomeSidebar() {
           </button>
 
           <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 hover:bg-white/5">
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M6 6h12v12H6z" />
-              <path d="M9 10h6" />
-              <path d="M9 14h3" />
-            </svg>
+            <BsWallet2 className="h-4 w-4" />
             <span>Wallet</span>
           </button>
         </nav>
       </div>
 
-      <div className="px-4 pb-4 flex items-center justify-between gap-3 text-xs">
+      <div className="mx-4 mb-4 pt-4 border-t border-white/20 flex items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 overflow-hidden rounded-full border border-white/40">
-            <img
+            {/* <img
               src="/images/avatar.png"
-              alt="Emma Stone"
+              alt={userName || "User"}
               className="h-full w-full object-cover"
-            />
+            /> */}
+            <IoPerson className="h-full w-full" />
           </div>
           <div className="leading-tight text-white/80">
-            <div className="text-xs font-medium">Emma Stone</div>
+            <div className="text-xs font-medium">{userName || "Guest User"}</div>
             <div className="text-[10px] text-white/50">Personal</div>
           </div>
         </div>

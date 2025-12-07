@@ -11,8 +11,8 @@ export default function Intro({ onLoginSuccess }: IntroProps) {
   const [showWelcome, setShowWelcome] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [animatedText, setAnimatedText] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("lakshdoshi17@gmail.com");
+  const [password, setPassword] = useState("Laksh123");
 
   const welcomeText = "welcome to Khwaaish";
 

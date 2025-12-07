@@ -1,20 +1,25 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import HomeSidebar from "../components/home/HomeSidebar";
 import HomeTopBar from "../components/home/HomeTopBar";
 import HomeHero from "../components/home/HomeHero";
 import HomeChatBar from "../components/home/HomeChatBar";
+import ActiveChat from "../components/chat/ActiveChat";
 import AuthWelcomePopup from "../components/auth/AuthWelcomePopup";
 import AuthPhonePopup from "../components/auth/AuthPhonePopup";
 import AuthOtpPopup from "../components/auth/AuthOtpPopup";
-import AuthProfilePopup from "../components/auth/AuthProfilePopup";
 import AuthDobPopup from "../components/auth/AuthDobPopup";
 import AuthToast from "../components/auth/AuthToast";
 
 export default function Home() {
   type AuthStep = "none" | "welcome" | "phone" | "otp" | "profile" | "dob";
 
+  const navigate = useNavigate();
   const [authStep, setAuthStep] = useState<AuthStep>("none");
   const [toastMessage, setToastMessage] = useState("");
+  const [userName, setUserName] = useState("");
+  const [messages, setMessages] = useState<Array<{ text: string; sender: "user" | "ai" }>>([]);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -23,19 +28,40 @@ export default function Home() {
     }, 2000);
   };
 
+  const handleSendMessage = (text: string) => {
+    if (selectedCompany === "Ola") {
+      navigate("/ola", { state: { initialMessage: text, userName } });
+      return;
+    }
+
+    setMessages((prev) => [...prev, { text, sender: "user" }]);
+    // Simulate AI response
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        { text: "This is a simulated AI response.", sender: "ai" },
+      ]);
+    }, 1000);
+  };
+
   return (
     <div className="min-h-screen w-screen flex bg-black text-white">
       <div className="hidden md:block h-full">
-        <HomeSidebar />
+        <HomeSidebar userName={userName} />
       </div>
 
       <main
-        className="flex-1 relative flex flex-col"
-        style={{
-          backgroundImage: "url('/images/khwaaish_bg.jpg')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+        className={`flex-1 relative flex flex-col transition-all duration-500 ${messages.length > 0 ? "bg-black" : ""
+          }`}
+        style={
+          messages.length === 0
+            ? {
+              backgroundImage: "url('/images/khwaaish_bg.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+            : {}
+        }
       >
         <HomeTopBar
           onLoginClick={() => {
@@ -43,10 +69,24 @@ export default function Home() {
             showToast("Login started");
           }}
         />
-        <div className="flex-1 flex flex-col items-center">
-          <HomeHero />
-          <HomeChatBar />
-        </div>
+
+        {messages.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center">
+            <HomeHero />
+            <HomeChatBar
+              onSendMessage={handleSendMessage}
+              selectedCompany={selectedCompany}
+              onSelectCompany={setSelectedCompany}
+            />
+          </div>
+        ) : (
+          <ActiveChat
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            selectedCompany={selectedCompany}
+            onSelectCompany={setSelectedCompany}
+          />
+        )}
       </main>
 
       {authStep === "welcome" && (
@@ -75,25 +115,19 @@ export default function Home() {
         <AuthOtpPopup
           onBack={() => setAuthStep("phone")}
           onNext={() => {
-            setAuthStep("profile");
+            setAuthStep("dob");
             showToast("OTP verified");
           }}
         />
       )}
 
-      {authStep === "profile" && (
-        <AuthProfilePopup
-          onBack={() => setAuthStep("otp")}
-          onOpenDob={() => {
-            setAuthStep("dob");
-            showToast("Select date of birth");
-          }}
-        />
-      )}
+      {/* AuthProfilePopup removed as it is replaced by AuthDobPopup */}
 
       {authStep === "dob" && (
         <AuthDobPopup
-          onClose={() => {
+          onBack={() => setAuthStep("otp")}
+          onClose={(name) => {
+            setUserName(name);
             setAuthStep("none");
             showToast("Profile completed");
           }}
