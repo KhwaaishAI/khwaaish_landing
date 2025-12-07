@@ -338,95 +338,73 @@ export default function Chat4() {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
-          <div className="flex overflow-auto gap-4">
-            {parsed.products?.map((p: any, index: number) => {
-              const key = p.item_name + p.price + index;
-              const isSelected =
-                selectedProduct?.item_name === p.item_name &&
-                selectedProduct?.restaurant_name === p.restaurant_name;
-              return (
-                <div
-                  key={key}
-                  className={`flex gap-3 p-4 min-w-64 rounded-xl border ${
-                    isSelected
-                      ? "border-green-500 bg-gray-800"
-                      : "border-gray-700 bg-gray-900/60"
-                  } cursor-pointer transition-all hover:border-gray-600`}
-                  onClick={() =>
-                    setSelectedProduct({
-                      restaurant_name: p.restaurant_name,
-                      item_name: p.item_name,
-                    })
-                  }
-                >
-                  <div className="flex items-start gap-3 w-full">
-                    {/* Radio button */}
-                    <div className="flex items-center mt-1">
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 ${
-                          isSelected
-                            ? "border-green-500 bg-green-500"
-                            : "border-gray-500"
-                        } flex items-center justify-center`}
-                      >
-                        {isSelected && (
-                          <div className="w-2 h-2 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {parsed.products?.map((p: any, index: number) => {
+                const key = p.item_name + p.price + index;
+                const isSelected =
+                  selectedProduct?.item_name === p.item_name &&
+                  selectedProduct?.restaurant_name === p.restaurant_name;
 
-                    {/* Item details */}
-                    {/* Product Image */}
+                return (
+                  <div
+                    key={key}
+                    className={`flex flex-col bg-[#11121a] border rounded-2xl overflow-hidden shadow-sm hover:border-gray-600 transition-colors ${
+                      isSelected ? "border-green-500" : "border-gray-800/80"
+                    }`}
+                    onClick={() =>
+                      setSelectedProduct({
+                        restaurant_name: p.restaurant_name,
+                        item_name: p.item_name,
+                      })
+                    }
+                  >
+                    {/* Image */}
                     {p.image_url && (
-                      <div className="flex-shrink-0">
+                      <div className="relative w-full h-32 bg-gray-800">
                         <img
                           src={p.image_url}
-                          alt={p.name}
-                          className="w-28 h-28 object-cover rounded-lg bg-gray-800"
+                          alt={p.item_name}
+                          className="w-full h-full object-cover"
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
                           }}
                         />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      {/* Restaurant Name and Rating */}
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="font-semibold text-white text-base">
-                            {p.restaurant_name}
-                          </p>
-                          <p className="text-sm text-gray-300 mt-1">
-                            {p.item_name}
-                          </p>
-                        </div>
                         {p.rating && p.rating !== "N/A" && (
-                          <div className="flex items-center gap-1 bg-gray-700 px-2 py-1 rounded-full">
-                            <span className="text-yellow-400 text-sm">⭐</span>
-                            <span className="text-white text-sm font-medium">
-                              {p.rating}
-                            </span>
+                          <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 px-2 py-1 rounded-full text-xs">
+                            <span className="text-yellow-300">⭐</span>
+                            <span className="text-white font-medium">{p.rating}</span>
                           </div>
                         )}
                       </div>
+                    )}
 
-                      {/* Price and Delivery Info */}
-                      <div className="flex justify-between items-center mt-3">
-                        <div className="flex items-center gap-4">
-                          <p className="text-lg font-bold text-white">
-                            ₹{p.price}
-                          </p>
+                    {/* Content */}
+                    <div className="flex-1 flex flex-col px-3 py-3 gap-2">
+                      {/* Restaurant + item */}
+                      <div className="space-y-1 min-h-[52px]">
+                        <p className="text-sm font-semibold text-white line-clamp-1">
+                          {p.restaurant_name}
+                        </p>
+                        <p className="text-xs text-gray-300 line-clamp-2">
+                          {p.item_name}
+                        </p>
+                      </div>
+
+                      {/* Price + delivery */}
+                      <div className="flex items-center justify-between mt-1">
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-base font-bold text-white">₹{p.price}</p>
                           {p.original_price && p.original_price !== p.price && (
-                            <p className="text-sm text-gray-400 line-through">
+                            <p className="text-xs text-gray-400 line-through">
                               ₹{p.original_price}
                             </p>
                           )}
                         </div>
-
                         {p.delivery_time && p.delivery_time !== "N/A" && (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 text-[11px] text-gray-300">
                             <svg
-                              className="w-4 h-4 text-gray-400"
+                              className="w-3.5 h-3.5 text-gray-400"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -438,78 +416,77 @@ export default function Chat4() {
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                               />
                             </svg>
-                            <span className="text-sm text-gray-300">
-                              {p.delivery_time}
-                            </span>
+                            <span>{p.delivery_time}</span>
                           </div>
                         )}
                       </div>
 
-                      {/* Veg/Non-Veg and Additional Info */}
-                      <div className="flex items-center gap-3 mt-2">
+                      {/* Badges */}
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
                         {p.is_veg !== undefined && (
-                          <div
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] border ${
                               p.is_veg
-                                ? "bg-green-900/50 text-green-400 border border-green-600"
-                                : "bg-red-900/50 text-red-400 border border-red-600"
+                                ? "bg-green-900/40 text-green-300 border-green-500/60"
+                                : "bg-red-900/40 text-red-300 border-red-500/60"
                             }`}
                           >
-                            <div
+                            <span
                               className={`w-2 h-2 rounded-full ${
                                 p.is_veg ? "bg-green-400" : "bg-red-400"
                               }`}
-                            ></div>
+                            />
                             <span>{p.is_veg ? "Veg" : "Non-Veg"}</span>
-                          </div>
+                          </span>
                         )}
 
-                        {/* Popular badge for high-rated items */}
                         {p.rating && parseFloat(p.rating) >= 4.5 && (
-                          <span className="bg-orange-500/20 text-orange-400 text-xs px-2 py-1 rounded-full border border-orange-500/30">
+                          <span className="bg-orange-500/15 text-orange-300 text-[10px] px-2 py-0.5 rounded-full border border-orange-500/40">
                             Popular
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
 
-            <button
-              onClick={handleAddToCart}
-              disabled={loadingCart || !selectedProduct}
-              className={`w-full py-3 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 transition-all ${
-                loadingCart || !selectedProduct
-                  ? "bg-gray-600 cursor-not-allowed text-gray-400"
-                  : "bg-red-600 hover:bg-red-500 text-white shadow-lg hover:shadow-red-500/25"
-              }`}
-            >
-              {loadingCart ? (
-                <>
-                  <PopupLoader />
-                  Adding to Cart...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                  Add to Cart
-                </>
-              )}
-            </button>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleAddToCart}
+                disabled={loadingCart || !selectedProduct}
+                className={`px-5 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
+                  loadingCart || !selectedProduct
+                    ? "bg-gray-600 cursor-not-allowed text-gray-400"
+                    : "bg-red-600 hover:bg-red-500 text-white shadow-lg hover:shadow-red-500/25"
+                }`}
+              >
+                {loadingCart ? (
+                  <>
+                    <PopupLoader />
+                    Adding to Cart...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                    Add to Cart
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       );
