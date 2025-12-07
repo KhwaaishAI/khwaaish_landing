@@ -6,11 +6,11 @@ import PopupLoader from "../components/PopupLoader";
 
 interface Message {
   id: string;
-  role: "user" | "assistant" | "system";
+  role: "user" | "system";
   content: string;
 }
 
-export default function MyntraChat() {
+export default function TataCliq() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +20,6 @@ export default function MyntraChat() {
   const [showLoginPopup, setShowLoginPopup] = useState(true);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
   const [showSizePopup, setShowSizePopup] = useState(false);
-  const [showAddressPopup, setShowAddressPopup] = useState(false);
   const [showUpiPopup, setShowUpiPopup] = useState(false);
 
   const [phone, setPhone] = useState("");
@@ -28,17 +27,9 @@ export default function MyntraChat() {
   const [selectedSize, setSelectedSize] = useState("");
   const [upiId, setUpiId] = useState("");
 
-  const [name, setName] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [pincode, setPincode] = useState("");
-  const [houseNumber, setHouseNumber] = useState("");
-  const [streetAddress, setStreetAddress] = useState("");
-  const [locality, setLocality] = useState("");
-
   const [loadingLogin, setLoadingLogin] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingCart, setLoadingCart] = useState(false);
-  const [loadingAddress, setLoadingAddress] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
 
   const [sessionId, setSessionId] = useState("");
@@ -72,7 +63,7 @@ export default function MyntraChat() {
     console.log("STEP 01.3 Login API request sending...");
 
     try {
-      const res = await fetch(`${BaseURL}api/myntra/login`, {
+      const res = await fetch(`${BaseURL}api/tatacliq/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -115,7 +106,7 @@ export default function MyntraChat() {
     console.log("STEP 02.3: OTP API request sending...");
 
     try {
-      const res = await fetch(`${BaseURL}api/myntra/submit-otp`, {
+      const res = await fetch(`${BaseURL}api/tatacliq/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -148,11 +139,12 @@ export default function MyntraChat() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${BaseURL}api/myntra/search`, {
+      const response = await fetch(`${BaseURL}api/tatacliq/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query: query,
+          max_items: 30,
         }),
       });
 
@@ -205,15 +197,23 @@ export default function MyntraChat() {
       return;
     }
 
+    if (upiId === "") {
+      setShowUpiPopup(true);
+      return;
+    }
+
     setLoadingCart(true);
+    setLoadingPayment(true);
 
     try {
-      const res = await fetch(`${BaseURL}api/myntra/add-to-cart`, {
+      const res = await fetch(`${BaseURL}api/tatacliq/add-to-cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           product_url: pendingProduct.url,
           size: selectedSize,
+          upi_id: upiId,
+          hold_seconds: 60,
         }),
       });
 
@@ -227,10 +227,6 @@ export default function MyntraChat() {
 
       if (data.status === "success") {
         pushSystem("Item added to cart successfully!");
-        setShowAddressPopup(true);
-      } else if (data.status === "address_required") {
-        pushSystem("I need your address to complete the order");
-        setShowAddressPopup(true);
       } else if (data.status === "upi_required") {
         pushSystem("I need your address to complete the order");
         setShowUpiPopup(true);
@@ -242,108 +238,8 @@ export default function MyntraChat() {
       pushSystem("Failed to add item to cart!");
     } finally {
       setShowSizePopup(false);
+      setShowUpiPopup(false);
       setLoadingCart(false);
-    }
-  };
-
-  const handleAddAddress = async () => {
-    if (loadingAddress) return;
-
-    console.log("STEP 05: Adding address");
-
-    if (
-      !name.trim() ||
-      !mobile.trim() ||
-      !pincode.trim() ||
-      !houseNumber.trim() ||
-      !streetAddress.trim() ||
-      !locality.trim()
-    ) {
-      alert("Please fill all address fields");
-      return;
-    }
-
-    setLoadingAddress(true);
-
-    try {
-      const res = await fetch(`${BaseURL}api/myntra/add-address`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          name: name,
-          mobile: mobile,
-          pincode: pincode,
-          house_number: houseNumber,
-          street_address: streetAddress,
-          locality: locality,
-          address_type: "HOME",
-          make_default: false,
-        }),
-      });
-
-      const data = await res.json();
-      console.log("STEP 05.1: Add address API response:", data);
-
-      if (data.status === "success") {
-        pushSystem("Address added successfully!");
-        setShowAddressPopup(false);
-        setShowUpiPopup(true);
-      } else {
-        alert("Failed to add address. Please try again.");
-      }
-    } catch (err) {
-      console.log("STEP 05: Error:", err);
-      alert("Something went wrong while adding address.");
-    } finally {
-      setLoadingAddress(false);
-    }
-  };
-
-  const handlePayment = async () => {
-    if (loadingPayment) return;
-
-    console.log("STEP 07: Processing payment");
-
-    if (!upiId.trim()) {
-      alert("Please enter UPI ID");
-      return;
-    }
-
-    setLoadingPayment(true);
-
-    try {
-      const res = await fetch(`${BaseURL}api/myntra/pay-with-upi`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          upi_id: upiId,
-        }),
-      });
-
-      const data = await res.json();
-      console.log("STEP 07.1: Payment API response:", data);
-
-      if (data.status === "success" || data.order_id) {
-        pushSystem(
-          JSON.stringify({
-            status: "success",
-            message: "Your order has been placed successfully! 🎉",
-          })
-        );
-        setShowUpiPopup(false);
-        setUpiId("");
-        setPendingProduct(null);
-        setSelectedSize("");
-      } else {
-        alert("Payment failed. Please try again.");
-      }
-    } catch (err) {
-      console.log("STEP 07: Error:", err);
-      alert("Something went wrong during payment.");
-    } finally {
-      setLoadingPayment(false);
     }
   };
 
@@ -440,7 +336,7 @@ export default function MyntraChat() {
 
                     {/* Select button */}
                     <div className="flex justify-end mt-3">
-                      <button className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white rounded-lg text-sm font-medium transition-colors">
+                      <button className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium transition-colors">
                         Select Size
                       </button>
                     </div>
@@ -537,9 +433,7 @@ export default function MyntraChat() {
       {showLoginPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">
-              Login to Myntra
-            </h2>
+            <h2 className="text-xl font-semibold text-white">Login to Nykaa</h2>
 
             <input
               type="text"
@@ -552,7 +446,7 @@ export default function MyntraChat() {
             <button
               onClick={handleLogin}
               disabled={loadingLogin}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingLogin ? <PopupLoader /> : "Send OTP"}
             </button>
@@ -577,7 +471,7 @@ export default function MyntraChat() {
             <button
               onClick={handleOtpSubmit}
               disabled={loadingOtp}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingOtp ? <PopupLoader /> : "Verify OTP"}
             </button>
@@ -608,7 +502,7 @@ export default function MyntraChat() {
                   onClick={() => setSelectedSize(size)}
                   className={`p-3 rounded-lg border-2 transition-all ${
                     selectedSize === size
-                      ? "border-pink-500 bg-pink-500/20 text-white"
+                      ? "border-red-500 bg-red-500/20 text-white"
                       : "border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500"
                   }`}
                 >
@@ -620,73 +514,9 @@ export default function MyntraChat() {
             <button
               onClick={handleAddToCart}
               disabled={loadingCart || !selectedSize}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingCart ? <PopupLoader /> : "Add to Cart"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ADDRESS POPUP */}
-      {showAddressPopup && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-gray-900 p-6 rounded-2xl w-96 space-y-4 border border-gray-700 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-semibold text-white">
-              Delivery Address
-            </h2>
-
-            <div className="grid gap-3">
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Mobile Number"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Pincode"
-                value={pincode}
-                onChange={(e) => setPincode(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="House/Flat Number"
-                value={houseNumber}
-                onChange={(e) => setHouseNumber(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Street Address"
-                value={streetAddress}
-                onChange={(e) => setStreetAddress(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Locality/Area"
-                value={locality}
-                onChange={(e) => setLocality(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-            </div>
-
-            <button
-              onClick={handleAddAddress}
-              disabled={loadingAddress}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loadingAddress ? <PopupLoader /> : "Save Address"}
             </button>
           </div>
         </div>
@@ -707,9 +537,9 @@ export default function MyntraChat() {
             />
 
             <button
-              onClick={handlePayment}
+              onClick={handleAddToCart}
               disabled={loadingPayment}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingPayment ? <PopupLoader /> : "Pay Now"}
             </button>
@@ -929,7 +759,7 @@ export default function MyntraChat() {
                   </svg>
                 </button>
                 <div className="p-2 hover:bg-gray-900 rounded-full transition-colors">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-sm font-semibold">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-red-500 rounded-full flex items-center justify-center text-sm font-semibold">
                     L
                   </div>
                 </div>

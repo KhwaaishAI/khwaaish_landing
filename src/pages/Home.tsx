@@ -163,134 +163,179 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 relative">
-          <div className="max-w-5xl mx-auto space-y-6">
+        {/* Main Content (no scroll on desktop) */}
+        <div className="flex-1 overflow-y-auto md:overflow-hidden p-4 sm:p-6 relative">
+          <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 relative">
             {/* Logo */}
             <div className="flex items-center justify-center gap-3">
-              <img src="/images/LOGO.png" alt="" />
+              <img src="/images/LOGO.png" alt="Khwaaish AI" className="h-14 w-auto sm:h-16" />
             </div>
             {/* Greeting */}
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl flex items-center justify-center sm:text-3xl font-semibold">
+            <div className="text-center space-y-2 md:space-y-3">
+              <h2 className="text-2xl flex items-center justify-center sm:text-3xl font-semibold tracking-tight">
                 Good to see you Laksh....
               </h2>
-              <p className="text-gray-400 text-base sm:text-lg">
+              <p className="text-gray-300 text-sm sm:text-base md:text-lg">
                 What can I help you with today?
               </p>
             </div>
 
-            {/* Cards */}
-            <div className="flex flex-wrap justify-center lg:flex-nowrap w-full gap-4">
-              {/* GROCERIES */}
+            {/* Background animation using Circle.png */}
+            <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+              {/* Top-right slowly spinning circle */}
+              <img
+                src="/images/Circle.png"
+                alt=""
+                className="hidden md:block absolute -top-24 -right-12 w-48 opacity-60 motion-safe:animate-spin"
+                style={{ animationDuration: "18s" }}
+              />
+              {/* Center-right floating circle */}
+              <img
+                src="/images/Circle.png"
+                alt=""
+                className="hidden md:block absolute top-1/3 right-10 w-32 opacity-45 motion-safe:animate-bounce"
+              />
+              {/* Bottom-left soft pulse circle */}
+              <img
+                src="/images/Circle.png"
+                alt=""
+                className="hidden md:block absolute -bottom-24 -left-20 w-64 opacity-30 motion-safe:animate-pulse"
+              />
+            </div>
 
-              <Link
-                to="/groceries"
-                className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
-                border border-gray-700 hover:border-green-500/50 transition-all cursor-pointer group"
-              >
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
+            {/* Service Cards */}
+            <div className="mt-2 md:mt-4 rounded-3xl border border-gray-800/80 bg-gradient-to-br from-gray-900/80 via-black/80 to-gray-900/60 px-4 py-4 sm:px-6 sm:py-5 shadow-[0_0_40px_rgba(0,0,0,0.6)]">
+              <div className="flex items-center justify-between mb-3 sm:mb-4 px-0 sm:px-1">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Quick actions</p>
+                  <h3 className="text-lg sm:text-xl font-semibold">Explore services</h3>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Groceries</h3>
-                <p className="text-sm text-gray-400">
-                  Order fresh groceries from your nearest stations
-                </p>
-              </Link>
-
-              {/* TRANSPORT */}
-              <Link
-                to="/transport"
-                className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
-          border border-gray-700 hover:border-yellow-500/50 transition-all cursor-pointer group"
-              >
-                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                    />
-                  </svg>
+                <div className="hidden sm:flex items-center gap-1 text-xs text-gray-500">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-green-500 mr-1" />
+                  Available now
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Transport</h3>
-                <p className="text-sm text-gray-400">
-                  Book a ride on cab, bike or a bus anywhere.
-                </p>
-              </Link>
+              </div>
 
-              {/* SHOPPING */}
-              <Link
-                to="/shopping"
-                className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
-          border border-gray-700 hover:border-purple-500/50 transition-all cursor-pointer group"
-              >
-                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Shopping</h3>
-                <p className="text-sm text-gray-400">
-                  Order products, video and many more...
-                </p>
-              </Link>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                {/* Groceries (Zepto & Swiggy Instamart) */}
+                <Link
+                  to="/groceries"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-green-400/70 hover:shadow-[0_0_25px_rgba(34,197,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="flex -space-x-2">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md">
+                        <img src="/logo/zepto.jpg" alt="Zepto" className="w-full h-full object-contain" />
+                      </div>
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md border border-gray-200">
+                        <img src="/logo/swiggy-instamart.jpg" alt="Swiggy Instamart" className="w-full h-full object-contain" />
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">Groceries</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Zepto &amp; Swiggy Instamart at your doorstep.
+                  </p>
+                </Link>
 
-              {/* FOOD */}
+                {/* Ola */}
+                <Link
+                  to="/ola"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(250,204,21,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img src="/logo/ola.jpg" alt="Ola" className="w-full h-full object-contain" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">Ola</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Book cabs in a single message.
+                  </p>
+                </Link>
 
-              <Link
-                to="/food"
-                className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
-          border border-gray-700 hover:border-red-500/50 transition-all cursor-pointer group"
-              >
-                <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 a0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Food</h3>
-                <p className="text-sm text-gray-400">
-                  Order Food from your favourite Restaurants
-                </p>
-              </Link>
+                {/* Food (Swiggy) */}
+                <Link
+                  to="/food"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-orange-400/70 hover:shadow-[0_0_25px_rgba(249,115,22,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img src="/logo/swiggy.jpg" alt="Swiggy" className="w-full h-full object-contain" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">Food</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Swiggy orders from your favourite places.
+                  </p>
+                </Link>
+
+              {/* Nykaa */}
+                <Link
+                  to="/nykaa"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-pink-400/70 hover:shadow-[0_0_25px_rgba(244,114,182,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img src="/logo/nkyaa.jpg" alt="Nykaa" className="w-full h-full object-contain" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">Nykaa</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Beauty &amp; personal care shopping.
+                  </p>
+                </Link>
+
+                {/* JioMart */}
+                <Link
+                  to="/jiomart"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-sky-400/70 hover:shadow-[0_0_25px_rgba(56,189,248,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img src="/logo/jiomart.jpg" alt="JioMart" className="w-full h-full object-contain" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">JioMart</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Daily essentials &amp; groceries.
+                  </p>
+                </Link>
+
+                {/* Tata Cliq */}
+                <Link
+                  to="/tatacliq"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-purple-400/70 hover:shadow-[0_0_25px_rgba(168,85,247,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img src="/logo/tatacliq.jpg" alt="Tata Cliq" className="w-full h-full object-contain" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">Tata Cliq</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Fashion &amp; lifestyle picks.
+                  </p>
+                </Link>
+
+                {/* D-Mart */}
+                <Link
+                  to="/dmart"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-emerald-400/70 hover:shadow-[0_0_25px_rgba(52,211,153,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img src="/logo/dmart.jpg" alt="D-Mart" className="w-full h-full object-contain" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">D-Mart</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Discount supermarket deals.
+                  </p>
+                </Link>
+
+                {/* Medical (Pharmeasy) */}
+                <Link
+                  to="/pharmeasy"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-teal-400/70 hover:shadow-[0_0_25px_rgba(45,212,191,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img src="/logo/pharmeasy.jpg" alt="PharmEasy" className="w-full h-full object-contain" />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">Medical</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    PharmEasy medicines &amp; healthcare.
+                  </p>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

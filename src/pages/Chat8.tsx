@@ -6,45 +6,40 @@ import PopupLoader from "../components/PopupLoader";
 
 interface Message {
   id: string;
-  role: "user" | "assistant" | "system";
+  role: "user" | "system";
   content: string;
 }
 
-export default function MyntraChat() {
+export default function Chat6() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
-  const [showLoginPopup, setShowLoginPopup] = useState(true);
+  const [showPhonePopup, setShowPhonePopup] = useState(true);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
-  const [showSizePopup, setShowSizePopup] = useState(false);
-  const [showAddressPopup, setShowAddressPopup] = useState(false);
+
   const [showUpiPopup, setShowUpiPopup] = useState(false);
 
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [selectedSize, setSelectedSize] = useState("");
   const [upiId, setUpiId] = useState("");
+  const [dayText, setDayText] = useState("");
+  const [slotText, setSlotText] = useState("");
+  const [loadingUpi, setLoadingUpi] = useState(false);
 
-  const [name, setName] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [pincode, setPincode] = useState("");
-  const [houseNumber, setHouseNumber] = useState("");
-  const [streetAddress, setStreetAddress] = useState("");
-  const [locality, setLocality] = useState("");
-
-  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [otp, setOtp] = useState("");
+  const [sessionId, setSessionId] = useState("");
+  const [loadingPhone, setLoadingPhone] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingCart, setLoadingCart] = useState(false);
-  const [loadingAddress, setLoadingAddress] = useState(false);
-  const [loadingPayment, setLoadingPayment] = useState(false);
+  const [loadingOrder, setLoadingOrder] = useState(false);
 
-  const [sessionId, setSessionId] = useState("");
-  const [pendingProduct, setPendingProduct] = useState<any>(null);
-
-  const sizes = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+  const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
+  const [cartSelections, setCartSelections] = useState<{
+    [id: string]: number;
+  }>({});
 
   const pushSystem = (text: string) =>
     setMessages((prev) => [
@@ -60,24 +55,27 @@ export default function MyntraChat() {
 
   const handleLogin = async () => {
     console.log("STEP 01: Login Workflow Started");
-    console.log("STEP 01.1: Phone:", phone);
+    console.log("STEP 01.1: Phone:", phone, " Location:", location);
 
-    if (!phone.trim()) {
-      console.log("STEP 01.2: Missing phone number");
-      alert("Please enter your phone number");
+    if (!phone.trim() || !location.trim()) {
+      console.log("STEP 01.2: Missing phone or location");
       return;
     }
 
-    setLoadingLogin(true);
-    console.log("STEP 01.3 Login API request sending...");
+    setLoadingPhone(true);
 
     try {
-      const res = await fetch(`${BaseURL}api/myntra/login`, {
+      const endpoint = "dmart/login";
+      const payload = {
+        mobile_number: phone,
+        location: location,
+      };
+      console.log("STEP 01.3 Login API request sending...", payload);
+
+      const res = await fetch(`${BaseURL}api/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mobile_number: phone,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -89,7 +87,7 @@ export default function MyntraChat() {
           data.session_id
         );
         setSessionId(data.session_id);
-        setShowLoginPopup(false);
+        setShowPhonePopup(false);
         setShowOtpPopup(true);
       } else {
         console.log("STEP 01.6: Login Failed");
@@ -100,7 +98,7 @@ export default function MyntraChat() {
       alert("Something went wrong!");
     }
 
-    setLoadingLogin(false);
+    setLoadingPhone(false);
   };
 
   const handleOtpSubmit = async () => {
@@ -115,7 +113,9 @@ export default function MyntraChat() {
     console.log("STEP 02.3: OTP API request sending...");
 
     try {
-      const res = await fetch(`${BaseURL}api/myntra/submit-otp`, {
+      const endpoint = "dmart/verify-otp";
+
+      const res = await fetch(`${BaseURL}api/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -142,35 +142,55 @@ export default function MyntraChat() {
     setLoadingOtp(false);
   };
 
-  const handleSearch = async (query: string) => {
-    console.log("STEP 03: Search triggered with:", query);
+  const handleSend = async () => {
+    console.log("STEP 03: handleSend() triggered with:", messageInput);
 
+    if (!messageInput.trim()) {
+      console.log("STEP 03.1: Empty message, stopping.");
+      return;
+    }
+
+    setShowChat(true);
+
+    pushUser(messageInput);
+
+    const userText = messageInput;
+    setMessageInput("");
     setIsLoading(true);
 
+    const endpoint = "dmart/search";
+    const searchPayload = { query: userText, max_items: 30 };
+
+    console.log("STEP 03.2: Search API request sending...");
+
     try {
-      const response = await fetch(`${BaseURL}api/myntra/search`, {
+      const response = await fetch(`${BaseURL}api/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: query,
-        }),
+        body: JSON.stringify(searchPayload),
       });
 
       const data = await response.json();
-      console.log("STEP 03.2: Search API response:", data);
+      console.log("STEP 03.3: Search API response:", data);
 
       if (data.session_id) {
         setSessionId(data.session_id);
-        console.log("STEP 03.3: Session ID updated to:", data.session_id);
+        console.log("STEP 03.4: Session ID updated to:", data.session_id);
       }
 
-      const products = data.products || data.results || [];
-      console.log("STEP 03.4: Extracted products =", products);
+      console.log(
+        "STEP 03.5: Extracting actual product list from response",
+        data
+      );
+
+      let productList = data.products;
+
+      console.log("STEP 03.7: Extracted productList =", productList);
 
       pushSystem(
         JSON.stringify({
           type: "product_list",
-          products: products,
+          products: productList,
         })
       );
     } catch (err) {
@@ -181,169 +201,196 @@ export default function MyntraChat() {
     setIsLoading(false);
   };
 
-  const handleSend = async () => {
-    if (!messageInput.trim()) {
-      console.log("STEP 03: Empty message, stopping.");
+  // NEW FUNCTION: Handle order placement
+  const handlePlaceOrder = async () => {
+    if (loadingOrder) return;
+
+    console.log("STEP 06: handlePlaceOrder() triggered");
+    console.log("STEP 06.1: Order details:", {
+      session_id: sessionId,
+      day_text: dayText,
+      slot_text: slotText,
+      upi_id: upiId,
+      hold_seconds: 60,
+    });
+
+    // Validate all required fields
+    if (!sessionId || !dayText || !slotText || !upiId) {
+      console.log("STEP 06.2: Missing required fields for order");
+      pushSystem("Please fill in all order details (day, slot, and UPI ID)");
       return;
     }
 
-    setShowChat(true);
-    pushUser(messageInput);
-    const userText = messageInput;
-    setMessageInput("");
+    setLoadingOrder(true);
+    pushSystem("Placing your order with delivery details...");
 
-    await handleSearch(userText);
+    try {
+      const endpoint = "dmart/order";
+      const payload = {
+        session_id: sessionId,
+        day_text: dayText,
+        slot_text: slotText,
+        upi_id: upiId,
+        hold_seconds: 60,
+      };
+
+      console.log("STEP 06.3: Order API request sending...", payload);
+
+      const res = await fetch(`${BaseURL}api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      console.log("STEP 06.4: Order API response:", data);
+
+      if (data.status === "success" || data.order_placed) {
+        pushSystem(
+          JSON.stringify({
+            status: "success",
+            message: `Order placed successfully! Delivery scheduled for ${dayText} during ${slotText}. Payment request sent to ${upiId}`,
+            order_details: data,
+          })
+        );
+
+        // Reset order details
+        setDayText("");
+        setSlotText("");
+        setUpiId("");
+      } else {
+        pushSystem(
+          JSON.stringify({
+            status: "error",
+            message: "Order placement failed. Please try again.",
+            details: data,
+          })
+        );
+      }
+    } catch (err) {
+      console.log("STEP 06: Error:", err);
+      pushSystem(
+        "Something went wrong while placing the order. Please try again."
+      );
+    } finally {
+      setLoadingOrder(false);
+    }
   };
 
-  const handleAddToCart = async () => {
+  const handleConfirmCart = async () => {
     if (loadingCart) return;
 
-    console.log("STEP 04: Add to cart triggered for product:", pendingProduct);
+    console.log("STEP 04: handleConfirmCart() triggered with:", cartSelections);
 
-    if (!pendingProduct || !selectedSize) {
-      pushSystem("Please select a product and size first.");
+    const selectedItems = Object.entries(cartSelections).filter(
+      ([_, qty]) => qty > 0
+    );
+
+    if (selectedItems.length === 0) {
+      pushSystem("Please select at least one item.");
+      return;
+    }
+
+    const currentCart = { ...cartSelections };
+
+    console.log(
+      "STEP 04.1: Checking UPI ID - upiId:",
+      upiId,
+      "hasValue:",
+      !!upiId
+    );
+
+    // MODIFIED: Now we also need day and slot text
+    if (!upiId || !dayText || !slotText) {
+      console.log("STEP 04.2: Order details required, showing order popup");
+      setPendingCartSelections(currentCart);
+      setShowUpiPopup(true);
       return;
     }
 
     setLoadingCart(true);
+    pushSystem("Adding items to cart...");
 
     try {
-      const res = await fetch(`${BaseURL}api/myntra/add-to-cart`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_url: pendingProduct.url,
-          size: selectedSize,
-        }),
-      });
+      // First add all items to cart
+      for (const [name, qty] of selectedItems) {
+        const endpoint = "dmart/add-to-cart";
+        const payload = {
+          product_name: name,
+          quantity: qty,
+        };
 
-      const data = await res.json();
-      console.log("STEP 04.1: Add to cart API response:", data);
+        console.log("STEP 04.3: Add to cart API request sending...", payload);
 
-      if (data.session_id) {
-        setSessionId(data.session_id);
-        console.log("STEP 04.2: Session ID updated to:", data.session_id);
+        const res = await fetch(`${BaseURL}api/${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        console.log("STEP 04.4: Add to cart API response:", data);
+
+        if (data === null || data.order_placed) {
+          // Item added successfully
+        } else if (
+          data.status === "error" &&
+          data.message === "Cart is empty."
+        ) {
+          pushSystem("The Item is Out of Stock now!");
+        }
       }
 
-      if (data.status === "success") {
-        pushSystem("Item added to cart successfully!");
-        setShowAddressPopup(true);
-      } else if (data.status === "address_required") {
-        pushSystem("I need your address to complete the order");
-        setShowAddressPopup(true);
-      } else if (data.status === "upi_required") {
-        pushSystem("I need your address to complete the order");
-        setShowUpiPopup(true);
-      } else {
-        pushSystem("Failed to add item to cart. Please try again.");
-      }
+      // NEW: After adding all items to cart, place the order
+      console.log("STEP 04.5: All items added to cart, now placing order...");
+      await handlePlaceOrder();
     } catch (err) {
       console.log("STEP 04: Error:", err);
-      pushSystem("Failed to add item to cart!");
+      pushSystem("Error processing cart items. Please try again.");
     } finally {
-      setShowSizePopup(false);
       setLoadingCart(false);
+      setCartSelections({});
     }
   };
 
-  const handleAddAddress = async () => {
-    if (loadingAddress) return;
-
-    console.log("STEP 05: Adding address");
-
-    if (
-      !name.trim() ||
-      !mobile.trim() ||
-      !pincode.trim() ||
-      !houseNumber.trim() ||
-      !streetAddress.trim() ||
-      !locality.trim()
-    ) {
-      alert("Please fill all address fields");
+  const handleUpiSubmit = async () => {
+    if (!upiId.trim() || !dayText.trim() || !slotText.trim()) {
+      alert("Please enter all order details (Day, Slot, and UPI ID)");
       return;
     }
 
-    setLoadingAddress(true);
+    setLoadingUpi(true);
+    console.log("STEP 05: Submitting order details...", {
+      dayText,
+      slotText,
+      upiId,
+    });
 
     try {
-      const res = await fetch(`${BaseURL}api/myntra/add-address`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          name: name,
-          mobile: mobile,
-          pincode: pincode,
-          house_number: houseNumber,
-          street_address: streetAddress,
-          locality: locality,
-          address_type: "HOME",
-          make_default: false,
-        }),
-      });
+      setShowUpiPopup(false);
+      pushSystem(
+        `Order details collected: Delivery on ${dayText} during ${slotText}. UPI: ${upiId}`
+      );
 
-      const data = await res.json();
-      console.log("STEP 05.1: Add address API response:", data);
+      // If there are pending cart selections, process them
+      if (pendingCartSelections) {
+        setCartSelections(pendingCartSelections);
+        setPendingCartSelections(null);
 
-      if (data.status === "success") {
-        pushSystem("Address added successfully!");
-        setShowAddressPopup(false);
-        setShowUpiPopup(true);
+        // Wait a bit for state update then confirm cart
+        setTimeout(() => {
+          handleConfirmCart();
+        }, 100);
       } else {
-        alert("Failed to add address. Please try again.");
+        // If no pending cart, just place the order (for cases where cart was already processed)
+        pushSystem("Processing order with provided details...");
+        await handlePlaceOrder();
       }
     } catch (err) {
-      console.log("STEP 05: Error:", err);
-      alert("Something went wrong while adding address.");
+      console.log("STEP 05: Error submitting order details:", err);
+      alert("Something went wrong while submitting order details.");
     } finally {
-      setLoadingAddress(false);
-    }
-  };
-
-  const handlePayment = async () => {
-    if (loadingPayment) return;
-
-    console.log("STEP 07: Processing payment");
-
-    if (!upiId.trim()) {
-      alert("Please enter UPI ID");
-      return;
-    }
-
-    setLoadingPayment(true);
-
-    try {
-      const res = await fetch(`${BaseURL}api/myntra/pay-with-upi`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          upi_id: upiId,
-        }),
-      });
-
-      const data = await res.json();
-      console.log("STEP 07.1: Payment API response:", data);
-
-      if (data.status === "success" || data.order_id) {
-        pushSystem(
-          JSON.stringify({
-            status: "success",
-            message: "Your order has been placed successfully! 🎉",
-          })
-        );
-        setShowUpiPopup(false);
-        setUpiId("");
-        setPendingProduct(null);
-        setSelectedSize("");
-      } else {
-        alert("Payment failed. Please try again.");
-      }
-    } catch (err) {
-      console.log("STEP 07: Error:", err);
-      alert("Something went wrong during payment.");
-    } finally {
-      setLoadingPayment(false);
+      setLoadingUpi(false);
     }
   };
 
@@ -361,93 +408,77 @@ export default function MyntraChat() {
     if (typeof parsed === "object" && parsed?.type === "product_list") {
       content = (
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold mb-2">
-            Here are some fashion finds:
-          </h3>
+          <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
           <div className="flex overflow-auto gap-4">
-            {parsed.products?.map((p: any, index: number) => {
-              const key = p.brand + p.name + p.price + index;
+            {parsed.products?.map((p: any) => {
+              const key = p.title + p.dmart_price;
+              const qty = cartSelections[key] || 0;
 
               return (
                 <div
                   key={key}
-                  className="flex gap-4 p-4 min-w-64 rounded-xl border border-gray-700 bg-gray-900/60 cursor-pointer transition-all hover:border-gray-600"
-                  onClick={() => {
-                    setPendingProduct(p);
-                    setShowSizePopup(true);
-                  }}
+                  className="flex gap-3 p-3 min-w-64 rounded-xl border border-gray-700 bg-gray-900/60"
                 >
-                  {/* Product Image */}
-                  {p.image_url && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={p.image_url}
-                        alt={p.name}
-                        className="w-20 h-24 object-cover rounded-lg bg-gray-800"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
+                  <img
+                    src={p.image_url}
+                    alt={p.name}
+                    className="w-16 h-16 object-cover rounded-lg"
+                  />
 
-                  {/* Product details */}
-                  <div className="flex-1 min-w-0">
-                    {/* Brand and Name */}
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-white text-base truncate">
-                          {p.brand}
-                        </p>
-                        <p className="text-sm text-gray-300 mt-1 line-clamp-2">
-                          {p.name}
-                        </p>
-                      </div>
-                      {p.rating && (
-                        <div className="flex items-center gap-1 bg-gray-700 px-2 py-1 rounded-full flex-shrink-0 ml-2">
-                          <span className="text-yellow-400 text-sm">⭐</span>
-                          <span className="text-white text-sm font-medium">
-                            {p.rating}
-                          </span>
-                          {p.rating_count && (
-                            <span className="text-gray-400 text-xs">
-                              ({p.rating_count})
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">{p.title}</p>
+                    <p className="text-sm text-gray-300">₹{p.dmart_price}</p>
 
-                    {/* Price and Discount */}
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <p className="text-lg font-bold text-white">
-                          {p.price}
-                        </p>
-                        {p.original_price && p.original_price !== p.price && (
-                          <p className="text-sm text-gray-400 line-through">
-                            {p.original_price}
-                          </p>
-                        )}
-                        {p.discount && (
-                          <p className="text-sm text-green-400 bg-green-900/30 px-2 py-1 rounded">
-                            {p.discount}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                    <div className="flex items-center gap-3 mt-2">
+                      <button
+                        onClick={() =>
+                          setCartSelections((prev: any) => ({
+                            ...prev,
+                            [key]: Math.max((prev[key] || 0) - 1, 0),
+                          }))
+                        }
+                        className="w-7 h-7 bg-gray-800 rounded-full flex items-center justify-center"
+                      >
+                        -
+                      </button>
 
-                    {/* Select button */}
-                    <div className="flex justify-end mt-3">
-                      <button className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white rounded-lg text-sm font-medium transition-colors">
-                        Select Size
+                      <span className="w-6 text-center">{qty}</span>
+
+                      <button
+                        onClick={() =>
+                          setCartSelections((prev: any) => ({
+                            ...prev,
+                            [key]: (prev[key] || 0) + 1,
+                          }))
+                        }
+                        className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center"
+                      >
+                        +
                       </button>
                     </div>
                   </div>
                 </div>
               );
             })}
+
+            <button
+              onClick={handleConfirmCart}
+              className={`w-full py-2 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 ${
+                loadingCart
+                  ? "bg-gray-600 cursor-not-allowed text-gray-400"
+                  : "bg-red-600 hover:bg-red-500 text-white"
+              }`}
+            >
+              {loadingCart ? (
+                <>
+                  <PopupLoader />
+                  Processing...
+                </>
+              ) : (
+                "Confirm Order"
+              )}
+            </button>
           </div>
         </div>
       );
@@ -457,38 +488,29 @@ export default function MyntraChat() {
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
     ) {
       content = (
-        <div className="flex items-center gap-3 p-4 bg-green-900/20 border border-green-600 rounded-xl">
-          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <div>
-            <p className="font-semibold text-green-400">Order Confirmed! 🎉</p>
-            <p className="text-sm text-green-300 mt-1">
-              Your fashion item will be delivered soon.
-            </p>
-          </div>
+        <div className="space-y-2">
+          <p className="font-semibold text-green-400">🎉 Order Successful!</p>
+          {parsed.message && <p className="text-gray-300">{parsed.message}</p>}
+          {parsed.order_details && (
+            <div className="mt-2 p-3 bg-gray-800/50 rounded-lg">
+              <p className="text-sm text-gray-400">Order Details:</p>
+              <pre className="text-xs mt-1 overflow-auto">
+                {JSON.stringify(parsed.order_details, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       );
     } else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
           let formatted = line;
+
           formatted = formatted.replace(
             /\*\*(.*?)\*\*/g,
             "<strong>$1</strong>"
           );
+
           formatted = formatted.replace(
             /([🛍️📋🎯💡📝💬❌🔍💰📦])/g,
             '<span class="text-xl">$1</span>'
@@ -521,7 +543,8 @@ export default function MyntraChat() {
             m.role === "user"
               ? "bg-white/15 text-white border-white/20"
               : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          } 
+          max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
         >
           {content}
         </div>
@@ -532,13 +555,12 @@ export default function MyntraChat() {
   return (
     <div className="min-h-screen w-screen bg-black text-white">
       {/* ALL POPUPS - RENDERED AT TOP LEVEL */}
-
-      {/* LOGIN POPUP */}
-      {showLoginPopup && (
+      {/* PHONE NUMBER POPUP */}
+      {showPhonePopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
             <h2 className="text-xl font-semibold text-white">
-              Login to Myntra
+              Enter your details
             </h2>
 
             <input
@@ -549,12 +571,20 @@ export default function MyntraChat() {
               className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
             />
 
+            <input
+              type="text"
+              placeholder="Location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+
             <button
               onClick={handleLogin}
-              disabled={loadingLogin}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              disabled={loadingPhone}
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loadingLogin ? <PopupLoader /> : "Send OTP"}
+              {loadingPhone ? <PopupLoader /> : "Continue"}
             </button>
           </div>
         </div>
@@ -577,141 +607,78 @@ export default function MyntraChat() {
             <button
               onClick={handleOtpSubmit}
               disabled={loadingOtp}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loadingOtp ? <PopupLoader /> : "Verify OTP"}
+              {loadingOtp ? <PopupLoader /> : "Verify"}
             </button>
           </div>
         </div>
       )}
 
-      {/* SIZE SELECTION POPUP */}
-      {showSizePopup && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Select Size</h2>
-
-            {pendingProduct && (
-              <div className="bg-gray-800 p-3 rounded-lg mb-4">
-                <p className="font-semibold">{pendingProduct.brand}</p>
-                <p className="text-sm text-gray-300">{pendingProduct.name}</p>
-                <p className="text-green-400 font-semibold mt-1">
-                  {pendingProduct.price}
-                </p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-2">
-              {sizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`p-3 rounded-lg border-2 transition-all ${
-                    selectedSize === size
-                      ? "border-pink-500 bg-pink-500/20 text-white"
-                      : "border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-500"
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={handleAddToCart}
-              disabled={loadingCart || !selectedSize}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loadingCart ? <PopupLoader /> : "Add to Cart"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ADDRESS POPUP */}
-      {showAddressPopup && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-gray-900 p-6 rounded-2xl w-96 space-y-4 border border-gray-700 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-semibold text-white">
-              Delivery Address
-            </h2>
-
-            <div className="grid gap-3">
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Mobile Number"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Pincode"
-                value={pincode}
-                onChange={(e) => setPincode(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="House/Flat Number"
-                value={houseNumber}
-                onChange={(e) => setHouseNumber(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Street Address"
-                value={streetAddress}
-                onChange={(e) => setStreetAddress(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Locality/Area"
-                value={locality}
-                onChange={(e) => setLocality(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-              />
-            </div>
-
-            <button
-              onClick={handleAddAddress}
-              disabled={loadingAddress}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loadingAddress ? <PopupLoader /> : "Save Address"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* UPI POPUP */}
+      {/* ORDER DETAILS POPUP (formerly UPI popup) */}
       {showUpiPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Payment</h2>
+            <h2 className="text-xl font-semibold text-white">Order Details</h2>
 
-            <input
-              type="text"
-              placeholder="UPI ID"
-              value={upiId}
-              onChange={(e) => setUpiId(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-            />
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">
+                  Delivery Day
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Tomorrow, Monday, etc."
+                  value={dayText}
+                  onChange={(e) => setDayText(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">
+                  Delivery Slot
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Morning, Afternoon, Evening"
+                  value={slotText}
+                  onChange={(e) => setSlotText(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">
+                  UPI ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="example@upi"
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-400 mt-2">
+              Payment will be held for 60 seconds for UPI confirmation
+            </p>
 
             <button
-              onClick={handlePayment}
-              disabled={loadingPayment}
-              className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              onClick={handleUpiSubmit}
+              disabled={loadingUpi}
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loadingPayment ? <PopupLoader /> : "Pay Now"}
+              {loadingUpi ? (
+                <>
+                  <PopupLoader />
+                  Processing...
+                </>
+              ) : (
+                "Place Order"
+              )}
             </button>
           </div>
         </div>
@@ -993,14 +960,16 @@ export default function MyntraChat() {
                   </div>
                 </div>
 
-                {/* Card */}
+                {/* Cards */}
                 <div className="flex flex-wrap justify-center lg:flex-nowrap w-full gap-4">
+                  {/* GROCERIES */}
+
                   <Link
-                    to="/shopping"
+                    to="/groceries"
                     className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
-          border border-gray-700 hover:border-purple-500/50 transition-all cursor-pointer group"
+                  border border-gray-700 hover:border-green-500/50 transition-all cursor-pointer group"
                   >
-                    <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                       <svg
                         className="w-6 h-6"
                         fill="none"
@@ -1011,13 +980,13 @@ export default function MyntraChat() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                         />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Shopping</h3>
+                    <h3 className="text-lg font-semibold mb-2">Groceries</h3>
                     <p className="text-sm text-gray-400">
-                      Order products, video and many more...
+                      Order fresh groceries from your nearest stations
                     </p>
                   </Link>
                 </div>

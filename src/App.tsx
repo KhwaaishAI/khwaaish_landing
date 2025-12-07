@@ -7,6 +7,12 @@ import Chat1 from "./pages/Chat1";
 import Chat2 from "./pages/Chat2";
 import Chat3 from "./pages/Chat3";
 import Chat4 from "./pages/Chat4";
+import Chat5 from "./pages/Chat5";
+import Chat6 from "./pages/Chat6";
+import Chat7 from "./pages/Chat7";
+import Chat8 from "./pages/Chat8";
+import Ola from "./pages/Ola";
+import Pharmeasy from "./pages/Pharmeasy";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -48,6 +54,30 @@ export default function App() {
         <Route
           path="/food"
           element={loggedIn ? <Chat4 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/nykaa"
+          element={loggedIn ? <Chat5 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/jiomart"
+          element={loggedIn ? <Chat6 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/tatacliq"
+          element={loggedIn ? <Chat7 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/dmart"
+          element={loggedIn ? <Chat8 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/ola"
+          element={loggedIn ? <Ola /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/pharmeasy"
+          element={loggedIn ? <Pharmeasy /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
