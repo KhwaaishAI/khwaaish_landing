@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 const API_ENDPOINT = import.meta.env.VITE_CHAT2_API;
 
@@ -12,6 +13,7 @@ export default function Chat2() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -84,6 +86,76 @@ export default function Chat2() {
     });
   };
 
+  const renderAssistantContent = (raw: string) => {
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = null;
+    }
+
+    if (parsed && typeof parsed === "object" && parsed.type === "product_list") {
+      const products = parsed.products?.slice(0, 16) || [];
+
+      return (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
+          <div className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+              {products.map((p: any, index: number) => {
+                const key = (p.name || p.title || "") + (p.price || p.dmart_price || "") + index;
+                const isSelected = selectedKey === key;
+
+                return (
+                  <div
+                    key={key}
+                    onClick={() => setSelectedKey(key)}
+                    className={`relative flex flex-col bg-[#11121a] rounded-2xl overflow-hidden shadow-sm cursor-pointer transition-colors ${
+                      isSelected ? "bg-[#181924]" : "hover:bg-[#151622]"
+                    }`}
+                  >
+                    {p.image_url && (
+                      <div className="relative w-full h-36 bg-gray-800">
+                        <img
+                          src={p.image_url}
+                          alt={p.name || p.title || "Item"}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex-1 flex flex-col px-3 py-3 gap-2">
+                      <div className="min-h-[48px] space-y-1">
+                        <p className="text-sm font-semibold text-white line-clamp-2">
+                          {p.name || p.title || "Untitled"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-1">
+                        {p.price || p.dmart_price ? (
+                          <p className="text-base font-bold text-white">
+                            ₹{p.price || p.dmart_price}
+                          </p>
+                        ) : (
+                          <span className="text-xs text-gray-400">No price</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return formatContent(raw);
+  };
+
   return (
     <div className="relative w-full h-screen bg-black text-white flex flex-col justify-between">
       {/* Chat container */}
@@ -102,7 +174,9 @@ export default function Chat2() {
                   : "bg-gray-900/80 text-gray-100 border-gray-800"
               } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
             >
-              {formatContent(msg.content)}
+              {msg.role === "assistant"
+                ? renderAssistantContent(msg.content)
+                : formatContent(msg.content)}
             </div>
           </div>
         ))}
@@ -132,6 +206,12 @@ export default function Chat2() {
             onChange={(e) => setMessageInput(e.target.value)}
             placeholder="Ask something..."
             className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-sm sm:text-base"
+          />
+
+          <VoiceRecorderButton
+            onTextReady={(text) =>
+              setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
+            }
           />
 
           <button

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 interface Message {
   id: string;
@@ -261,89 +262,91 @@ export default function TataCliq() {
             Here are some fashion finds:
           </h3>
 
-          <div className="flex overflow-auto gap-4">
-            {parsed.products?.map((p: any, index: number) => {
-              const key = p.brand + p.name + p.price + index;
+          <div className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+              {parsed.products?.slice(0, 18).map((p: any, index: number) => {
+                const key = p.brand + p.name + p.price + index;
+                const isSelected =
+                  pendingProduct &&
+                  pendingProduct.brand === p.brand &&
+                  pendingProduct.name === p.name;
 
-              return (
-                <div
-                  key={key}
-                  className="flex gap-4 p-4 min-w-64 rounded-xl border border-gray-700 bg-gray-900/60 cursor-pointer transition-all hover:border-gray-600"
-                  onClick={() => {
-                    setPendingProduct(p);
-                    setShowSizePopup(true);
-                  }}
-                >
-                  {/* Product Image */}
-                  {p.image_url && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={p.image_url}
-                        alt={p.name}
-                        className="w-20 h-24 object-cover rounded-lg bg-gray-800"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
+                return (
+                  <div
+                    key={key}
+                    onClick={() => {
+                      setPendingProduct(p);
+                      setShowSizePopup(true);
+                    }}
+                    className={`relative flex flex-col bg-[#11121a] rounded-2xl overflow-hidden shadow-sm cursor-pointer transition-colors ${
+                      isSelected ? "bg-[#1e1416]" : "hover:bg-[#151622]"
+                    }`}
+                  >
+                    {p.image_url && (
+                      <div className="relative w-full h-36 bg-gray-800">
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                        {p.rating && (
+                          <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 px-2 py-1 rounded-full text-xs">
+                            <span className="text-yellow-300">⭐</span>
+                            <span className="text-white font-medium">
+                              {p.rating}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                  {/* Product details */}
-                  <div className="flex-1 min-w-0">
-                    {/* Brand and Name */}
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-white text-base truncate">
+                    <div className="flex-1 flex flex-col px-3 py-3 gap-2">
+                      <div className="min-h-[52px] space-y-1">
+                        <p className="text-sm font-semibold text-white truncate">
                           {p.brand}
                         </p>
-                        <p className="text-sm text-gray-300 mt-1 line-clamp-2">
+                        <p className="text-xs text-gray-300 line-clamp-2">
                           {p.name}
                         </p>
                       </div>
-                      {p.rating && (
-                        <div className="flex items-center gap-1 bg-gray-700 px-2 py-1 rounded-full flex-shrink-0 ml-2">
-                          <span className="text-yellow-400 text-sm">⭐</span>
-                          <span className="text-white text-sm font-medium">
-                            {p.rating}
-                          </span>
-                          {p.rating_count && (
-                            <span className="text-gray-400 text-xs">
-                              ({p.rating_count})
-                            </span>
+
+                      <div className="flex items-center justify-between mt-1">
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-base font-bold text-white">
+                            {p.price}
+                          </p>
+                          {p.original_price && p.original_price !== p.price && (
+                            <p className="text-xs text-gray-400 line-through">
+                              {p.original_price}
+                            </p>
                           )}
                         </div>
-                      )}
-                    </div>
-
-                    {/* Price and Discount */}
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <p className="text-lg font-bold text-white">
-                          {p.price}
-                        </p>
-                        {p.original_price && p.original_price !== p.price && (
-                          <p className="text-sm text-gray-400 line-through">
-                            {p.original_price}
-                          </p>
-                        )}
                         {p.discount && (
-                          <p className="text-sm text-green-400 bg-green-900/30 px-2 py-1 rounded">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-900/40 text-green-300 border border-green-500/40">
                             {p.discount}
-                          </p>
+                          </span>
                         )}
+                      </div>
+
+                      <div className="flex justify-end mt-2">
+                        <button className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-medium transition-colors">
+                          Select Size
+                        </button>
                       </div>
                     </div>
 
-                    {/* Select button */}
-                    <div className="flex justify-end mt-3">
-                      <button className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium transition-colors">
-                        Select Size
-                      </button>
-                    </div>
+                    {isSelected && (
+                      <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-[10px] font-bold">
+                        +1
+                      </div>
+                    )}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       );
@@ -406,22 +409,26 @@ export default function TataCliq() {
     }
 
     return (
-      <div
-        key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
-      >
+      typeof parsed === "object" && parsed?.type === "product_list" ? (
+        <div key={m.id} className="w-full">{content}</div>
+      ) : (
         <div
-          className={`${
-            m.role === "user"
-              ? "bg-white/15 text-white border-white/20"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          key={m.id}
+          className={`flex ${
+            m.role === "user" ? "justify-end" : "justify-start"
+          }`}
         >
-          {content}
+          <div
+            className={`${
+              m.role === "user"
+                ? "bg-white/15 text-white border-white/20"
+                : "bg-gray-900/80 text-gray-100 border-gray-800"
+            } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          >
+            {content}
+          </div>
         </div>
-      </div>
+      )
     );
   };
 
@@ -588,6 +595,12 @@ export default function TataCliq() {
                 }}
                 placeholder="What is your khwaaish?"
                 className="flex-1 bg-transparent text-white placeholder-white/60 outline-none"
+              />
+
+              <VoiceRecorderButton
+                onTextReady={(text) =>
+                  setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
+                }
               />
 
               <button

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 interface Message {
   id: string;
@@ -37,6 +38,9 @@ export default function Chat6() {
   const [cartSelections, setCartSelections] = useState<{
     [id: string]: number;
   }>({});
+  const [selectedProductKey, setSelectedProductKey] = useState<string | null>(
+    null
+  );
 
   const [holdSeconds] = useState(59);
 
@@ -322,78 +326,103 @@ export default function Chat6() {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
-          <div className="flex max-w-5xl overflow-auto gap-4">
-            {parsed.products?.map((p: any) => {
-              const key = p.name + p.price;
-              const qty = cartSelections[key] || 0;
+          <div className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+              {parsed.products?.slice(0, 18).map((p: any, index: number) => {
+                const key = p.name + p.price + index;
+                const qty = cartSelections[key] || 0;
+                const isSelected = selectedProductKey === key;
 
-              return (
-                <div
-                  key={key}
-                  className="flex flex-col gap-3 p-3 min-w-52 rounded-xl border border-gray-700 bg-gray-900/60"
-                >
-                  <img
-                    src={p.image_url}
-                    alt={p.name}
-                    className="w-48 h-40 object-cover rounded-lg"
-                  />
+                return (
+                  <div
+                    key={key}
+                    onClick={() => setSelectedProductKey(key)}
+                    className={`relative flex flex-col bg-[#11121a] rounded-2xl overflow-hidden shadow-sm cursor-pointer transition-colors ${
+                      isSelected ? "bg-[#141d16]" : "hover:bg-[#151622]"
+                    }`}
+                  >
+                    {p.image_url && (
+                      <div className="relative w-full h-36 bg-gray-800">
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )}
 
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <p className="font-semibold">{p.name}</p>
-                      <p className="text-sm text-gray-300">₹{p.price}</p>
-                    </div>
+                    <div className="flex-1 flex flex-col px-3 py-3 gap-2">
+                      <div className="min-h-[48px] space-y-1">
+                        <p className="text-sm font-semibold text-white line-clamp-2">
+                          {p.name}
+                        </p>
+                      </div>
 
-                    <div className="flex items-end justify-end  gap-3 mt-2">
-                      <button
-                        onClick={() =>
-                          setCartSelections((prev: any) => ({
-                            ...prev,
-                            [key]: Math.max((prev[key] || 0) - 1, 0),
-                          }))
-                        }
-                        className="w-7 h-7 bg-gray-800 rounded-full flex items-center justify-center"
-                      >
-                        -
-                      </button>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-base font-bold text-white">₹{p.price}</p>
+                      </div>
 
-                      <span className="w-6 text-center">{qty}</span>
+                      <div className="mt-2 flex items-center justify-end">
+                        <div
+                          className="flex items-center gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() =>
+                              setCartSelections((prev: any) => ({
+                                ...prev,
+                                [key]: Math.max((prev[key] || 0) - 1, 0),
+                              }))
+                            }
+                            className="w-7 h-7 bg-gray-800 rounded-full flex items-center justify-center text-sm"
+                          >
+                            -
+                          </button>
 
-                      <button
-                        onClick={() =>
-                          setCartSelections((prev: any) => ({
-                            ...prev,
-                            [key]: (prev[key] || 0) + 1,
-                          }))
-                        }
-                        className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center"
-                      >
-                        +
-                      </button>
+                          <span className="w-6 text-center text-sm">{qty}</span>
+
+                          <button
+                            onClick={() =>
+                              setCartSelections((prev: any) => ({
+                                ...prev,
+                                [key]: (prev[key] || 0) + 1,
+                              }))
+                            }
+                            className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center text-sm"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
 
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleConfirmCart}
+                className={`px-4 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 ${
+                  loadingCart
+                    ? "bg-gray-600 cursor-not-allowed text-gray-400"
+                    : "bg-red-600 hover:bg-red-500 text-white"
+                }`}
+              >
+                {loadingCart ? (
+                  <>
+                    <PopupLoader />
+                    Processing...
+                  </>
+                ) : (
+                  "Confirm"
+                )}
+              </button>
+            </div>
           </div>
-            <button
-              onClick={handleConfirmCart}
-              className={`px-4 py-2 rounded-xl mt-4 font-semibold flex items-center justify-center gap-2 ${
-                loadingCart
-                  ? "bg-gray-600 cursor-not-allowed text-gray-400"
-                  : "bg-red-600 hover:bg-red-500 text-white"
-              }`}
-            >
-              {loadingCart ? (
-                <>
-                  <PopupLoader />
-                  Processing...
-                </>
-              ) : (
-                "Confirm"
-              )}
-            </button>
         </div>
       );
     } else if (
@@ -433,23 +462,27 @@ export default function Chat6() {
     }
 
     return (
-      <div
-        key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
-      >
+      typeof parsed === "object" && parsed?.type === "product_list" ? (
+        <div key={m.id} className="w-full">{content}</div>
+      ) : (
         <div
-          className={`${
-            m.role === "user"
-              ? "bg-white/15 text-white border-white/20"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } 
-          max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          key={m.id}
+          className={`flex ${
+            m.role === "user" ? "justify-end" : "justify-start"
+          }`}
         >
-          {content}
+          <div
+            className={`${
+              m.role === "user"
+                ? "bg-white/15 text-white border-white/20"
+                : "bg-gray-900/80 text-gray-100 border-gray-800"
+            } 
+          max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          >
+            {content}
+          </div>
         </div>
-      </div>
+      )
     );
   };
 
@@ -582,6 +615,12 @@ export default function Chat6() {
                 }}
                 placeholder="What is your khwaaish?"
                 className="flex-1 bg-transparent text-white placeholder-white/60 outline-none"
+              />
+
+              <VoiceRecorderButton
+                onTextReady={(text) =>
+                  setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
+                }
               />
 
               <button
