@@ -49,6 +49,9 @@ export default function Chat1() {
   const [instamartLandmark, setInstamartLandmark] = useState("");
   const [loadingInstamartBook, setLoadingInstamartBook] = useState(false);
   const [instamartCartItems, setInstamartCartItems] = useState<any[]>([]);
+  const [selectedProductKey, setSelectedProductKey] = useState<string | null>(
+    null
+  );
 
   const pushSystem = (text: string) =>
     setMessages((prev) => [
@@ -205,7 +208,7 @@ export default function Chat1() {
     try {
       const zeptoPayload = {
         query: userText,
-        max_items: 20,
+        max_items: 12,
       };
 
       const instamartPayload = {
@@ -249,21 +252,23 @@ export default function Chat1() {
 
       console.log("STEP 03.5: Extracting actual product list from response");
 
-      const zeptoProducts = zeptoData.products;
+      const zeptoProducts = zeptoData.products || [];
 
-      const instamartProducts = instamartData.results;
+      const instamartProducts = instamartData.results || [];
 
-      const zeptoProductsWithSource = zeptoProducts.map((product: any) => ({
+      const zeptoProductsWithSource = zeptoProducts
+        .slice(0, 12)
+        .map((product: any) => ({
         ...product,
         source: "zepto",
       }));
 
-      const instamartProductsWithSource = instamartProducts.map(
-        (product: any) => ({
+      const instamartProductsWithSource = instamartProducts
+        .slice(0, 12)
+        .map((product: any) => ({
           ...product,
           source: "instamart",
-        })
-      );
+        }));
 
       let productList = [
         ...zeptoProductsWithSource,
@@ -559,19 +564,28 @@ export default function Chat1() {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
-          <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {parsed.products?.map((p: any, index: number) => {
+          <div className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+              {parsed.products?.slice(0, 24).map((p: any, index: number) => {
                 const key = `${p.name}|${p.price}|${p.source}`;
                 const qty = cartSelections[key]?.quantity || 0;
+                const isSelected = selectedProductKey === key;
 
                 return (
                   <div
                     key={key + index}
-                    className="flex flex-col bg-[#11121a] border border-gray-800/80 rounded-2xl overflow-hidden shadow-sm hover:border-gray-600 transition-colors"
+                    onClick={() => setSelectedProductKey(key)}
+                    className={`relative flex flex-col bg-[#11121a] rounded-2xl overflow-hidden shadow-sm transition-colors cursor-pointer ${
+                      isSelected ? "bg-[#181924]" : "hover:bg-[#151622]"
+                    }`}
                   >
+                    {isSelected && (
+                      <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-[10px] font-bold">
+                        +1
+                      </div>
+                    )}
                     {p.image_url && (
-                      <div className="relative w-full h-32 bg-gray-800">
+                      <div className="relative w-full h-36 bg-gray-800">
                         <img
                           src={p.image_url}
                           alt={p.name}
@@ -612,7 +626,10 @@ export default function Chat1() {
                       </div>
 
                       <div className="mt-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                        <div
+                          className="flex items-center gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             onClick={() =>
                               setCartSelections((prev: any) => {
@@ -727,23 +744,27 @@ export default function Chat1() {
     }
 
     return (
-      <div
-        key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
-      >
+      typeof parsed === "object" && parsed?.type === "product_list" ? (
+        <div key={m.id} className="w-full">{content}</div>
+      ) : (
         <div
-          className={`${
-            m.role === "user"
-              ? "bg-white/15 text-white border-white/20"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } 
-          max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          key={m.id}
+          className={`flex ${
+            m.role === "user" ? "justify-end" : "justify-start"
+          }`}
         >
-          {content}
+          <div
+            className={`${
+              m.role === "user"
+                ? "bg-white/15 text-white border-white/20"
+                : "bg-gray-900/80 text-gray-100 border-gray-800"
+            } 
+          max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          >
+            {content}
+          </div>
         </div>
-      </div>
+      )
     );
   };
 

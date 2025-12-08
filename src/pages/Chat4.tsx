@@ -338,9 +338,9 @@ export default function Chat4() {
         <div className="space-y-3">
           <h3 className="text-lg font-semibold mb-2">Here are some options:</h3>
 
-          <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {parsed.products?.map((p: any, index: number) => {
+          <div className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+              {parsed.products?.slice(0, 18).map((p: any, index: number) => {
                 const key = p.item_name + p.price + index;
                 const isSelected =
                   selectedProduct?.item_name === p.item_name &&
@@ -349,8 +349,8 @@ export default function Chat4() {
                 return (
                   <div
                     key={key}
-                    className={`flex flex-col bg-[#11121a] border rounded-2xl overflow-hidden shadow-sm hover:border-gray-600 transition-colors ${
-                      isSelected ? "border-green-500" : "border-gray-800/80"
+                    className={`relative flex flex-col h-full bg-[#11121a] rounded-2xl overflow-hidden shadow-[0_0_0_1px_rgba(255,255,255,0.03)] hover:bg-[#151622] transition-colors ${
+                      isSelected ? "bg-[#141d16]" : ""
                     }`}
                     onClick={() =>
                       setSelectedProduct({
@@ -361,7 +361,7 @@ export default function Chat4() {
                   >
                     {/* Image */}
                     {p.image_url && (
-                      <div className="relative w-full h-32 bg-gray-800">
+                      <div className="relative w-full h-36 bg-gray-800">
                         <img
                           src={p.image_url}
                           alt={p.item_name}
@@ -371,11 +371,17 @@ export default function Chat4() {
                           }}
                         />
                         {p.rating && p.rating !== "N/A" && (
-                          <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 px-2 py-1 rounded-full text-xs">
+                          <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 px-2 py-1 rounded-full text-xs">
                             <span className="text-yellow-300">⭐</span>
                             <span className="text-white font-medium">{p.rating}</span>
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {isSelected && (
+                      <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-[10px] font-bold">
+                        +1
                       </div>
                     )}
 
@@ -553,22 +559,26 @@ export default function Chat4() {
     }
 
     return (
-      <div
-        key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
-      >
+      typeof parsed === "object" && parsed?.type === "product_list" ? (
+        <div key={m.id} className="w-full">{content}</div>
+      ) : (
         <div
-          className={`${
-            m.role === "user"
-              ? "bg-white/15 text-white border-white/20"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          key={m.id}
+          className={`flex ${
+            m.role === "user" ? "justify-end" : "justify-start"
+          }`}
         >
-          {content}
+          <div
+            className={`${
+              m.role === "user"
+                ? "bg-white/15 text-white border-white/20"
+                : "bg-gray-900/80 text-gray-100 border-gray-800"
+            } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          >
+            {content}
+          </div>
         </div>
-      </div>
+      )
     );
   };
 
