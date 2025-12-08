@@ -13,6 +13,7 @@ import Chat7 from "./pages/Chat7";
 import Chat8 from "./pages/Chat8";
 import Ola from "./pages/Ola";
 import Pharmeasy from "./pages/Pharmeasy";
+import Instamart from "./pages/Instamart";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -78,6 +79,10 @@ export default function App() {
         <Route
           path="/pharmeasy"
           element={loggedIn ? <Pharmeasy /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/instamart"
+          element={loggedIn ? <Instamart /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
