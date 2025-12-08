@@ -4,9 +4,19 @@ import VoiceRecorderButton from "../components/VoiceRecorderButton";
 const API_BASE_URL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 
 interface Ride {
-    ride_name: string;
+    name: string;
     price: string;
 }
+
+const getRideImage = (name: string) => {
+    const key = name.toLowerCase();
+    if (key.includes("auto")) return "/ola/auto.png";
+    if (key.includes("mini")) return "/ola/mini.png";
+    if (key.includes("bike")) return "/ola/bike.png";
+    if (key.includes("prime suv")) return "/ola/prime-suv.png";
+    if (key.includes("prime sedan")) return "/ola/prime-sedan.png";
+    return "/ola/default.png";
+};
 
 export default function Ola() {
     const [showLocationPopup, setShowLocationPopup] = useState(false);
@@ -46,7 +56,7 @@ export default function Ola() {
 
         setLoadingLogin(true);
         try {
-            await fetch(`${API_BASE_URL}/api/ola/location-login`, {
+            const response = await fetch(`${API_BASE_URL}/api/ola/location-login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -57,6 +67,16 @@ export default function Ola() {
                     phone_number: mobileNumber,
                 }),
             });
+
+            // Store initial session id from login response if provided
+            try {
+                const data = await response.json();
+                if (data.session_id) {
+                    setSessionId(String(data.session_id));
+                }
+            } catch (e) {
+                console.log("Could not parse login response", e);
+            }
 
             // Backend sends OTP - move to next screen
             setShowLoginPopup(false);
@@ -76,6 +96,11 @@ export default function Ola() {
             return;
         }
 
+        if (!sessionId) {
+            alert("Session missing. Please enter your mobile again.");
+            return;
+        }
+
         setLoadingOtp(true);
         setLoadingRides(true);
         try {
@@ -85,7 +110,7 @@ export default function Ola() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    session_id: sessionId || "temp_session",
+                    session_id: sessionId,
                     otp: otp,
                 }),
             });
@@ -95,22 +120,22 @@ export default function Ola() {
                 if (data.session_id) {
                     setSessionId(data.session_id);
                 }
+                // Use real rides from backend: { name, price }
+                if (Array.isArray(data.rides)) {
+                    setRides(
+                        data.rides.map((r: any) => ({
+                            name: String(r.name ?? ""),
+                            price: String(r.price ?? ""),
+                        }))
+                    );
+                }
             } catch (e) {
-                console.log("Could not parse response");
+                console.log("Could not parse response", e);
             }
 
             setShowOtpPopup(false);
             setShowRides(true);
-
-            // Simulate fetching rides
-            setTimeout(() => {
-                setRides([
-                    { ride_name: "Auto", price: "₹50" },
-                    { ride_name: "mini", price: "₹120" },
-                    { ride_name: "Prime SUV", price: "₹250" },
-                ]);
-                setLoadingRides(false);
-            }, 1500);
+            setLoadingRides(false);
 
         } catch (error) {
             console.error("OTP verification error:", error);
@@ -211,7 +236,6 @@ export default function Ola() {
                         <span className="text-sm">Emma Stone</span>
                     </div>
                     <button className="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs transition-colors">
-                        Upgrade
                     </button>
                 </div>
             </aside>
@@ -244,7 +268,7 @@ export default function Ola() {
                         {/* User Message */}
                         <div className="flex justify-end">
                             <div className="bg-gray-800 rounded-2xl rounded-tr-none px-4 py-2 max-w-md">
-                                <p className="text-sm">book a ride for me from chinchwad station</p>
+                                {/* <p className="text-sm">book a ride for me from chinchwad station</p> */}
                             </div>
                         </div>
 
@@ -306,25 +330,26 @@ export default function Ola() {
 
                                             {/* Actual Rides */}
                                             {!loadingRides && rides.map((ride) => (
-                                                <div key={ride.ride_name} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg border border-gray-800">
+                                                <div key={ride.name} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg border border-gray-800">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                                                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M12 4v16m8-8H4" />
-                                                                <path d="M3 4h16M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                                            </svg>
+                                                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-blue-500 flex items-center justify-center">
+                                                            <img
+                                                                src={getRideImage(ride.name)}
+                                                                alt={ride.name}
+                                                                className="w-full h-full object-cover"
+                                                            />
                                                         </div>
                                                         <div>
-                                                            <h4 className="font-semibold">{ride.ride_name}</h4>
-                                                            <p className="text-xs text-gray-400">{ride.price}</p>
+                                                            <h4 className="font-semibold">{ride.name}</h4>
+                                                            <p className="text-xs text-gray-400">{ride.price || "Price not available"}</p>
                                                         </div>
                                                     </div>
                                                     <button
-                                                        onClick={() => handleBookRide(ride.ride_name)}
-                                                        disabled={bookingRide === ride.ride_name}
+                                                        onClick={() => handleBookRide(ride.name)}
+                                                        disabled={bookingRide === ride.name}
                                                         className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                                                     >
-                                                        {bookingRide === ride.ride_name ? (
+                                                        {bookingRide === ride.name ? (
                                                             <>
                                                                 <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -578,7 +603,7 @@ export default function Ola() {
                                         <span>Verifying...</span>
                                     </>
                                 ) : (
-                                    "Place Order"
+                                    "verify otp"
                                 )}
                             </button>
                         </div>
