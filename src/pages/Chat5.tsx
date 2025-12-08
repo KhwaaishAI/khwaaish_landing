@@ -145,7 +145,7 @@ export default function NykaaChat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query: query,
-          max_items: 10,
+          max_items: 5,
         }),
       });
 
@@ -331,6 +331,12 @@ export default function NykaaChat() {
                         )}
                       </div>
 
+                      {Array.isArray(p.available_sizes) && p.available_sizes.length > 0 && (
+                        <p className="mt-1 text-[11px] text-gray-300 truncate">
+                          Sizes: {p.available_sizes.join(", ")}
+                        </p>
+                      )}
+
                       <div className="flex justify-end mt-2">
                         <button className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-medium transition-colors">
                           Select Size
@@ -507,7 +513,10 @@ export default function NykaaChat() {
             )}
 
             <div className="grid grid-cols-3 gap-2">
-              {sizes.map((size) => (
+              {(pendingProduct?.available_sizes?.length
+                ? pendingProduct.available_sizes
+                : sizes
+              ).map((size: string) => (
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
