@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { FaChevronDown, FaCheck } from "react-icons/fa";
 import HomeSidebar from "../components/home/HomeSidebar";
 import HomeChatBar from "../components/home/HomeChatBar";
 
@@ -31,13 +32,16 @@ export default function PharmeasyChat() {
         location: "",
         mobile: "",
         otp: ["", "", "", ""],
-        selectedProduct: null as { name: string; price: string } | null,
+        selectedProduct: null as { name: string; price: string; offerPrice?: string } | null,
         address: "",
         houseNumber: "",
         streetName: "",
         landmark: "",
         pincode: "",
         city: "",
+        paymentMethod: "",
+        upiUsername: "",
+        upiExtension: "",
     });
     const [toast, setToast] = useState<string | null>(null);
     const [showSidebar, setShowSidebar] = useState(false);
@@ -376,6 +380,12 @@ export default function PharmeasyChat() {
                 );
 
             case 4: // Payment
+                const paymentMethods = [
+                    { name: 'Google Pay', icon: '/icons_payments/icons8-google-pay-48.png', handles: ['@oksbi', '@okyes'] },
+                    { name: 'PhonePe', icon: '/icons_payments/icons8-phone-pe-48.png', handles: ['@ybl', '@ibl', '@axl'] },
+                    { name: 'Other UPI', icon: null } // Generic UPI
+                ];
+
                 return (
                     <div className={containerClasses}>
                         <div className="flex items-center gap-4 mb-2 border-b border-white/10 pb-4">
@@ -388,31 +398,102 @@ export default function PharmeasyChat() {
                                     <polyline points="12 19 5 12 12 5"></polyline>
                                 </svg>
                             </button>
-                            <h3 className={titleClasses}>Payment Method</h3>
+                            <h3 className={titleClasses}>Pay with UPI</h3>
                         </div>
 
                         <div className="space-y-3">
-                            {['UPI', 'Credit/Debit Card', 'Net Banking', 'Cash on Delivery'].map((method) => (
-                                <button
-                                    key={method}
-                                    onClick={() => {
-                                        setStep(0);
-                                        setMessages(prev => [
-                                            ...prev,
-                                            {
-                                                text: `Order placed successfully via ${method}! Your medicines will be delivered to ${orderData.location}.`,
-                                                sender: "ai"
-                                            }
-                                        ]);
-                                        showToast("Order Placed Successfully! 🎉");
-                                    }}
-                                    className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-[#EF4444] transition-all group text-left"
-                                >
-                                    <span className="font-medium text-white group-hover:text-[#EF4444] transition-colors">{method}</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-white/20 group-hover:text-[#EF4444] transition-colors">
-                                        <polyline points="9 18 15 12 9 6"></polyline>
-                                    </svg>
-                                </button>
+                            {paymentMethods.map((method) => (
+                                <div key={method.name} className="overflow-hidden rounded-xl bg-white/5 border border-white/10 transition-all">
+                                    <button
+                                        onClick={() => setOrderData({
+                                            ...orderData,
+                                            paymentMethod: method.name,
+                                            upiExtension: method.handles ? method.handles[0] : '' // Set default extension if available
+                                        })}
+                                        className={`w-full flex items-center justify-between p-4 hover:bg-white/10 transition-all group text-left ${orderData.paymentMethod === method.name ? 'bg-white/10 border-b border-white/10' : ''}`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {method.icon ? (
+                                                <img src={method.icon} alt={method.name} className="w-8 h-8 object-contain" />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-white">
+                                                        <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                                        <line x1="2" y1="10" x2="22" y2="10"></line>
+                                                    </svg>
+                                                </div>
+                                            )}
+                                            <span className={`font-medium transition-colors text-white`}>{method.name}</span>
+                                        </div>
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${orderData.paymentMethod === method.name ? 'bg-[#EF4444]' : 'border border-white/40'}`}>
+                                            {orderData.paymentMethod === method.name && <FaCheck className="w-3 h-3 text-white" />}
+                                        </div>
+                                    </button>
+
+                                    {orderData.paymentMethod === method.name && (
+                                        <div className="p-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                                            {method.handles ? (
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Enter UPI ID"
+                                                            className={inputClasses}
+                                                            value={orderData.upiUsername}
+                                                            onChange={(e) => setOrderData({ ...orderData, upiUsername: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <div className="relative">
+                                                            <select
+                                                                className={inputClasses + " appearance-none cursor-pointer pr-10"}
+                                                                value={orderData.upiExtension}
+                                                                onChange={(e) => setOrderData({ ...orderData, upiExtension: e.target.value })}
+                                                            >
+                                                                {method.handles.map(handle => (
+                                                                    <option key={handle} value={handle} className="bg-[#1A1A1A] text-white">
+                                                                        {handle}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                            <FaChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none w-3 h-3" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Enter full UPI ID (e.g. user@upi)"
+                                                        className={inputClasses}
+                                                        value={orderData.upiUsername}
+                                                        onChange={(e) => setOrderData({ ...orderData, upiUsername: e.target.value })}
+                                                    />
+                                                </div>
+                                            )}
+                                            <button
+                                                onClick={() => {
+                                                    if (orderData.upiUsername) {
+                                                        setStep(0);
+                                                        setMessages(prev => [
+                                                            ...prev,
+                                                            {
+                                                                text: `Order placed successfully via ${method.name}! Your medicines will be delivered to ${orderData.houseNumber}, ${orderData.streetName}.`,
+                                                                sender: "ai"
+                                                            }
+                                                        ]);
+                                                        showToast("Order Placed Successfully! 🎉");
+                                                    } else {
+                                                        showToast("Please enter payment details");
+                                                    }
+                                                }}
+                                                className={buttonClasses}
+                                            >
+                                                Pay {orderData.selectedProduct?.offerPrice || orderData.selectedProduct?.price}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </div>
                     </div>
