@@ -1,4 +1,5 @@
 import { useState } from "react";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 const API_BASE_URL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 
@@ -26,6 +27,7 @@ export default function Ola() {
     const [bookingRide, setBookingRide] = useState<string | null>(null);
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [bottomInput, setBottomInput] = useState("");
 
     const handleAddLocation = () => {
         setShowLocationPopup(true);
@@ -168,7 +170,7 @@ export default function Ola() {
                         />
                     </button>
                     <button
-                        className="inline-flex items-center justify-center rounded-lg p-1.5 hover:bg-gray-900"
+                        className="inline-flex items-center justify-center rounded-lg p-1 hover:bg-gray-900"
                         onClick={() => setSidebarOpen((v) => !v)}
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,8 +310,8 @@ export default function Ola() {
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
                                                             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                                                                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                                                                <path d="M12 4v16m8-8H4" />
+                                                                <path d="M3 4h16M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                                             </svg>
                                                         </div>
                                                         <div>
@@ -320,7 +322,7 @@ export default function Ola() {
                                                     <button
                                                         onClick={() => handleBookRide(ride.ride_name)}
                                                         disabled={bookingRide === ride.ride_name}
-                                                        className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                                                        className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                                                     >
                                                         {bookingRide === ride.ride_name ? (
                                                             <>
@@ -347,20 +349,27 @@ export default function Ola() {
                 {/* Input Area - Fixed to bottom */}
                 <div className="fixed bottom-0 left-0 right-0 p-4 bg-black z-10">
                     <div className="max-w-4xl mx-auto">
-                        <div className="flex items-center gap-2 bg-gray-900 rounded-full px-4 py-3">
-                            <button className="p-1 hover:bg-gray-800 rounded-full transition-colors">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                            </button>
+                        <div className="flex items-center gap-3 bg-gray-900 rounded-full px-4 py-3">
                             <input
                                 type="text"
                                 placeholder="What is your Khwaaish?"
                                 className="flex-1 bg-transparent outline-none text-sm"
+                                value={bottomInput}
+                                onChange={(e) => setBottomInput(e.target.value)}
                             />
-                            <button className="p-2 hover:bg-gray-800 rounded-full transition-colors">
+                            <VoiceRecorderButton
+                                onTextReady={(text) =>
+                                    setBottomInput((prev) => (prev ? `${prev} ${text}` : text))
+                                }
+                            />
+                            <button className="p-2 bg-white/15 hover:bg-white/25 rounded-full transition-colors">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M5 12h14M12 5l7 7-7 7"
+                                    />
                                 </svg>
                             </button>
                         </div>

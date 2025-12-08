@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 interface Message {
   id: string;
@@ -765,6 +766,12 @@ export default function Chat4() {
                 }}
                 placeholder="What is your khwaaish?"
                 className="flex-1 bg-transparent text-white placeholder-white/60 outline-none"
+              />
+
+              <VoiceRecorderButton
+                onTextReady={(text) =>
+                  setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
+                }
               />
 
               <button

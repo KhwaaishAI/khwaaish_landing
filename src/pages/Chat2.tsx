@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 const API_ENDPOINT = import.meta.env.VITE_CHAT2_API;
 
@@ -205,6 +206,12 @@ export default function Chat2() {
             onChange={(e) => setMessageInput(e.target.value)}
             placeholder="Ask something..."
             className="flex-1 bg-transparent text-white placeholder-white/60 outline-none text-sm sm:text-base"
+          />
+
+          <VoiceRecorderButton
+            onTextReady={(text) =>
+              setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
+            }
           />
 
           <button
