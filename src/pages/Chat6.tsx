@@ -36,13 +36,13 @@ export default function Chat6() {
 
   const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
   const [cartSelections, setCartSelections] = useState<{
-    [id: string]: number;
+    [id: string]: { quantity: number; product: any };
   }>({});
   const [selectedProductKey, setSelectedProductKey] = useState<string | null>(
     null
   );
 
-  const [holdSeconds] = useState(59);
+  const [holdSeconds] = useState(120);
 
   const pushSystem = (text: string) =>
     setMessages((prev) => [
@@ -209,14 +209,20 @@ export default function Chat6() {
 
     console.log("STEP 04: handleConfirmCart() triggered with:", cartSelections);
 
-    const selectedItems = Object.entries(cartSelections).filter(
-      ([_, qty]) => qty > 0
-    );
+    const jiomartItems: { product: any; quantity: number }[] = [];
 
-    if (selectedItems.length === 0) {
+    Object.values(cartSelections).forEach((item) => {
+      if (item.quantity > 0) {
+        jiomartItems.push({ product: item.product, quantity: item.quantity });
+      }
+    });
+
+    if (jiomartItems.length === 0) {
       pushSystem("Please select at least one item.");
       return;
     }
+
+    console.log(`Found ${jiomartItems.length} JioMart items`);
 
     const currentCart = { ...cartSelections };
 
@@ -227,27 +233,40 @@ export default function Chat6() {
       !!upiId
     );
 
-    if (upiId == "") {
+    if (!upiId) {
       console.log(
         "STEP 04.2: JioMart API - UPI ID required, showing UPI popup"
       );
       setPendingCartSelections(currentCart);
       setShowUpiPopup(true);
+      return;
     }
 
-    for (const [productUrl, qty] of selectedItems) {
-      const endpoint = "jiomart/add-to-cart";
-      const payload = {
-        product_url: productUrl,
-        quantity: qty,
-        hold_seconds: holdSeconds,
-      };
+    if (jiomartItems.length > 0 && upiId) {
+      console.log("Processing JioMart items with existing UPI ID:", jiomartItems);
+      await processJioMartCart(jiomartItems);
+      setCartSelections({});
+    }
+  };
 
-      console.log("STEP 04.3: Add to cart API request sending...", payload);
+  const processJioMartCart = async (
+    items: { product: any; quantity: number }[]
+  ) => {
+    setLoadingCart(true);
+    console.log("STEP 04.3: Processing JioMart cart...");
 
-      setLoadingCart(true);
+    try {
+      for (const item of items) {
+        const endpoint = "jiomart/add-to-cart";
+        const payload = {
+          product_url: item.product.url,
+          quantity: item.quantity,
+          upi_id: upiId,
+          hold_seconds: holdSeconds,
+        };
 
-      try {
+        console.log("JioMart Add-to-cart API request:", payload);
+
         const res = await fetch(`${BaseURL}api/${endpoint}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -255,33 +274,31 @@ export default function Chat6() {
         });
 
         const data = await res.json();
-        console.log("STEP 04.4: Add to cart API response:", data);
+        console.log("JioMart Add-to-cart API response:", data);
 
         if (data === null || data.order_placed) {
           pushSystem(
             JSON.stringify({
               status: "success",
-              message: "Your order has been completed!",
+              message: `Your JioMart order for ${item.product.name} has been completed!`,
             })
           );
         } else if (
           data.status === "error" &&
           data.message === "Cart is empty."
         ) {
-          pushSystem("The Item is Out of Stock now!");
+          pushSystem(`JioMart item "${item.product.name}" is Out of Stock now!`);
         } else {
           pushSystem(JSON.stringify(data));
         }
-      } catch (err) {
-        console.log("STEP 04: Error:", err);
-        pushSystem(`Payment Request Sent to your UPI ID`);
-      } finally {
-        setLoadingCart(false);
       }
+    } catch (err) {
+      console.log("JioMart cart error:", err);
+      pushSystem(`Payment Request Sent to your UPI ID for JioMart items`);
+    } finally {
+      setLoadingCart(false);
+      setUpiId("");
     }
-
-    setCartSelections({});
-    setUpiId("");
   };
 
   const handleUpiSubmit = async () => {
@@ -295,12 +312,23 @@ export default function Chat6() {
 
     try {
       setShowUpiPopup(false);
-      pushSystem("UPI ID collected. Placing your order...");
+      pushSystem("UPI ID collected. Placing your JioMart order...");
 
       if (pendingCartSelections) {
-        setCartSelections(pendingCartSelections);
+        const jiomartItems: { product: any; quantity: number }[] = [];
+
+        Object.values(pendingCartSelections).forEach((item: any) => {
+          if (item.quantity > 0) {
+            jiomartItems.push({ product: item.product, quantity: item.quantity });
+          }
+        });
+
+        if (jiomartItems.length > 0) {
+          await processJioMartCart(jiomartItems);
+        }
+
         setPendingCartSelections(null);
-        handleConfirmCart();
+        setCartSelections({});
       }
     } catch (err) {
       console.log("STEP 05: Error submitting UPI ID:", err);
@@ -329,8 +357,8 @@ export default function Chat6() {
           <div className="w-full">
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
               {parsed.products?.slice(0, 18).map((p: any, index: number) => {
-                const key = p.name + p.price + index;
-                const qty = cartSelections[key] || 0;
+                const key = p.url || `${p.name}|${p.price}|${index}`;
+                const qty = cartSelections[key]?.quantity || 0;
                 const isSelected = selectedProductKey === key;
 
                 return (
@@ -372,10 +400,19 @@ export default function Chat6() {
                         >
                           <button
                             onClick={() =>
-                              setCartSelections((prev: any) => ({
-                                ...prev,
-                                [key]: Math.max((prev[key] || 0) - 1, 0),
-                              }))
+                              setCartSelections((prev: any) => {
+                                const current = prev[key] || {
+                                  quantity: 0,
+                                  product: p,
+                                };
+                                return {
+                                  ...prev,
+                                  [key]: {
+                                    ...current,
+                                    quantity: Math.max(current.quantity - 1, 0),
+                                  },
+                                };
+                              })
                             }
                             className="w-7 h-7 bg-gray-800 rounded-full flex items-center justify-center text-sm"
                           >
@@ -386,10 +423,19 @@ export default function Chat6() {
 
                           <button
                             onClick={() =>
-                              setCartSelections((prev: any) => ({
-                                ...prev,
-                                [key]: (prev[key] || 0) + 1,
-                              }))
+                              setCartSelections((prev: any) => {
+                                const current = prev[key] || {
+                                  quantity: 0,
+                                  product: p,
+                                };
+                                return {
+                                  ...prev,
+                                  [key]: {
+                                    ...current,
+                                    quantity: current.quantity + 1,
+                                  },
+                                };
+                              })
                             }
                             className="w-7 h-7 bg-red-600 rounded-full flex items-center justify-center text-sm"
                           >

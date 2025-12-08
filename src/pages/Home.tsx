@@ -217,24 +217,19 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {/* Groceries (Zepto & Swiggy Instamart) */}
+                {/* Groceries (Zepto) */}
                 <Link
                   to="/groceries"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-green-400/70 hover:shadow-[0_0_25px_rgba(34,197,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="flex -space-x-2">
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md">
-                        <img src="/logo/zepto.jpg" alt="Zepto" className="w-full h-full object-contain" />
-                      </div>
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md border border-gray-200">
-                        <img src="/logo/swiggy-instamart.jpg" alt="Swiggy Instamart" className="w-full h-full object-contain" />
-                      </div>
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md">
+                      <img src="/logo/zepto.jpg" alt="Zepto" className="w-full h-full object-contain" />
                     </div>
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">Groceries</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Zepto &amp; Swiggy Instamart at your doorstep.
+                    Zepto groceries at your doorstep.
                   </p>
                 </Link>
 
