@@ -14,6 +14,9 @@ import Chat8 from "./pages/Chat8";
 import Ola from "./pages/Ola";
 import Pharmeasy from "./pages/Pharmeasy";
 import Instamart from "./pages/Instamart";
+import Booking from "./pages/Booking";
+import Agoda from "./pages/Agoda";
+import Airbnb from "./pages/Airbnb";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -83,6 +86,18 @@ export default function App() {
         <Route
           path="/instamart"
           element={loggedIn ? <Instamart /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/booking"
+          element={loggedIn ? <Booking /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/agoda"
+          element={loggedIn ? <Agoda /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/airbnb"
+          element={loggedIn ? <Airbnb /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
