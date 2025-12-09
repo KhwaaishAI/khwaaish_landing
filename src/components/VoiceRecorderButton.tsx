@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 
-const TRANSCRIBE_BASE_URL = "http://35.154.212.248:3000/docs";
+const TRANSCRIBE_BASE_URL = "http://35.154.212.248:3000";
 
 interface VoiceRecorderButtonProps {
   onTextReady: (text: string) => void;
