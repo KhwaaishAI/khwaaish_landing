@@ -168,7 +168,11 @@ export default function Home() {
           <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 relative">
             {/* Logo */}
             <div className="flex items-center justify-center gap-3">
-              <img src="/images/LOGO.png" alt="Khwaaish AI" className="h-14 w-auto sm:h-16" />
+              <img
+                src="/images/LOGO.png"
+                alt="Khwaaish AI"
+                className="h-14 w-auto sm:h-16"
+              />
             </div>
             {/* Greeting */}
             <div className="text-center space-y-2 md:space-y-3">
@@ -207,8 +211,12 @@ export default function Home() {
             <div className="mt-2 md:mt-4 rounded-3xl border border-gray-800/80 bg-gradient-to-br from-gray-900/80 via-black/80 to-gray-900/60 px-4 py-4 sm:px-6 sm:py-5 shadow-[0_0_40px_rgba(0,0,0,0.6)]">
               <div className="flex items-center justify-between mb-3 sm:mb-4 px-0 sm:px-1">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Quick actions</p>
-                  <h3 className="text-lg sm:text-xl font-semibold">Explore services</h3>
+                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+                    Quick actions
+                  </p>
+                  <h3 className="text-lg sm:text-xl font-semibold">
+                    Explore services
+                  </h3>
                 </div>
                 <div className="hidden sm:flex items-center gap-1 text-xs text-gray-500">
                   <span className="inline-flex h-2 w-2 rounded-full bg-green-500 mr-1" />
@@ -224,10 +232,16 @@ export default function Home() {
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md">
-                      <img src="/logo/zepto.jpg" alt="Zepto" className="w-full h-full object-contain" />
+                      <img
+                        src="/logo/zepto.jpg"
+                        alt="Zepto"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Groceries</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Groceries
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Zepto groceries at your doorstep.
                   </p>
@@ -247,7 +261,9 @@ export default function Home() {
                       />
                     </div>
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Swiggy Instamart</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Swiggy Instamart
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Fast groceries from Swiggy Instamart.
                   </p>
@@ -259,9 +275,15 @@ export default function Home() {
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(250,204,21,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img src="/logo/ola.jpg" alt="Ola" className="w-full h-full object-contain" />
+                    <img
+                      src="/logo/ola.jpg"
+                      alt="Ola"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Travels</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Travels
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Book cabs in a single message.
                   </p>
@@ -273,7 +295,11 @@ export default function Home() {
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-orange-400/70 hover:shadow-[0_0_25px_rgba(249,115,22,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img src="/logo/swiggy.jpg" alt="Swiggy" className="w-full h-full object-contain" />
+                    <img
+                      src="/logo/swiggy.jpg"
+                      alt="Swiggy"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">Food</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
@@ -281,13 +307,17 @@ export default function Home() {
                   </p>
                 </Link>
 
-              {/* Nykaa */}
+                {/* Nykaa */}
                 <Link
                   to="/nykaa"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-pink-400/70 hover:shadow-[0_0_25px_rgba(244,114,182,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img src="/logo/nkyaa.jpg" alt="Nykaa" className="w-full h-full object-contain" />
+                    <img
+                      src="/logo/nkyaa.jpg"
+                      alt="Nykaa"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">Beauty</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
@@ -301,9 +331,15 @@ export default function Home() {
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-sky-400/70 hover:shadow-[0_0_25px_rgba(56,189,248,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img src="/logo/jiomart.jpg" alt="JioMart" className="w-full h-full object-contain" />
+                    <img
+                      src="/logo/jiomart.jpg"
+                      alt="JioMart"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Essentials</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Essentials
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Daily essentials &amp; groceries.
                   </p>
@@ -315,7 +351,11 @@ export default function Home() {
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-purple-400/70 hover:shadow-[0_0_25px_rgba(168,85,247,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img src="/logo/tatacliq.jpg" alt="Tata Cliq" className="w-full h-full object-contain" />
+                    <img
+                      src="/logo/tatacliq.jpg"
+                      alt="Tata Cliq"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">Fasion</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
@@ -323,16 +363,21 @@ export default function Home() {
                   </p>
                 </Link>
 
-
                 {/* Medical (Pharmeasy) */}
                 <Link
                   to="/pharmeasy"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-teal-400/70 hover:shadow-[0_0_25px_rgba(45,212,191,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img src="/logo/pharmeasy.jpg" alt="PharmEasy" className="w-full h-full object-contain" />
+                    <img
+                      src="/logo/pharmeasy.jpg"
+                      alt="PharmEasy"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Medical</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Medical
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     PharmEasy medicines &amp; healthcare.
                   </p>
@@ -371,6 +416,24 @@ export default function Home() {
                   <h3 className="text-sm sm:text-base font-semibold">Airbnb</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Unique homes and stays from Airbnb.
+                  </p>
+                </Link>
+                <Link
+                  to="/flipkart"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img
+                      src="/logo/flipkart.png"
+                      alt="Flipkart"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Flipkart
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Buy anything from Flipkart.
                   </p>
                 </Link>
               </div>

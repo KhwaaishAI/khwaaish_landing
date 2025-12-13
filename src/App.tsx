@@ -17,6 +17,7 @@ import Instamart from "./pages/Instamart";
 import Booking from "./pages/Booking";
 import Agoda from "./pages/Agoda";
 import Airbnb from "./pages/Airbnb";
+import Flipkart from "./pages/Flipkart";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -98,6 +99,10 @@ export default function App() {
         <Route
           path="/airbnb"
           element={loggedIn ? <Airbnb /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/flipkart"
+          element={loggedIn ? <Flipkart /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
