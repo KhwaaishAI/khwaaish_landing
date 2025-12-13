@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
@@ -42,7 +41,6 @@ export default function Instamart() {
 
   const [instamartDoorNo, setInstamartDoorNo] = useState("");
   const [instamartLandmark, setInstamartLandmark] = useState("");
-  const [instamartCartItems, setInstamartCartItems] = useState<any[]>([]);
 
   const [cartSelections, setCartSelections] = useState<{
     [id: string]: { quantity: number; product: any };
@@ -188,8 +186,6 @@ export default function Instamart() {
     setLoadingInstamartCart(true);
 
     try {
-      setInstamartCartItems(items);
-
       let latestCheckoutData: any = null;
 
       for (const item of items) {
@@ -238,7 +234,9 @@ export default function Instamart() {
         }
 
         if (bill && addresses.length > 0) {
-          setSelectedAddressId(addresses[0]?.id ?? null);
+          const firstIndex =
+            typeof addresses[0]?.index === "number" ? addresses[0].index : 0;
+          setSelectedAddressId(firstIndex);
           pushSystem(
             JSON.stringify({
               type: "instamart_checkout",
@@ -332,7 +330,6 @@ export default function Instamart() {
       if (data.status === "success") {
         pushSystem("Your Instamart order has been booked successfully!");
 
-        setInstamartCartItems([]);
         setInstamartDoorNo("");
         setInstamartLandmark("");
         setShowInstamartAddressPopup(false);
@@ -527,18 +524,21 @@ export default function Instamart() {
 
             {addresses.length > 0 ? (
               <div className="space-y-3">
-                {addresses.map((a: any) => (
+                {addresses.map((a: any, idx: number) => {
+                  const addressIndex =
+                    typeof a?.index === "number" ? a.index : idx;
+                  return (
                   <label
-                    key={a.id}
+                    key={addressIndex}
                     className="flex items-start gap-3 p-3 rounded-xl border border-gray-800 hover:border-gray-700 cursor-pointer"
                   >
                     <input
                       type="radio"
                       name="instamart_address"
                       className="mt-1"
-                      checked={selectedAddressId === a.id}
+                      checked={selectedAddressId === addressIndex}
                       onChange={() => {
-                        setSelectedAddressId(a.id);
+                        setSelectedAddressId(addressIndex);
                       }}
                     />
                     <div>
@@ -546,7 +546,8 @@ export default function Instamart() {
                       <div className="text-xs text-gray-300 mt-1">{a.address}</div>
                     </div>
                   </label>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-sm text-gray-300">
