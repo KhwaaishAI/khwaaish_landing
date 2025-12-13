@@ -79,6 +79,8 @@ export default function Flipkart() {
   const [sessionId, setSessionId] = useState("");
   const [pendingProduct, setPendingProduct] = useState<Product | null>(null);
   const [availableSizes, setAvailableSizes] = useState<string[]>([]);
+  const [isClothingSearch, setIsClothingSearch] = useState(false);
+  const [lastSearchQuery, setLastSearchQuery] = useState("");
 
   const pushSystem = (text: string) =>
     setMessages((prev) => [
@@ -94,6 +96,7 @@ export default function Flipkart() {
 
   const handleSearch = async (query: string) => {
     console.log("STEP 01: Search triggered with:", query);
+    setLastSearchQuery(query);
 
     if (!query.trim()) {
       pushSystem("Please enter a product to search!");
@@ -102,6 +105,68 @@ export default function Flipkart() {
 
     setIsLoading(true);
     pushUser(query);
+
+    const clothingKeywords = [
+      "t-shirt",
+      "tshirt",
+      "t shirt",
+      "shirt",
+      "jeans",
+      "pant",
+      "pants",
+      "trouser",
+      "trousers",
+      "kurta",
+      "suit",
+      "jacket",
+      "hoodie",
+      "sweater",
+      "dress",
+      "gown",
+      "skirt",
+      "top",
+      "blouse",
+      "shorts",
+      "track",
+      "jogger",
+      "leggings",
+      "jeggings",
+      "blazer",
+      "coat",
+      "raincoat",
+      "windcheater",
+      "innerwear",
+      "lingerie",
+      "bra",
+      "panties",
+      "socks",
+      "stockings",
+      "nightwear",
+      "pyjamas",
+      "ethnic",
+      "traditional",
+      "western",
+      "men",
+      "women",
+      "kids",
+      "boy",
+      "girl",
+      "cloth",
+      "clothing",
+      "apparel",
+      "garment",
+      "wear",
+      "outfit",
+      "attire",
+    ];
+
+    const queryLower = query.toLowerCase();
+    const isClothing = clothingKeywords.some((keyword) =>
+      queryLower.includes(keyword)
+    );
+
+    setIsClothingSearch(isClothing);
+    console.log("Is clothing search:", isClothing);
 
     try {
       const response = await fetch(`${BaseURL}/api/flipkart/search`, {
@@ -120,7 +185,6 @@ export default function Flipkart() {
         console.log("STEP 01.3: Session ID updated to:", data.session_id);
       }
 
-      // Access products from data.data.products
       const products =
         data.data?.products || data.products || data.results || [];
       console.log("STEP 01.4: Extracted products =", products.length);
@@ -129,6 +193,7 @@ export default function Flipkart() {
         JSON.stringify({
           type: "product_list",
           products: products,
+          isClothing: isClothing,
         })
       );
     } catch (err) {
@@ -143,7 +208,6 @@ export default function Flipkart() {
     console.log("Product selected:", product);
     setPendingProduct(product);
 
-    // Show phone popup first
     setShowPhonePopup(true);
     pushSystem(
       `Selected product for ${product.price}. Please enter your mobile number to continue.`
@@ -161,15 +225,18 @@ export default function Flipkart() {
     setLoadingPhone(true);
 
     try {
-      // Close phone popup
       setShowPhonePopup(false);
 
-      // If we have a pending product, show size popup
       if (pendingProduct) {
-        pushSystem(
-          `Mobile number Collected. Please select a size for your product.`
-        );
-        setShowSizePopup(true);
+        if (isClothingSearch) {
+          pushSystem(
+            `Mobile number collected. Please select a size for your product.`
+          );
+          setShowSizePopup(true);
+        } else {
+          pushSystem(`Mobile number collected. Adding to cart...`);
+          await handleAddToCart();
+        }
       }
     } catch (err) {
       console.log("STEP 03: Error:", err);
@@ -182,7 +249,7 @@ export default function Flipkart() {
   const handleSizeSelect = async () => {
     console.log("STEP 04: Size selected:", selectedSize);
 
-    if (!selectedSize) {
+    if (isClothingSearch && !selectedSize) {
       alert("Please select a size");
       return;
     }
@@ -193,9 +260,12 @@ export default function Flipkart() {
     }
 
     setShowSizePopup(false);
-    pushSystem(`Size ${selectedSize} selected. Adding to cart...`);
+    pushSystem(
+      isClothingSearch
+        ? `Size ${selectedSize} selected. Adding to cart...`
+        : "Adding to cart..."
+    );
 
-    // Now call add-to-cart API
     await handleAddToCart();
   };
 
@@ -214,7 +284,7 @@ export default function Flipkart() {
       return;
     }
 
-    if (!selectedSize) {
+    if (isClothingSearch && !selectedSize) {
       setShowSizePopup(true);
       return;
     }
@@ -235,7 +305,7 @@ export default function Flipkart() {
           product_url: pendingProduct.product_url,
           product_title: pendingProduct.title,
           phone_number: phone,
-          size_label: selectedSize,
+          size_label: isClothingSearch ? selectedSize : "",
         }),
       });
 
@@ -247,12 +317,15 @@ export default function Flipkart() {
         console.log("STEP 02.2: Session ID updated to:", data.session_id);
       }
 
-      // IMPORTANT: Check if API returns sizes in response
-      if (data.sizes && Array.isArray(data.sizes) && data.sizes.length > 0) {
+      if (
+        isClothingSearch &&
+        data.sizes &&
+        Array.isArray(data.sizes) &&
+        data.sizes.length > 0
+      ) {
         console.log("STEP 02.3: Sizes received from API:", data.sizes);
         setAvailableSizes(data.sizes);
 
-        // If sizes are returned but we don't have one selected, show size popup
         if (!selectedSize) {
           pushSystem("Please select a size from the available options.");
           setShowSizePopup(true);
@@ -276,7 +349,6 @@ export default function Flipkart() {
       } else {
         console.log("STEP 02.6: Unknown response");
         pushSystem("Processing your request...");
-        // Try to proceed to address anyway
         setTimeout(() => setShowAddressPopup(true), 500);
       }
     } catch (err) {
@@ -311,12 +383,10 @@ export default function Flipkart() {
       const data = await res.json();
       console.log("STEP 04.3: OTP API response:", data);
 
-      // In handleOtpSubmit function, update this section:
       if (data.status === "success") {
         console.log("STEP 04.4: OTP verification successful");
         setShowOtpPopup(false);
 
-        // Store addresses from response
         if (
           data.addresses &&
           Array.isArray(data.addresses) &&
@@ -324,7 +394,6 @@ export default function Flipkart() {
         ) {
           setAddresses(data.addresses);
 
-          // Select default address if available
           const defaultAddress = data.addresses.find(
             (addr: AddressFromAPI) => addr.is_default
           );
@@ -337,13 +406,11 @@ export default function Flipkart() {
           pushSystem(
             "OTP verified successfully! Please select a shipping address."
           );
-          // Show address selection popup
           setShowAddressPopup(true);
         } else {
           pushSystem(
             "OTP verified successfully! No addresses found in your account. Please add a new address."
           );
-          // Show new address form
           setShowAddressPopup(true);
         }
       }
@@ -360,7 +427,6 @@ export default function Flipkart() {
 
     console.log("STEP 05: Buy workflow with new address");
 
-    // Validate address
     if (
       !address.name ||
       !address.phone ||
@@ -379,7 +445,7 @@ export default function Flipkart() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_id: sessionId,
-          address_id: "new", // Indicates new address
+          address_id: "",
           name: address.name,
           phone: address.phone,
           pincode: address.pincode,
@@ -397,7 +463,6 @@ export default function Flipkart() {
         setShowUpiPopup(true);
         pushSystem("Order placed successfully! Please complete the payment.");
 
-        // Reset address form
         setAddress({
           name: "",
           phone: "",
@@ -435,8 +500,7 @@ export default function Flipkart() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_id: sessionId,
-          address_id: selectedAddressId, // Only send address_id
-          // Remove all other address fields as they're not needed
+          address_id: selectedAddressId,
         }),
       });
 
@@ -577,7 +641,7 @@ export default function Flipkart() {
                     <div className="flex-1 flex flex-col px-3 py-3 gap-2">
                       <div className="min-h- space-y-1">
                         <p className="text-sm font-semibold text-white truncate">
-                          {p.title || "T-Shirt"}
+                          {p.title || lastSearchQuery || "Flipkart Product"}
                         </p>
                       </div>
 
@@ -739,7 +803,7 @@ export default function Flipkart() {
 
             <div className="bg-gray-800 p-3 rounded-lg mb-4">
               <p className="text-sm text-gray-300">
-                {pendingProduct.title || "T-shirt"}
+                {pendingProduct.title || "Product"}
               </p>
               <p className="text-green-400 font-semibold mt-1">
                 {pendingProduct.price}
@@ -768,11 +832,30 @@ export default function Flipkart() {
 
             <button
               onClick={handleSizeSelect}
-              disabled={!selectedSize || loadingCart}
+              disabled={(isClothingSearch && !selectedSize) || loadingCart}
               className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
             >
-              {loadingCart ? <PopupLoader /> : "Add to Cart"}
+              {loadingCart ? (
+                <PopupLoader />
+              ) : isClothingSearch ? (
+                "Add to Cart"
+              ) : (
+                "Continue"
+              )}
             </button>
+
+            {/* Add a skip button for non-clothing items just in case */}
+            {!isClothingSearch && (
+              <button
+                onClick={async () => {
+                  setShowSizePopup(false);
+                  await handleAddToCart();
+                }}
+                className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold mt-2"
+              >
+                Skip Size Selection
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -882,7 +965,6 @@ export default function Flipkart() {
         </div>
       )}
 
-      {/* FALLBACK ADDRESS POPUP - Only show if no addresses from API */}
       {showAddressPopup && addresses.length === 0 && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-96 space-y-4 border border-gray-700 max-h-[80vh] overflow-y-auto">
