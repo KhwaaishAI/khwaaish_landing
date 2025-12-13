@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+// const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+const BaseURL = "http://127.0.0.1:8001/";
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
@@ -22,9 +23,21 @@ export default function Chat6() {
   const [showOtpPopup, setShowOtpPopup] = useState(false);
 
   const [showUpiPopup, setShowUpiPopup] = useState(false);
+  const [showNewAddressPopup, setShowNewAddressPopup] = useState(false);
 
   const [upiId, setUpiId] = useState("");
   const [loadingUpi, setLoadingUpi] = useState(false);
+
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+
+  const [newAddressLocation, setNewAddressLocation] = useState("");
+  const [flatNo, setFlatNo] = useState("");
+  const [floorNo, setFloorNo] = useState("");
+  const [towerNo, setTowerNo] = useState("");
+  const [buildingName, setBuildingName] = useState("");
+  const [buildingAddress, setBuildingAddress] = useState("");
+  const [areaName, setAreaName] = useState("");
+  const [addressType, setAddressType] = useState("");
 
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
@@ -33,8 +46,6 @@ export default function Chat6() {
   const [loadingPhone, setLoadingPhone] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingCart, setLoadingCart] = useState(false);
-
-  const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
   const [cartSelections, setCartSelections] = useState<{
     [id: string]: { quantity: number; product: any };
   }>({});
@@ -224,29 +235,9 @@ export default function Chat6() {
 
     console.log(`Found ${jiomartItems.length} JioMart items`);
 
-    const currentCart = { ...cartSelections };
-
-    console.log(
-      "STEP 04.1: Checking UPI ID - upiId:",
-      upiId,
-      "hasValue:",
-      !!upiId
-    );
-
-    if (!upiId) {
-      console.log(
-        "STEP 04.2: JioMart API - UPI ID required, showing UPI popup"
-      );
-      setPendingCartSelections(currentCart);
-      setShowUpiPopup(true);
-      return;
-    }
-
-    if (jiomartItems.length > 0 && upiId) {
-      console.log("Processing JioMart items with existing UPI ID:", jiomartItems);
-      await processJioMartCart(jiomartItems);
-      setCartSelections({});
-    }
+    console.log("Processing JioMart items (no UPI at this stage):", jiomartItems);
+    await processJioMartCart(jiomartItems);
+    setCartSelections({});
   };
 
   const processJioMartCart = async (
@@ -256,12 +247,12 @@ export default function Chat6() {
     console.log("STEP 04.3: Processing JioMart cart...");
 
     try {
+      let latestCheckoutData: any = null;
       for (const item of items) {
         const endpoint = "jiomart/add-to-cart";
         const payload = {
           product_url: item.product.url,
           quantity: item.quantity,
-          upi_id: upiId,
           hold_seconds: holdSeconds,
         };
 
@@ -275,6 +266,12 @@ export default function Chat6() {
 
         const data = await res.json();
         console.log("JioMart Add-to-cart API response:", data);
+
+        latestCheckoutData = data;
+
+        if (data.session_id) {
+          setSessionId(data.session_id);
+        }
 
         if (data === null || data.order_placed) {
           pushSystem(
@@ -292,12 +289,126 @@ export default function Chat6() {
           pushSystem(JSON.stringify(data));
         }
       }
+
+      const paymentDetails = latestCheckoutData?.payment_details;
+      const addresses = Array.isArray(latestCheckoutData?.addresses)
+        ? latestCheckoutData.addresses
+        : [];
+
+      if (addresses.length > 0) {
+        const initiallySelected =
+          addresses.find((a: any) => a?.selected)?.address_id ??
+          addresses[0]?.address_id ??
+          null;
+        setSelectedAddressId(initiallySelected);
+      } else {
+        setSelectedAddressId(null);
+      }
+
+      if (paymentDetails && latestCheckoutData?.session_id) {
+        pushSystem(
+          JSON.stringify({
+            type: "jiomart_checkout",
+            session_id: latestCheckoutData.session_id,
+            payment_details: paymentDetails,
+            addresses: addresses,
+          })
+        );
+
+        if (addresses.length === 0) {
+          pushSystem(
+            "You don't have any saved address in Jiomart. Please enter a new address to continue."
+          );
+          setTimeout(() => setShowNewAddressPopup(true), 250);
+        }
+      }
     } catch (err) {
       console.log("JioMart cart error:", err);
-      pushSystem(`Payment Request Sent to your UPI ID for JioMart items`);
+      pushSystem(`Something went wrong while adding items to JioMart cart`);
     } finally {
       setLoadingCart(false);
-      setUpiId("");
+    }
+  };
+
+  const submitJiomartAddressUpiidSaved = async (upi: string) => {
+    if (!sessionId) {
+      pushSystem("Missing session_id. Please search and add items again.");
+      return;
+    }
+    if (!selectedAddressId) {
+      alert("Please select an address.");
+      return;
+    }
+
+    setLoadingUpi(true);
+    try {
+      const res = await fetch(`${BaseURL}api/jiomart/address-upiid`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          address_id: selectedAddressId,
+          upi_id: upi,
+        }),
+      });
+
+      const data = await res.json();
+      pushSystem(JSON.stringify(data));
+    } catch (err) {
+      pushSystem("Something went wrong while confirming Jiomart payment.");
+    } finally {
+      setLoadingUpi(false);
+    }
+  };
+
+  const submitJiomartAddressUpiidNew = async () => {
+    if (!upiId.trim()) {
+      alert("Please enter a valid UPI ID");
+      return;
+    }
+
+    if (!sessionId) {
+      pushSystem("Missing session_id. Please search and add items again.");
+      return;
+    }
+
+    if (
+      !newAddressLocation.trim() ||
+      !flatNo.trim() ||
+      !buildingAddress.trim() ||
+      !areaName.trim() ||
+      !addressType.trim()
+    ) {
+      alert("Please fill the required address fields.");
+      return;
+    }
+
+    setLoadingUpi(true);
+    try {
+      const res = await fetch(`${BaseURL}api/jiomart/address-upiid`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          upi_id: upiId,
+          location: newAddressLocation,
+          flat_no: flatNo,
+          floor_no: floorNo,
+          tower_no: towerNo,
+          building_name: buildingName,
+          building_address: buildingAddress,
+          area_name: areaName,
+          address_type: addressType,
+        }),
+      });
+
+      const data = await res.json();
+      pushSystem(JSON.stringify(data));
+      setShowNewAddressPopup(false);
+    } catch (err) {
+      pushSystem("Something went wrong while submitting your new address.");
+    } finally {
+      setLoadingUpi(false);
     }
   };
 
@@ -307,34 +418,12 @@ export default function Chat6() {
       return;
     }
 
-    setLoadingUpi(true);
-    console.log("STEP 05: Submitting UPI ID...", upiId);
-
     try {
       setShowUpiPopup(false);
-      pushSystem("UPI ID collected. Placing your JioMart order...");
-
-      if (pendingCartSelections) {
-        const jiomartItems: { product: any; quantity: number }[] = [];
-
-        Object.values(pendingCartSelections).forEach((item: any) => {
-          if (item.quantity > 0) {
-            jiomartItems.push({ product: item.product, quantity: item.quantity });
-          }
-        });
-
-        if (jiomartItems.length > 0) {
-          await processJioMartCart(jiomartItems);
-        }
-
-        setPendingCartSelections(null);
-        setCartSelections({});
-      }
+      await submitJiomartAddressUpiidSaved(upiId);
     } catch (err) {
       console.log("STEP 05: Error submitting UPI ID:", err);
       alert("Something went wrong while submitting UPI ID.");
-    } finally {
-      setLoadingUpi(false);
     }
   };
 
@@ -468,6 +557,101 @@ export default function Chat6() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      );
+    } else if (
+      typeof parsed === "object" &&
+      parsed?.type === "jiomart_checkout"
+    ) {
+      const payment = parsed?.payment_details || {};
+      const addresses = Array.isArray(parsed?.addresses) ? parsed.addresses : [];
+
+      content = (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4">
+            <div className="text-sm font-semibold mb-2">Bill Summary</div>
+            <div className="space-y-2">
+              {Object.entries(payment)
+                .filter(([k]) => k !== "place_order_button")
+                .map(([k, v]: any) => (
+                  <div
+                    key={k}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <span className="text-gray-300">{v?.label ?? k}</span>
+                    <span className="text-white font-medium">
+                      {String(v?.value ?? "")}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4">
+            <div className="text-sm font-semibold mb-2">Saved Addresses</div>
+
+            {addresses.length > 0 ? (
+              <div className="space-y-3">
+                {addresses.map((a: any) => (
+                  <label
+                    key={a.address_id}
+                    className="flex items-start gap-3 p-3 rounded-xl border border-gray-800 hover:border-gray-700 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="jiomart_address"
+                      className="mt-1"
+                      checked={selectedAddressId === a.address_id}
+                      onChange={() => setSelectedAddressId(a.address_id)}
+                    />
+                    <div>
+                      <div className="text-sm font-medium">
+                        {(a.tag || "Address").toString()}
+                      </div>
+                      <div className="text-xs text-gray-300 mt-1">
+                        {a.address_text}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-300">
+                No saved address found.
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                if (addresses.length === 0) {
+                  setShowNewAddressPopup(true);
+                  return;
+                }
+                if (!selectedAddressId) {
+                  alert("Please select an address.");
+                  return;
+                }
+                setShowUpiPopup(true);
+              }}
+              className={`px-5 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 ${
+                loadingUpi
+                  ? "bg-gray-600 cursor-not-allowed text-gray-200"
+                  : "bg-red-600 hover:bg-red-500 text-white"
+              }`}
+              disabled={loadingUpi}
+            >
+              {loadingUpi ? (
+                <>
+                  <PopupLoader />
+                  Processing...
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </button>
           </div>
         </div>
       );
@@ -615,6 +799,97 @@ export default function Chat6() {
               className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingUpi ? <PopupLoader /> : "Submit"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* NEW ADDRESS POPUP (no saved address) */}
+      {showNewAddressPopup && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 p-6 rounded-2xl w-[22rem] space-y-4 border border-gray-700">
+            <h2 className="text-xl font-semibold text-white">Enter delivery address</h2>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Location (e.g., Mumbai, Maharashtra)"
+                value={newAddressLocation}
+                onChange={(e) => setNewAddressLocation(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="Flat No (e.g., 703)"
+                value={flatNo}
+                onChange={(e) => setFlatNo(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="Floor No (optional, e.g., 7)"
+                value={floorNo}
+                onChange={(e) => setFloorNo(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="Tower No (optional, e.g., A)"
+                value={towerNo}
+                onChange={(e) => setTowerNo(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="Building Name (optional, e.g., Gayatri Dham)"
+                value={buildingName}
+                onChange={(e) => setBuildingName(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="Building Address (e.g., Deraser Lane)"
+                value={buildingAddress}
+                onChange={(e) => setBuildingAddress(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="Area Name (e.g., Ghatkopar East)"
+                value={areaName}
+                onChange={(e) => setAreaName(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="Address Type (home / office / other)"
+                value={addressType}
+                onChange={(e) => setAddressType(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+
+              <input
+                type="text"
+                placeholder="UPI ID (e.g., name@upi)"
+                value={upiId}
+                onChange={(e) => setUpiId(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+            </div>
+
+            <button
+              onClick={submitJiomartAddressUpiidNew}
+              disabled={loadingUpi}
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loadingUpi ? <PopupLoader /> : "Submit & Pay"}
             </button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = "http://127.0.0.1:8001/";
+const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
@@ -912,6 +912,14 @@ export default function Chat1() {
 
             <input
               type="text"
+              placeholder="Building name"
+              value={buildingName}
+              onChange={(e) => setBuildingName(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+
+            <input
+              type="text"
               placeholder="Location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
@@ -929,13 +937,6 @@ export default function Chat1() {
               placeholder="Landmark"
               value={landmark}
               onChange={(e) => setLandmark(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-            />
-            <input
-              type="text"
-              placeholder="Building name"
-              value={buildingName}
-              onChange={(e) => setBuildingName(e.target.value)}
               className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
             />
 
