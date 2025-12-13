@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+const BaseURL = "http://127.0.0.1:8001/";
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
@@ -18,13 +18,29 @@ export default function Chat1() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
-  const [showPhonePopup, setShowPhonePopup] = useState(true);
+  const [showAccountPopup, setShowAccountPopup] = useState(true);
+  const [hasZeptoAccount, setHasZeptoAccount] = useState<boolean | null>(null);
+  const [showPhonePopup, setShowPhonePopup] = useState(false);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
 
   const [showUpiPopup, setShowUpiPopup] = useState(false);
 
   const [upiId, setUpiId] = useState("");
   const [loadingUpi, setLoadingUpi] = useState(false);
+
+  const [showAddressPopup, setShowAddressPopup] = useState(false);
+  const [flatDetails, setFlatDetails] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [buildingName, setBuildingName] = useState("");
+
+  const [checkoutData, setCheckoutData] = useState<any>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+  const [loadingConfirm, setLoadingConfirm] = useState(false);
+
+  const [zeptoSignupName, setZeptoSignupName] = useState("");
+  const [zeptoAuthStep, setZeptoAuthStep] = useState<
+    "existing_login" | "signup_after_login" | "signup_otp" | "login_after_signup"
+  >("existing_login");
 
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
@@ -33,8 +49,6 @@ export default function Chat1() {
   const [loadingPhone, setLoadingPhone] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingCart, setLoadingCart] = useState(false);
-
-  const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
   const [cartSelections, setCartSelections] = useState<{
     [id: string]: { quantity: number; product: any };
   }>({});
@@ -68,6 +82,10 @@ export default function Chat1() {
     setLoadingPhone(true);
     console.log("STEP 01.3 Login API request sending...");
 
+    if (hasZeptoAccount === false && zeptoAuthStep === "existing_login") {
+      setZeptoAuthStep("signup_after_login");
+    }
+
     try {
       const zeptoPayload = {
         mobile_number: phone,
@@ -88,6 +106,7 @@ export default function Chat1() {
         setZeptoSessionId(zeptoData.session_id);
         setShowPhonePopup(false);
         setShowOtpPopup(true);
+        setOtp("");
       }
     } catch (err) {
       console.log("STEP 01: Error:", err);
@@ -109,22 +128,99 @@ export default function Chat1() {
     console.log("STEP 02.3: Zepto OTP API request sending...");
 
     try {
-      const zeptoRes = await fetch(`${BaseURL}api/zepto/enter-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: zeptoSessionId,
-          otp: otp,
-        }),
-      });
+      if (hasZeptoAccount === false) {
+        if (zeptoAuthStep === "signup_after_login") {
+          const zeptoRes = await fetch(`${BaseURL}api/zepto/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              session_id: zeptoSessionId,
+              otp: otp,
+              name: zeptoSignupName,
+              phone: phone,
+            }),
+          });
 
-      const zeptoData = await zeptoRes.json();
+          const zeptoData = await zeptoRes.json();
+          console.log("STEP 02.4: Zepto Signup API response:", zeptoData);
 
-      console.log("STEP 02.4: Zepto OTP API response:", zeptoData);
+          if (typeof zeptoData === "object" && zeptoData?.session_id) {
+            setZeptoSessionId(zeptoData.session_id);
+          }
 
-      if (zeptoData.status === "success") {
-        console.log("STEP 02.5: OTP verification successful");
-        setShowOtpPopup(false);
+          setZeptoAuthStep("signup_otp");
+          setOtp("");
+        } else if (zeptoAuthStep === "signup_otp") {
+          const zeptoRes = await fetch(`${BaseURL}api/zepto/signup-otp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              session_id: zeptoSessionId,
+              otp: otp,
+            }),
+          });
+
+          const zeptoData = await zeptoRes.json();
+          console.log("STEP 02.4: Zepto Signup OTP API response:", zeptoData);
+
+          if (typeof zeptoData === "object" && zeptoData?.session_id) {
+            setZeptoSessionId(zeptoData.session_id);
+          }
+
+          const loginRes = await fetch(`${BaseURL}api/zepto/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              mobile_number: phone,
+              location: location,
+            }),
+          });
+
+          const loginData = await loginRes.json();
+          console.log("STEP 02.5: Zepto Login (after signup) response:", loginData);
+
+          if (typeof loginData === "object" && loginData?.session_id) {
+            setZeptoSessionId(loginData.session_id);
+          }
+
+          setZeptoAuthStep("login_after_signup");
+          setOtp("");
+        } else {
+          const zeptoRes = await fetch(`${BaseURL}api/zepto/enter-otp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              session_id: zeptoSessionId,
+              otp: otp,
+            }),
+          });
+
+          const zeptoData = await zeptoRes.json();
+          console.log("STEP 02.6: Zepto Enter OTP API response:", zeptoData);
+
+          if (zeptoData?.status === "success") {
+            console.log("STEP 02.7: OTP verification successful");
+            setShowOtpPopup(false);
+          }
+        }
+      } else {
+        const zeptoRes = await fetch(`${BaseURL}api/zepto/enter-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: zeptoSessionId,
+            otp: otp,
+          }),
+        });
+
+        const zeptoData = await zeptoRes.json();
+
+        console.log("STEP 02.4: Zepto OTP API response:", zeptoData);
+
+        if (zeptoData.status === "success") {
+          console.log("STEP 02.5: OTP verification successful");
+          setShowOtpPopup(false);
+        }
       }
     } catch (err) {
       console.log("STEP 02: Error:", err);
@@ -225,18 +321,10 @@ export default function Chat1() {
 
     const currentCart = { ...cartSelections };
 
-    if (zeptoItems.length > 0 && !upiId) {
-      console.log("Zepto items found but no UPI ID, showing UPI popup");
-      setPendingCartSelections(currentCart);
-      setShowUpiPopup(true);
-      return;
-    }
-
-    if (zeptoItems.length > 0 && upiId) {
-      console.log("Processing Zepto items with existing UPI ID:", zeptoItems);
-      await processZeptoCart(zeptoItems);
-      setCartSelections({});
-    }
+    console.log("Processing Zepto items (no UPI asked at add-to-cart stage):", zeptoItems);
+    void currentCart;
+    await processZeptoCart(zeptoItems);
+    setCartSelections({});
   };
 
   const processZeptoCart = async (
@@ -246,47 +334,101 @@ export default function Chat1() {
     console.log("STEP 04.3: Processing Zepto cart...");
 
     try {
-      for (const item of items) {
-        const endpoint = "zepto/add-to-cart";
-        const payload = {
-          product_name: item.product.name,
-          quantity: item.quantity,
-          upi_id: upiId,
-          hold_seconds: holdSeconds,
-        };
+      const item = items[0];
+      const endpoint = "zepto/add-to-cart";
+      const payload = {
+        product_name: item.product.name,
+        quantity: item.quantity,
+        upi_id: "string",
+        hold_seconds: holdSeconds,
+      };
 
-        console.log("Zepto API request:", payload);
+      console.log("Zepto API request:", payload);
 
-        const res = await fetch(`${BaseURL}api/${endpoint}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+      const res = await fetch(`${BaseURL}api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-        const data = await res.json();
-        console.log("Zepto API response:", data);
+      const data = await res.json();
+      console.log("Zepto API response:", data);
 
-        if (data === null || data.order_placed) {
-          pushSystem(
-            JSON.stringify({
-              status: "success",
-              message: `Your Zepto order for ${item.product.name} has been completed!`,
-            })
-          );
-        } else if (
-          data.status === "error" &&
-          data.message === "Cart is empty."
-        ) {
-          pushSystem(`Zepto item "${item.product.name}" is Out of Stock now!`);
-        } else {
-          pushSystem(JSON.stringify(data));
+      if (data?.status === "success") {
+        setCheckoutData(data);
+        if (data.session_id) {
+          setZeptoSessionId(data.session_id);
         }
+        setSelectedAddressId(
+          Array.isArray(data.addresses) && data.addresses.length > 0 ? data.addresses[0]?.id ?? null : null
+        );
+        pushSystem(
+          JSON.stringify({
+            type: "zepto_checkout",
+            session_id: data.session_id,
+            bill_summary: data.bill_summary,
+            addresses: data.addresses,
+            product_name: item.product.name,
+            quantity: item.quantity,
+          })
+        );
+      } else if (
+        data?.status === "error" &&
+        data?.message === "Cart is empty."
+      ) {
+        pushSystem(`Zepto item "${item.product.name}" is Out of Stock now!`);
+      } else {
+        pushSystem(JSON.stringify(data));
       }
     } catch (err) {
       console.log("Zepto cart error:", err);
-      pushSystem(`Payment Request Sent to your UPI ID for Zepto items`);
+      pushSystem(`Something went wrong while adding to cart.`);
     } finally {
       setLoadingCart(false);
+    }
+  };
+
+  const submitZeptoAddressAndPay = async (upi: string) => {
+    if (!checkoutData?.session_id) {
+      pushSystem("Missing session_id. Please add to cart again.");
+      return;
+    }
+
+    setLoadingConfirm(true);
+    try {
+      const hasAddresses = Array.isArray(checkoutData?.addresses) && checkoutData.addresses.length > 0;
+      const endpoint = "zepto/address-and-pay";
+
+      const payload: any = {
+        session_id: checkoutData.session_id,
+        upi_id: upi,
+      };
+
+      if (hasAddresses) {
+        if (selectedAddressId === null) {
+          alert("Please select a delivery address.");
+          return;
+        }
+        payload.address_id = selectedAddressId;
+      } else {
+        payload.location = location;
+        payload.flat_details = flatDetails;
+        payload.landmark = landmark;
+        payload.building_name = buildingName;
+      }
+
+      const res = await fetch(`${BaseURL}api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      pushSystem(JSON.stringify(data));
+    } catch (err) {
+      pushSystem("Something went wrong while confirming order.");
+    } finally {
+      setLoadingConfirm(false);
     }
   };
 
@@ -301,26 +443,7 @@ export default function Chat1() {
 
     try {
       setShowUpiPopup(false);
-
-      if (pendingCartSelections) {
-        pushSystem("UPI ID collected. Placing your Zepto order...");
-
-        const zeptoItems: { product: any; quantity: number }[] = [];
-
-        Object.values(pendingCartSelections).forEach((item: any) => {
-          if (item.quantity > 0 && item.product.source === "zepto") {
-            zeptoItems.push({ product: item.product, quantity: item.quantity });
-          }
-        });
-
-        if (zeptoItems.length > 0) {
-          await processZeptoCart(zeptoItems);
-        }
-
-        setPendingCartSelections(null);
-
-        setCartSelections({});
-      }
+      await submitZeptoAddressAndPay(upiId);
     } catch (err) {
       console.log("Error submitting UPI ID:", err);
       alert("Something went wrong while submitting UPI ID.");
@@ -480,6 +603,101 @@ export default function Chat1() {
         </div>
       );
     } else if (
+      typeof parsed === "object" &&
+      parsed?.type === "zepto_checkout"
+    ) {
+      const bill = parsed?.bill_summary || {};
+      const addresses = Array.isArray(parsed?.addresses) ? parsed.addresses : [];
+      content = (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4">
+            <div className="text-sm font-semibold mb-2">Bill Summary</div>
+            <div className="space-y-2">
+              {Object.entries(bill).map(([k, v]) => (
+                <div key={k} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-300">{k}</span>
+                  <span className="text-white font-medium">{String(v)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4">
+            <div className="text-sm font-semibold mb-2">Delivery Address</div>
+
+            {addresses.length > 0 ? (
+              <div className="space-y-3">
+                {addresses.map((a: any) => (
+                  <label
+                    key={a.id}
+                    className="flex items-start gap-3 p-3 rounded-xl border border-gray-800 hover:border-gray-700 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="zepto_address"
+                      className="mt-1"
+                      checked={selectedAddressId === a.id}
+                      onChange={() => {
+                        setSelectedAddressId(a.id);
+                        setCheckoutData((prev: any) => prev);
+                      }}
+                    />
+                    <div>
+                      <div className="text-sm font-medium">{a.tag || "Address"}</div>
+                      <div className="text-xs text-gray-300 mt-1">{a.address}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-sm text-gray-300">
+                  We didn't find any saved address. Please enter your address.
+                </div>
+                <button
+                  onClick={() => setShowAddressPopup(true)}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-gray-800"
+                >
+                  Enter Address
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                const hasAddresses = addresses.length > 0;
+                if (hasAddresses && selectedAddressId === null) {
+                  alert("Please select an address.");
+                  return;
+                }
+                if (!hasAddresses) {
+                  setShowAddressPopup(true);
+                  return;
+                }
+                setShowUpiPopup(true);
+              }}
+              className={`px-5 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 ${
+                loadingConfirm
+                  ? "bg-gray-600 cursor-not-allowed text-gray-200"
+                  : "bg-red-600 hover:bg-red-500 text-white"
+              }`}
+              disabled={loadingConfirm}
+            >
+              {loadingConfirm ? (
+                <>
+                  <PopupLoader />
+                  Confirming...
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </button>
+          </div>
+        </div>
+      );
+    } else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
@@ -543,6 +761,41 @@ export default function Chat1() {
   return (
     <div className="min-h-screen w-screen bg-black text-white">
       {/* ALL POPUPS - RENDERED AT TOP LEVEL */}
+      {showAccountPopup && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 p-6 rounded-2xl w-96 space-y-4 border border-gray-700">
+            <h2 className="text-xl font-semibold text-white">
+              Do you have a Zepto account?
+            </h2>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setHasZeptoAccount(true);
+                  setZeptoAuthStep("existing_login");
+                  setShowAccountPopup(false);
+                  setShowPhonePopup(true);
+                }}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => {
+                  setHasZeptoAccount(false);
+                  setZeptoAuthStep("existing_login");
+                  setShowAccountPopup(false);
+                  setShowPhonePopup(true);
+                }}
+                className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white font-semibold border border-gray-700"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PHONE NUMBER POPUP */}
       {showPhonePopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
@@ -550,6 +803,16 @@ export default function Chat1() {
             <h2 className="text-xl font-semibold text-white">
               Enter your details
             </h2>
+
+            {hasZeptoAccount === false && (
+              <input
+                type="text"
+                placeholder="Your Name"
+                value={zeptoSignupName}
+                onChange={(e) => setZeptoSignupName(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+              />
+            )}
 
             <input
               type="text"
@@ -568,7 +831,12 @@ export default function Chat1() {
             />
 
             <button
-              onClick={handleLogin}
+              onClick={() => {
+                if (hasZeptoAccount === false && !zeptoSignupName.trim()) {
+                  return;
+                }
+                handleLogin();
+              }}
               disabled={loadingPhone}
               className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
@@ -582,7 +850,15 @@ export default function Chat1() {
       {showOtpPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Enter Zepto OTP</h2>
+            <h2 className="text-xl font-semibold text-white">
+              {hasZeptoAccount === false
+                ? zeptoAuthStep === "signup_after_login"
+                  ? "Enter OTP for Signup"
+                  : zeptoAuthStep === "signup_otp"
+                    ? "Enter Signup OTP"
+                    : "Enter Login OTP"
+                : "Enter Zepto OTP"}
+            </h2>
 
             <input
               type="text"
@@ -624,6 +900,66 @@ export default function Chat1() {
             >
               {loadingUpi ? <PopupLoader /> : "Submit"}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ADDRESS POPUP (when no saved address) */}
+      {showAddressPopup && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 p-6 rounded-2xl w-96 space-y-4 border border-gray-700">
+            <h2 className="text-xl font-semibold text-white">Enter Delivery Address</h2>
+
+            <input
+              type="text"
+              placeholder="Location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+            <input
+              type="text"
+              placeholder="Flat details"
+              value={flatDetails}
+              onChange={(e) => setFlatDetails(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+            <input
+              type="text"
+              placeholder="Landmark"
+              value={landmark}
+              onChange={(e) => setLandmark(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+            <input
+              type="text"
+              placeholder="Building name"
+              value={buildingName}
+              onChange={(e) => setBuildingName(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowAddressPopup(false)}
+                className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white font-semibold border border-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!location.trim() || !flatDetails.trim() || !landmark.trim() || !buildingName.trim()) {
+                    alert("Please fill all address fields.");
+                    return;
+                  }
+                  setShowAddressPopup(false);
+                  setShowUpiPopup(true);
+                }}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold"
+              >
+                Continue
+              </button>
+            </div>
           </div>
         </div>
       )}
