@@ -3,8 +3,8 @@ import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
-// const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
-const BaseURL = "http://127.0.0.1:8001/" ;
+const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+// const BaseURL = "http://127.0.0.1:8001/" ;
 
 interface Message {
   id: string;
@@ -21,7 +21,8 @@ export default function Instamart() {
 
   const [showPhonePopup, setShowPhonePopup] = useState(true);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
-  const [showInstamartAddressPopup, setShowInstamartAddressPopup] = useState(false);
+  const [showInstamartAddressPopup, setShowInstamartAddressPopup] =
+    useState(false);
   const [showUpiPopup, setShowUpiPopup] = useState(false);
 
   const [phone, setPhone] = useState("");
@@ -30,7 +31,9 @@ export default function Instamart() {
   const [instamartSessionId, setInstamartSessionId] = useState("");
 
   const [upiId, setUpiId] = useState("");
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
+    null
+  );
 
   const [loadingPhone, setLoadingPhone] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
@@ -45,7 +48,9 @@ export default function Instamart() {
   const [cartSelections, setCartSelections] = useState<{
     [id: string]: { quantity: number; product: any };
   }>({});
-  const [selectedProductKey, setSelectedProductKey] = useState<string | null>(null);
+  const [selectedProductKey, setSelectedProductKey] = useState<string | null>(
+    null
+  );
 
   const pushSystem = (text: string) =>
     setMessages((prev) => [
@@ -413,7 +418,9 @@ export default function Instamart() {
                       </div>
 
                       <div className="flex items-baseline justify-between mt-1">
-                        <p className="text-base font-bold text-white">₹{p.price}</p>
+                        <p className="text-base font-bold text-white">
+                          ₹{p.price}
+                        </p>
                         {p.original_price && p.original_price !== p.price && (
                           <p className="text-xs text-gray-400 line-through">
                             ₹{p.original_price}
@@ -503,7 +510,9 @@ export default function Instamart() {
       parsed?.type === "instamart_checkout"
     ) {
       const bill = parsed?.bill_summary || {};
-      const addresses = Array.isArray(parsed?.addresses) ? parsed.addresses : [];
+      const addresses = Array.isArray(parsed?.addresses)
+        ? parsed.addresses
+        : [];
 
       content = (
         <div className="space-y-4">
@@ -511,7 +520,10 @@ export default function Instamart() {
             <div className="text-sm font-semibold mb-2">Bill Summary</div>
             <div className="space-y-2">
               {Object.entries(bill).map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between text-sm">
+                <div
+                  key={k}
+                  className="flex items-center justify-between text-sm"
+                >
                   <span className="text-gray-300">{k}</span>
                   <span className="text-white font-medium">{String(v)}</span>
                 </div>
@@ -528,24 +540,28 @@ export default function Instamart() {
                   const addressIndex =
                     typeof a?.index === "number" ? a.index : idx;
                   return (
-                  <label
-                    key={addressIndex}
-                    className="flex items-start gap-3 p-3 rounded-xl border border-gray-800 hover:border-gray-700 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="instamart_address"
-                      className="mt-1"
-                      checked={selectedAddressId === addressIndex}
-                      onChange={() => {
-                        setSelectedAddressId(addressIndex);
-                      }}
-                    />
-                    <div>
-                      <div className="text-sm font-medium">{a.tag || "Address"}</div>
-                      <div className="text-xs text-gray-300 mt-1">{a.address}</div>
-                    </div>
-                  </label>
+                    <label
+                      key={addressIndex}
+                      className="flex items-start gap-3 p-3 rounded-xl border border-gray-800 hover:border-gray-700 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="instamart_address"
+                        className="mt-1"
+                        checked={selectedAddressId === addressIndex}
+                        onChange={() => {
+                          setSelectedAddressId(addressIndex);
+                        }}
+                      />
+                      <div>
+                        <div className="text-sm font-medium">
+                          {a.tag || "Address"}
+                        </div>
+                        <div className="text-xs text-gray-300 mt-1">
+                          {a.address}
+                        </div>
+                      </div>
+                    </label>
                   );
                 })}
               </div>
@@ -624,28 +640,28 @@ export default function Instamart() {
       );
     }
 
-    return (
-      typeof parsed === "object" && parsed?.type === "product_list" ? (
-        <div key={m.id} className="w-full">{content}</div>
-      ) : (
+    return typeof parsed === "object" && parsed?.type === "product_list" ? (
+      <div key={m.id} className="w-full">
+        {content}
+      </div>
+    ) : (
+      <div
+        key={m.id}
+        className={`flex ${
+          m.role === "user" ? "justify-end" : "justify-start"
+        }`}
+      >
         <div
-          key={m.id}
-          className={`flex ${
-            m.role === "user" ? "justify-end" : "justify-start"
-          }`}
-        >
-          <div
-            className={`${
-              m.role === "user"
-                ? "bg-white/15 text-white border-white/20"
-                : "bg-gray-900/80 text-gray-100 border-gray-800"
-            } 
+          className={`${
+            m.role === "user"
+              ? "bg-white/15 text-white border-white/20"
+              : "bg-gray-900/80 text-gray-100 border-gray-800"
+          } 
           max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
-          >
-            {content}
-          </div>
+        >
+          {content}
         </div>
-      )
+      </div>
     );
   };
 
@@ -655,7 +671,9 @@ export default function Instamart() {
       {showPhonePopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Enter your details</h2>
+            <h2 className="text-xl font-semibold text-white">
+              Enter your details
+            </h2>
 
             <input
               type="text"
@@ -688,7 +706,9 @@ export default function Instamart() {
       {showOtpPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Enter Instamart OTP</h2>
+            <h2 className="text-xl font-semibold text-white">
+              Enter Instamart OTP
+            </h2>
 
             <input
               type="text"

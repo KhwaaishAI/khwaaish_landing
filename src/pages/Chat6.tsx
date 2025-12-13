@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-// const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
-const BaseURL = "http://127.0.0.1:8001/";
+const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+// const BaseURL = "http://127.0.0.1:8001/";
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
@@ -28,7 +28,9 @@ export default function Chat6() {
   const [upiId, setUpiId] = useState("");
   const [loadingUpi, setLoadingUpi] = useState(false);
 
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null
+  );
 
   const [newAddressLocation, setNewAddressLocation] = useState("");
   const [flatNo, setFlatNo] = useState("");
@@ -235,7 +237,10 @@ export default function Chat6() {
 
     console.log(`Found ${jiomartItems.length} JioMart items`);
 
-    console.log("Processing JioMart items (no UPI at this stage):", jiomartItems);
+    console.log(
+      "Processing JioMart items (no UPI at this stage):",
+      jiomartItems
+    );
     await processJioMartCart(jiomartItems);
     setCartSelections({});
   };
@@ -284,7 +289,9 @@ export default function Chat6() {
           data.status === "error" &&
           data.message === "Cart is empty."
         ) {
-          pushSystem(`JioMart item "${item.product.name}" is Out of Stock now!`);
+          pushSystem(
+            `JioMart item "${item.product.name}" is Out of Stock now!`
+          );
         } else {
           pushSystem(JSON.stringify(data));
         }
@@ -479,7 +486,9 @@ export default function Chat6() {
                       </div>
 
                       <div className="flex items-center justify-between mt-1">
-                        <p className="text-base font-bold text-white">₹{p.price}</p>
+                        <p className="text-base font-bold text-white">
+                          ₹{p.price}
+                        </p>
                       </div>
 
                       <div className="mt-2 flex items-center justify-end">
@@ -565,7 +574,9 @@ export default function Chat6() {
       parsed?.type === "jiomart_checkout"
     ) {
       const payment = parsed?.payment_details || {};
-      const addresses = Array.isArray(parsed?.addresses) ? parsed.addresses : [];
+      const addresses = Array.isArray(parsed?.addresses)
+        ? parsed.addresses
+        : [];
 
       content = (
         <div className="space-y-4">
@@ -691,28 +702,28 @@ export default function Chat6() {
       );
     }
 
-    return (
-      typeof parsed === "object" && parsed?.type === "product_list" ? (
-        <div key={m.id} className="w-full">{content}</div>
-      ) : (
+    return typeof parsed === "object" && parsed?.type === "product_list" ? (
+      <div key={m.id} className="w-full">
+        {content}
+      </div>
+    ) : (
+      <div
+        key={m.id}
+        className={`flex ${
+          m.role === "user" ? "justify-end" : "justify-start"
+        }`}
+      >
         <div
-          key={m.id}
-          className={`flex ${
-            m.role === "user" ? "justify-end" : "justify-start"
-          }`}
-        >
-          <div
-            className={`${
-              m.role === "user"
-                ? "bg-white/15 text-white border-white/20"
-                : "bg-gray-900/80 text-gray-100 border-gray-800"
-            } 
+          className={`${
+            m.role === "user"
+              ? "bg-white/15 text-white border-white/20"
+              : "bg-gray-900/80 text-gray-100 border-gray-800"
+          } 
           max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
-          >
-            {content}
-          </div>
+        >
+          {content}
         </div>
-      )
+      </div>
     );
   };
 
@@ -808,7 +819,9 @@ export default function Chat6() {
       {showNewAddressPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-[22rem] space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Enter delivery address</h2>
+            <h2 className="text-xl font-semibold text-white">
+              Enter delivery address
+            </h2>
 
             <div className="space-y-3">
               <input
