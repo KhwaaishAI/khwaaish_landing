@@ -500,7 +500,7 @@ export default function Flipkart() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_id: sessionId,
-          address_id: selectedAddressId,
+          address_id: selectedAddressId == "current" ? "" : selectedAddressId,
         }),
       });
 
