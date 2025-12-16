@@ -37,7 +37,12 @@ export default function Instamart() {
 
   const [instamartDoorNo, setInstamartDoorNo] = useState("");
   const [instamartLandmark, setInstamartLandmark] = useState("");
-  const [instamartCartItems, setInstamartCartItems] = useState<any[]>([]);
+
+  const [instamartBillDetails, setInstamartBillDetails] = useState<any>(null);
+  const [instamartAddresses, setInstamartAddresses] = useState<any[]>([]);
+  const [selectedInstamartAddressId, setSelectedInstamartAddressId] = useState<
+    number | null
+  >(null);
 
   const [cartSelections, setCartSelections] = useState<{
     [id: string]: { quantity: number; product: any };
@@ -177,13 +182,60 @@ export default function Instamart() {
     await processInstamartCart(instamartItems);
   };
 
+  const handleInstamartBuyWithAddress = async () => {
+    if (!upiId.trim()) {
+      alert("Please enter a valid UPI ID");
+      return;
+    }
+
+    if (selectedInstamartAddressId === null || selectedInstamartAddressId === undefined) {
+      alert("Please select a delivery address");
+      return;
+    }
+
+    setLoadingInstamartBook(true);
+
+    try {
+      const payload = {
+        session_id: instamartSessionId,
+        address_index: selectedInstamartAddressId,
+        upi_id: upiId,
+      };
+
+      const res = await fetch(`${BaseURL}api/instamart/buy-with-address`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (data?.status === "success") {
+        pushSystem("Your Instamart order has been placed successfully!");
+        setInstamartBillDetails(null);
+        setInstamartAddresses([]);
+        setSelectedInstamartAddressId(null);
+        setUpiId("");
+        setCartSelections({});
+      } else {
+        pushSystem(`Instamart order failed: ${data?.message || "Unknown error"}`);
+      }
+    } catch (err: any) {
+      console.log("Instamart buy-with-address error:", err);
+      pushSystem(`Error: ${err?.message || "Something went wrong with Instamart payment"}`);
+    } finally {
+      setLoadingInstamartBook(false);
+    }
+  };
+
   const processInstamartCart = async (
     items: { product: any; quantity: number }[]
   ) => {
     setLoadingInstamartCart(true);
 
     try {
-      setInstamartCartItems(items);
+      let lastBillDetails: any = null;
+      let lastAddresses: any[] = [];
 
       for (const item of items) {
         const payload = {
@@ -199,6 +251,14 @@ export default function Instamart() {
         });
 
         const data = await res.json();
+
+        if (data?.bill_details) {
+          lastBillDetails = data.bill_details;
+        }
+
+        if (Array.isArray(data?.addresses)) {
+          lastAddresses = data.addresses;
+        }
 
         // Keep session id in sync with backend response
         if (data.session_id) {
@@ -220,10 +280,28 @@ export default function Instamart() {
 
       if (items.length > 0) {
         setTimeout(() => {
-          pushSystem(
-            "Instamart items added! Please provide delivery details to complete your order."
-          );
-          setShowInstamartAddressPopup(true);
+          const hasSavedAddresses = Array.isArray(lastAddresses) && lastAddresses.length > 0;
+
+          if (hasSavedAddresses) {
+            setInstamartBillDetails(lastBillDetails);
+            setInstamartAddresses(lastAddresses);
+            setSelectedInstamartAddressId(
+              typeof lastAddresses[0]?.id === "number" ? lastAddresses[0].id : 0
+            );
+
+            pushSystem(
+              JSON.stringify({
+                type: "instamart_checkout",
+                bill_details: lastBillDetails,
+                addresses: lastAddresses,
+              })
+            );
+          } else {
+            pushSystem(
+              "Instamart items added! Please provide delivery details to complete your order."
+            );
+            setShowInstamartAddressPopup(true);
+          }
         }, 500);
       }
     } catch (err) {
@@ -259,8 +337,6 @@ export default function Instamart() {
 
       if (data.status === "success") {
         pushSystem("Your Instamart order has been booked successfully!");
-
-        setInstamartCartItems([]);
         setInstamartDoorNo("");
         setInstamartLandmark("");
         setShowInstamartAddressPopup(false);
@@ -427,6 +503,95 @@ export default function Instamart() {
               </button>
             </div>
           </div>
+        </div>
+      );
+    } else if (typeof parsed === "object" && parsed?.type === "instamart_checkout") {
+      const billDetails = parsed?.bill_details || instamartBillDetails;
+      const addresses = parsed?.addresses || instamartAddresses;
+
+      content = (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">Bill Summary</h3>
+            {billDetails && typeof billDetails === "object" ? (
+              <div className="space-y-1">
+                {Object.entries(billDetails).map(([k, v]: any) => {
+                  const valueText =
+                    typeof v === "string"
+                      ? v
+                      : typeof v === "object" && v
+                        ? `${v.final || ""}${v.original ? ` (was ${v.original})` : ""}`
+                        : String(v);
+
+                  return (
+                    <div key={k} className="flex items-center justify-between gap-4">
+                      <span className="text-sm text-gray-300">{k}</span>
+                      <span className="text-sm font-semibold text-white">{valueText}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-300">Bill details not available.</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">Select Delivery Address</h3>
+
+            {Array.isArray(addresses) && addresses.length > 0 ? (
+              <div className="space-y-2">
+                {addresses.map((a: any) => {
+                  const idVal = typeof a?.id === "number" ? a.id : 0;
+                  const checked = selectedInstamartAddressId === idVal;
+                  return (
+                    <label
+                      key={idVal}
+                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer ${
+                        checked
+                          ? "border-red-500 bg-white/5"
+                          : "border-gray-800 bg-transparent"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        className="mt-1"
+                        checked={checked}
+                        onChange={() => setSelectedInstamartAddressId(idVal)}
+                      />
+                      <div className="space-y-1">
+                        <div className="text-sm font-semibold text-white">
+                          {a?.label || "Saved Address"}
+                        </div>
+                        <div className="text-xs text-gray-300">{a?.address}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-300">No saved addresses found.</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">UPI ID</h3>
+            <input
+              type="text"
+              placeholder="example@upi"
+              value={upiId}
+              onChange={(e) => setUpiId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+          </div>
+
+          <button
+            onClick={handleInstamartBuyWithAddress}
+            disabled={loadingInstamartBook}
+            className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loadingInstamartBook ? <PopupLoader /> : "Confirm & Pay"}
+          </button>
         </div>
       );
     } else if (
