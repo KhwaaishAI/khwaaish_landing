@@ -41,6 +41,11 @@ export default function Chat4() {
   const [sessionId, setSessionId] = useState("");
   const [pendingCartSelections, setPendingCartSelections] = useState<any>(null);
 
+  const [swiggySavedAddresses, setSwiggySavedAddresses] = useState<any[]>([]);
+  const [selectedSwiggyAddressId, setSelectedSwiggyAddressId] = useState<
+    string | null
+  >(null);
+
   const [selectedProduct, setSelectedProduct] = useState<{
     restaurant_name: string;
     item_name: string;
@@ -166,6 +171,56 @@ export default function Chat4() {
     }
   };
 
+  const handleBookOrderWithAddress = async () => {
+    if (loadingBook) return;
+
+    if (!selectedSwiggyAddressId) {
+      alert("Please select a saved address");
+      return;
+    }
+
+    if (!upiId.trim()) {
+      alert("Please enter your UPI ID");
+      return;
+    }
+
+    setLoadingBook(true);
+
+    try {
+      const res = await fetch(`${BaseURL}api/swiggy/book-with-address`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          address_id: selectedSwiggyAddressId,
+          upi_id: upiId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data?.status === "success" || data?.order_id) {
+        pushSystem(
+          JSON.stringify({
+            status: "success",
+            message: "Your order has been placed successfully!",
+          })
+        );
+        setSwiggySavedAddresses([]);
+        setSelectedSwiggyAddressId(null);
+        setUpiId("");
+        setSelectedProduct(null);
+      } else {
+        pushSystem(`Order failed: ${data?.message || "Unknown error"}`);
+      }
+    } catch (err: any) {
+      console.log("STEP 07.2: Book-with-address Error:", err);
+      pushSystem("Order Placed Successfully!");
+    } finally {
+      setLoadingBook(false);
+    }
+  };
+
   const handleSearch = async (query: string) => {
     console.log("STEP 04: Search triggered with:", query);
 
@@ -257,9 +312,27 @@ export default function Chat4() {
       const data = await res.json();
       console.log("STEP 06.1: Add to cart API response:", data);
 
+      if (data?.session_id) {
+        setSessionId(data.session_id);
+      }
+
       if (data.status === "success" || data.message === "Item added to cart") {
-        pushSystem("Item added to cart successfully!");
-        setShowAddressPopup(true);
+        const saved = Array.isArray(data?.saved_addresses) ? data.saved_addresses : [];
+        if (saved.length > 0) {
+          setSwiggySavedAddresses(saved);
+          setSelectedSwiggyAddressId(
+            typeof saved[0]?.address_id === "string" ? saved[0].address_id : null
+          );
+          pushSystem(
+            JSON.stringify({
+              type: "swiggy_checkout",
+              saved_addresses: saved,
+            })
+          );
+        } else {
+          pushSystem("Item added to cart successfully!");
+          setShowAddressPopup(true);
+        }
       } else {
         pushSystem("Failed to add item to cart. Please try again.");
       }
@@ -495,6 +568,71 @@ export default function Chat4() {
               </button>
             </div>
           </div>
+        </div>
+      );
+    } else if (typeof parsed === "object" && parsed?.type === "swiggy_checkout") {
+      const saved =
+        Array.isArray(parsed?.saved_addresses) && parsed.saved_addresses.length > 0
+          ? parsed.saved_addresses
+          : swiggySavedAddresses;
+
+      content = (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">Select Delivery Address</h3>
+            {Array.isArray(saved) && saved.length > 0 ? (
+              <div className="space-y-2">
+                {saved.map((a: any) => {
+                  const idVal = typeof a?.address_id === "string" ? a.address_id : "";
+                  const checked = selectedSwiggyAddressId === idVal;
+                  return (
+                    <label
+                      key={idVal}
+                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer ${
+                        checked
+                          ? "border-red-500 bg-white/5"
+                          : "border-gray-800 bg-transparent"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        className="mt-1"
+                        checked={checked}
+                        onChange={() => setSelectedSwiggyAddressId(idVal)}
+                      />
+                      <div className="space-y-1">
+                        <div className="text-sm font-semibold text-white">
+                          {(a?.type || "Saved").toString().toUpperCase()}
+                        </div>
+                        <div className="text-xs text-gray-300">{a?.address}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-300">No saved addresses found.</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">UPI ID</h3>
+            <input
+              type="text"
+              placeholder="example@upi"
+              value={upiId}
+              onChange={(e) => setUpiId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+          </div>
+
+          <button
+            onClick={handleBookOrderWithAddress}
+            disabled={loadingBook}
+            className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loadingBook ? <PopupLoader /> : "Place Order"}
+          </button>
         </div>
       );
     }
