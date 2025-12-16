@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+// const BaseURL = "http://127.0.0.1:8001/" ;
 
 interface Message {
   id: string;
@@ -19,21 +19,29 @@ export default function Instamart() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
-  const [showPhonePopup, setShowPhonePopup] = useState(true);
+  const [showAccountPopup, setShowAccountPopup] = useState(true);
+  const [hasInstamartAccount, setHasInstamartAccount] = useState<boolean | null>(null);
+  const [showPhonePopup, setShowPhonePopup] = useState(false);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
   const [showInstamartAddressPopup, setShowInstamartAddressPopup] = useState(false);
+  const [showUpiPopup, setShowUpiPopup] = useState(false);
 
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [instamartSessionId, setInstamartSessionId] = useState("");
 
   const [upiId, setUpiId] = useState("");
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
 
   const [loadingPhone, setLoadingPhone] = useState(false);
   const [loadingOtp, setLoadingOtp] = useState(false);
   const [loadingInstamartCart, setLoadingInstamartCart] = useState(false);
   const [loadingInstamartBook, setLoadingInstamartBook] = useState(false);
+  const [loadingInstamartBuyWithAddress, setLoadingInstamartBuyWithAddress] =
+    useState(false);
 
   const [instamartDoorNo, setInstamartDoorNo] = useState("");
   const [instamartLandmark, setInstamartLandmark] = useState("");
@@ -47,7 +55,9 @@ export default function Instamart() {
   const [cartSelections, setCartSelections] = useState<{
     [id: string]: { quantity: number; product: any };
   }>({});
-  const [selectedProductKey, setSelectedProductKey] = useState<string | null>(null);
+  const [selectedProductKey, setSelectedProductKey] = useState<string | null>(
+    null
+  );
 
   const pushSystem = (text: string) =>
     setMessages((prev) => [
@@ -64,13 +74,17 @@ export default function Instamart() {
   const handleLogin = async () => {
     if (!phone.trim() || !location.trim()) return;
 
+    if (hasInstamartAccount === false) {
+      if (!signupName.trim() || !signupEmail.trim()) return;
+    }
+
     setLoadingPhone(true);
 
     try {
       const instamartPayload = {
         mobile_number: phone,
-        name: "Khwaaish User",
-        gmail: "user@khwaaish.com",
+        name: hasInstamartAccount === false ? signupName : "Khwaaish User",
+        gmail: hasInstamartAccount === false ? signupEmail : "user@khwaaish.com",
         location: location,
       };
 
@@ -236,6 +250,7 @@ export default function Instamart() {
     try {
       let lastBillDetails: any = null;
       let lastAddresses: any[] = [];
+      let latestCheckoutData: any = null;
 
       for (const item of items) {
         const payload = {
@@ -259,6 +274,7 @@ export default function Instamart() {
         if (Array.isArray(data?.addresses)) {
           lastAddresses = data.addresses;
         }
+        latestCheckoutData = data;
 
         // Keep session id in sync with backend response
         if (data.session_id) {
@@ -303,12 +319,88 @@ export default function Instamart() {
             setShowInstamartAddressPopup(true);
           }
         }, 500);
+        const bill =
+          latestCheckoutData?.bill_details ?? latestCheckoutData?.bill_summary;
+        const addresses = Array.isArray(latestCheckoutData?.addresses)
+          ? latestCheckoutData.addresses
+          : [];
+
+        if (latestCheckoutData?.session_id) {
+          setInstamartSessionId(latestCheckoutData.session_id);
+        }
+
+        if (bill && addresses.length > 0) {
+          const firstIndex =
+            typeof addresses[0]?.id === "number"
+              ? addresses[0].id
+              : typeof addresses[0]?.index === "number"
+                ? addresses[0].index
+                : 0;
+          setSelectedAddressId(firstIndex);
+          pushSystem(
+            JSON.stringify({
+              type: "instamart_checkout",
+              session_id: latestCheckoutData.session_id,
+              bill_details: bill,
+              addresses: addresses,
+            })
+          );
+        } else {
+          pushSystem(
+            "No saved address found in your Instamart/Swiggy account. Please add an address to continue."
+          );
+          setTimeout(() => {
+            setShowInstamartAddressPopup(true);
+          }, 300);
+        }
       }
     } catch (err) {
       console.log("Instamart cart error:", err);
       pushSystem("Something went wrong with Instamart order");
       setLoadingInstamartCart(false);
     }
+  };
+
+  const submitInstamartBuyWithAddress = async (upi: string) => {
+    if (!instamartSessionId) {
+      pushSystem("Missing session_id. Please search and add items again.");
+      return;
+    }
+
+    if (selectedAddressId === null) {
+      alert("Please select a delivery address.");
+      return;
+    }
+
+    setLoadingInstamartBuyWithAddress(true);
+    try {
+      const res = await fetch(`${BaseURL}api/instamart/buy-with-address`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: instamartSessionId,
+          address_index: selectedAddressId,
+          upi_id: upi,
+        }),
+      });
+
+      const data = await res.json();
+      pushSystem(JSON.stringify(data));
+    } catch (err) {
+      pushSystem("Something went wrong while confirming Instamart order.");
+    } finally {
+      setLoadingInstamartBuyWithAddress(false);
+    }
+  };
+
+  const handleUpiSubmit = async () => {
+    if (!upiId.trim()) {
+      alert("Please enter your UPI ID");
+      return;
+    }
+
+    setShowUpiPopup(false);
+    await submitInstamartBuyWithAddress(upiId);
   };
 
   const handleInstamartBook = async () => {
@@ -337,6 +429,7 @@ export default function Instamart() {
 
       if (data.status === "success") {
         pushSystem("Your Instamart order has been booked successfully!");
+
         setInstamartDoorNo("");
         setInstamartLandmark("");
         setShowInstamartAddressPopup(false);
@@ -420,7 +513,9 @@ export default function Instamart() {
                       </div>
 
                       <div className="flex items-baseline justify-between mt-1">
-                        <p className="text-base font-bold text-white">₹{p.price}</p>
+                        <p className="text-base font-bold text-white">
+                          ₹{p.price}
+                        </p>
                         {p.original_price && p.original_price !== p.price && (
                           <p className="text-xs text-gray-400 line-through">
                             ₹{p.original_price}
@@ -502,6 +597,122 @@ export default function Instamart() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+
+      );
+    } else if (
+      typeof parsed === "object" &&
+      parsed?.type === "instamart_checkout"
+    ) {
+      const bill = parsed?.bill_details || parsed?.bill_summary || {};
+      const addresses = Array.isArray(parsed?.addresses) ? parsed.addresses : [];
+
+      content = (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4">
+            <div className="text-sm font-semibold mb-2">Bill Summary</div>
+            <div className="space-y-2">
+              {Object.entries(bill).map(([k, v]: any) => {
+                const isObj = v && typeof v === "object";
+                const finalVal = isObj ? v.final ?? v.value ?? "" : v;
+                const origVal = isObj ? v.original : null;
+
+                return (
+                  <div
+                    key={k}
+                    className="flex items-start justify-between gap-4 text-sm"
+                  >
+                    <span className="text-gray-300">{k}</span>
+                    <span className="text-right">
+                      <span className="text-white font-medium">
+                        {String(finalVal)}
+                      </span>
+                      {origVal && origVal !== finalVal && (
+                        <span className="ml-2 text-xs text-gray-400 line-through">
+                          {String(origVal)}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4">
+            <div className="text-sm font-semibold mb-2">Delivery Address</div>
+
+            {addresses.length > 0 ? (
+              <div className="space-y-3">
+                {addresses.map((a: any, idx: number) => {
+                  const addressIndex =
+                    typeof a?.id === "number"
+                      ? a.id
+                      : typeof a?.index === "number"
+                        ? a.index
+                        : idx;
+
+                  return (
+                    <label
+                      key={addressIndex}
+                      className="flex items-start gap-3 p-3 rounded-xl border border-gray-800 hover:border-gray-700 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="instamart_address"
+                        className="mt-1"
+                        checked={selectedAddressId === addressIndex}
+                        onChange={() => setSelectedAddressId(addressIndex)}
+                      />
+                      <div>
+                        <div className="text-sm font-medium">
+                          {a.label || a.tag || "Address"}
+                        </div>
+                        <div className="text-xs text-gray-300 mt-1">
+                          {a.address || a.address_text}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-300">
+                No saved address found. Please add an address.
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                if (addresses.length > 0 && selectedAddressId === null) {
+                  alert("Please select an address.");
+                  return;
+                }
+                if (addresses.length === 0) {
+                  setShowInstamartAddressPopup(true);
+                  return;
+                }
+                setShowUpiPopup(true);
+              }}
+              className={`px-5 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 ${
+                loadingInstamartBuyWithAddress
+                  ? "bg-gray-600 cursor-not-allowed text-gray-200"
+                  : "bg-red-600 hover:bg-red-500 text-white"
+              }`}
+              disabled={loadingInstamartBuyWithAddress}
+            >
+              {loadingInstamartBuyWithAddress ? (
+                <>
+                  <PopupLoader />
+                  Confirming...
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </button>
           </div>
         </div>
       );
@@ -630,38 +841,92 @@ export default function Instamart() {
       );
     }
 
-    return (
-      typeof parsed === "object" && parsed?.type === "product_list" ? (
-        <div key={m.id} className="w-full">{content}</div>
-      ) : (
+    return typeof parsed === "object" && parsed?.type === "product_list" ? (
+      <div key={m.id} className="w-full">
+        {content}
+      </div>
+    ) : (
+      <div
+        key={m.id}
+        className={`flex ${
+          m.role === "user" ? "justify-end" : "justify-start"
+        }`}
+      >
         <div
-          key={m.id}
-          className={`flex ${
-            m.role === "user" ? "justify-end" : "justify-start"
-          }`}
-        >
-          <div
-            className={`${
-              m.role === "user"
-                ? "bg-white/15 text-white border-white/20"
-                : "bg-gray-900/80 text-gray-100 border-gray-800"
-            } 
+          className={`${
+            m.role === "user"
+              ? "bg-white/15 text-white border-white/20"
+              : "bg-gray-900/80 text-gray-100 border-gray-800"
+          } 
           max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
-          >
-            {content}
-          </div>
+        >
+          {content}
         </div>
-      )
+      </div>
     );
   };
 
   return (
     <div className="min-h-screen w-screen bg-black text-white">
+      {showAccountPopup && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
+            <h2 className="text-xl font-semibold text-white">
+              Do you have an Instamart account?
+            </h2>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setHasInstamartAccount(true);
+                  setShowAccountPopup(false);
+                  setShowPhonePopup(true);
+                }}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => {
+                  setHasInstamartAccount(false);
+                  setShowAccountPopup(false);
+                  setShowPhonePopup(true);
+                }}
+                className="flex-1 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white font-semibold border border-gray-700"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PHONE NUMBER POPUP */}
       {showPhonePopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Enter your details</h2>
+            <h2 className="text-xl font-semibold text-white">
+              Enter your details
+            </h2>
+
+            {hasInstamartAccount === false && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+
+                <input
+                  type="email"
+                  placeholder="Email (e.g. user@gmail.com)"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+                />
+              </>
+            )}
 
             <input
               type="text"
@@ -694,7 +959,9 @@ export default function Instamart() {
       {showOtpPopup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white">Enter Instamart OTP</h2>
+            <h2 className="text-xl font-semibold text-white">
+              Enter Instamart OTP
+            </h2>
 
             <input
               type="text"
@@ -710,6 +977,31 @@ export default function Instamart() {
               className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingOtp ? <PopupLoader /> : "Verify"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* UPI POPUP (saved-address flow) */}
+      {showUpiPopup && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 p-6 rounded-2xl w-80 space-y-4 border border-gray-700">
+            <h2 className="text-xl font-semibold text-white">Enter UPI ID</h2>
+
+            <input
+              type="text"
+              placeholder="example@upi"
+              value={upiId}
+              onChange={(e) => setUpiId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
+            />
+
+            <button
+              onClick={handleUpiSubmit}
+              disabled={loadingInstamartBuyWithAddress}
+              className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loadingInstamartBuyWithAddress ? <PopupLoader /> : "Submit"}
             </button>
           </div>
         </div>
