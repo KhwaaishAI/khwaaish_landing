@@ -18,6 +18,8 @@ import Booking from "./pages/Booking";
 import Agoda from "./pages/Agoda";
 import Airbnb from "./pages/Airbnb";
 import Flipkart from "./pages/Flipkart";
+import SwiggyDineoutChat from "./pages/Swiggy_DIneout";
+import Amazon from "./pages/Amazon";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -103,6 +105,16 @@ export default function App() {
         <Route
           path="/flipkart"
           element={loggedIn ? <Flipkart /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/amazon"
+          element={loggedIn ? <Amazon /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/swiggy-dineout"
+          element={
+            loggedIn ? <SwiggyDineoutChat /> : <Navigate to="/" replace />
+          }
         />
       </Routes>
     </BrowserRouter>
