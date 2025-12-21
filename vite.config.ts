@@ -12,6 +12,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      "/amazon": {
+        target: "https://api.khwaaish.com",
+        changeOrigin: true,
+        secure: true,
+      },
       "/amazon_aitomation": {
         target: "https://api.khwaaish.com",
         changeOrigin: true,

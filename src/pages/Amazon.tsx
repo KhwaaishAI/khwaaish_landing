@@ -1,9 +1,17 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+// const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+const BaseURL = import.meta.env.DEV ? "" : "https://api.khwaaish.com";
+
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
+
+const buildApiUrl = (path: string) => {
+  const base = (BaseURL || "").replace(/\/$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalizedPath}`;
+};
 
 interface Message {
   id: string;
@@ -169,13 +177,20 @@ export default function Amazon() {
     console.log("Is clothing search:", isClothing);
 
     try {
-      const response = await fetch(`${BaseURL}amazon/search-amazon`, {
+      const response = await fetch(buildApiUrl("/amazon/search-amazon"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query: query,
         }),
       });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new Error(
+          `Search request failed (${response.status}). ${text || ""}`.trim()
+        );
+      }
 
       const data = await response.json();
       console.log("STEP 01.2: Search API response:", data);
@@ -185,7 +200,8 @@ export default function Amazon() {
         console.log("STEP 01.3: Session ID updated to:", data.session_id);
       }
 
-      const products = data.results || [];
+      const products =
+        data?.results || data?.products || data?.data?.products || [];
       console.log("STEP 01.4: Extracted products =", products.length);
 
       pushSystem(
@@ -211,7 +227,7 @@ export default function Amazon() {
     setLoadingDetails(true);
 
     try {
-      const response = await fetch(`${BaseURL}amazon/get-product-details`, {
+      const response = await fetch(buildApiUrl("/amazon/get-product-details"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -219,6 +235,13 @@ export default function Amazon() {
           product_url: product.product_url,
         }),
       });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new Error(
+          `Product details request failed (${response.status}). ${text || ""}`.trim()
+        );
+      }
 
       const data = await response.json();
       console.log("Product details response:", data);
@@ -263,7 +286,7 @@ export default function Amazon() {
     setLoadingPhone(true);
 
     try {
-      const res = await fetch(`${BaseURL}amazon/login`, {
+      const res = await fetch(buildApiUrl("/amazon/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -271,6 +294,13 @@ export default function Amazon() {
           phone: phone,
         }),
       });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(
+          `Login request failed (${res.status}). ${text || ""}`.trim()
+        );
+      }
 
       const data = await res.json();
       console.log("Login API response:", data);
@@ -331,7 +361,7 @@ export default function Amazon() {
     setLoadingCart(true);
 
     try {
-      const res = await fetch(`${BaseURL}amazon/add-to-card`, {
+      const res = await fetch(buildApiUrl("/amazon/add-to-cart"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -339,6 +369,13 @@ export default function Amazon() {
           size: isClothingSearch ? selectedSize : "",
         }),
       });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(
+          `Add to cart request failed (${res.status}). ${text || ""}`.trim()
+        );
+      }
 
       const data = await res.json();
       console.log("Add to cart API response:", data);
@@ -372,7 +409,7 @@ export default function Amazon() {
     setLoadingOtp(true);
 
     try {
-      const res = await fetch(`${BaseURL}amazon/submit-otp`, {
+      const res = await fetch(buildApiUrl("/amazon/submit-otp"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -380,6 +417,13 @@ export default function Amazon() {
           otp: otp,
         }),
       });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(
+          `Submit OTP request failed (${res.status}). ${text || ""}`.trim()
+        );
+      }
 
       const data = await res.json();
       console.log("OTP API response:", data);
@@ -423,7 +467,7 @@ export default function Amazon() {
     setLoadingBuy(true);
 
     try {
-      const res = await fetch(`${BaseURL}amazon/add-address`, {
+      const res = await fetch(buildApiUrl("/amazon/add-address"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -436,6 +480,13 @@ export default function Amazon() {
           landmark: address.landmark,
         }),
       });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(
+          `Add address request failed (${res.status}). ${text || ""}`.trim()
+        );
+      }
 
       const data = await res.json();
       console.log("Address API response:", data);
@@ -470,7 +521,7 @@ export default function Amazon() {
     setLoadingPayment(true);
 
     try {
-      const res = await fetch(`${BaseURL}amazon/pay-with-upi`, {
+      const res = await fetch(buildApiUrl("/amazon/pay-with-upi"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -478,6 +529,13 @@ export default function Amazon() {
           upi_id: upiId,
         }),
       });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(
+          `UPI payment request failed (${res.status}). ${text || ""}`.trim()
+        );
+      }
 
       const data = await res.json();
       console.log("UPI API response:", data);
