@@ -20,6 +20,7 @@ import Airbnb from "./pages/Airbnb";
 import Flipkart from "./pages/Flipkart";
 import SwiggyDineoutChat from "./pages/Swiggy_DIneout";
 import Amazon from "./pages/Amazon";
+import OYO from "./pages/OYO";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -115,6 +116,10 @@ export default function App() {
           element={
             loggedIn ? <SwiggyDineoutChat /> : <Navigate to="/" replace />
           }
+        />
+        <Route
+          path="/oyo"
+          element={loggedIn ? <OYO /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>

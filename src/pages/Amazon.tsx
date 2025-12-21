@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+// const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+const BaseURL = import.meta.env.VITE_API_BASE_URL;
+
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
@@ -168,6 +170,7 @@ export default function Amazon() {
     setIsClothingSearch(isClothing);
     console.log("Is clothing search:", isClothing);
 
+    console.log(`${BaseURL}amazon/search-amazon`);
     try {
       const response = await fetch(`${BaseURL}amazon/search-amazon`, {
         method: "POST",
@@ -331,7 +334,7 @@ export default function Amazon() {
     setLoadingCart(true);
 
     try {
-      const res = await fetch(`${BaseURL}amazon/add-to-card`, {
+      const res = await fetch(`${BaseURL}amazon/add-to-cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

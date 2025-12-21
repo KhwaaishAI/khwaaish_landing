@@ -7,7 +7,7 @@ import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 interface Message {
   id: string;
-  role: "user" | "assistant" | "system";
+  role: "user" | "system";
   content: string;
 }
 
