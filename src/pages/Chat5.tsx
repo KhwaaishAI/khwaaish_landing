@@ -331,11 +331,12 @@ export default function NykaaChat() {
                         )}
                       </div>
 
-                      {Array.isArray(p.available_sizes) && p.available_sizes.length > 0 && (
-                        <p className="mt-1 text-[11px] text-gray-300 truncate">
-                          Sizes: {p.available_sizes.join(", ")}
-                        </p>
-                      )}
+                      {Array.isArray(p.available_sizes) &&
+                        p.available_sizes.length > 0 && (
+                          <p className="mt-1 text-[11px] text-gray-300 truncate">
+                            Sizes: {p.available_sizes.join(", ")}
+                          </p>
+                        )}
 
                       <div className="flex justify-end mt-2">
                         <button className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-medium transition-colors">
@@ -356,9 +357,7 @@ export default function NykaaChat() {
           </div>
         </div>
       );
-    }
-
-    else if (
+    } else if (
       (typeof parsed === "object" &&
         parsed?.status?.toLowerCase() === "success") ||
       (typeof parsed === "string" && parsed.trim().toLowerCase() === "success")
@@ -388,9 +387,7 @@ export default function NykaaChat() {
           </div>
         </div>
       );
-    }
-
-    else {
+    } else {
       const renderFormatted = (text: string) => {
         return text.split("\n").map((line, i) => {
           let formatted = line;
@@ -418,27 +415,27 @@ export default function NykaaChat() {
       );
     }
 
-    return (
-      typeof parsed === "object" && parsed?.type === "product_list" ? (
-        <div key={m.id} className="w-full">{content}</div>
-      ) : (
+    return typeof parsed === "object" && parsed?.type === "product_list" ? (
+      <div key={m.id} className="w-full">
+        {content}
+      </div>
+    ) : (
+      <div
+        key={m.id}
+        className={`flex ${
+          m.role === "user" ? "justify-end" : "justify-start"
+        }`}
+      >
         <div
-          key={m.id}
-          className={`flex ${
-            m.role === "user" ? "justify-end" : "justify-start"
-          }`}
+          className={`${
+            m.role === "user"
+              ? "bg-white/15 text-white border-white/20"
+              : "bg-gray-900/80 text-gray-100 border-gray-800"
+          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
         >
-          <div
-            className={`${
-              m.role === "user"
-                ? "bg-white/15 text-white border-white/20"
-                : "bg-gray-900/80 text-gray-100 border-gray-800"
-            } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
-          >
-            {content}
-          </div>
+          {content}
         </div>
-      )
+      </div>
     );
   };
 

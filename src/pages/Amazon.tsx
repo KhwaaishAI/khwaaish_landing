@@ -239,7 +239,9 @@ export default function Amazon() {
       if (!response.ok) {
         const text = await response.text().catch(() => "");
         throw new Error(
-          `Product details request failed (${response.status}). ${text || ""}`.trim()
+          `Product details request failed (${response.status}). ${
+            text || ""
+          }`.trim()
         );
       }
 
