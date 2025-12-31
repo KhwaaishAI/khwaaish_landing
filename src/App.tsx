@@ -18,6 +18,11 @@ import Booking from "./pages/Booking";
 import Agoda from "./pages/Agoda";
 import Airbnb from "./pages/Airbnb";
 import Flipkart from "./pages/Flipkart";
+import SwiggyDineoutChat from "./pages/Swiggy_DIneout";
+import Amazon from "./pages/Amazon";
+import BookingCom from "./pages/BookingCom";
+import Shopping from "./pages/Shopping";
+import Cabs from "./cabs/Cabs";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -53,7 +58,7 @@ export default function App() {
           element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
         />
         <Route
-          path="/shopping"
+          path="/myntra"
           element={loggedIn ? <Chat3 /> : <Navigate to="/" replace />}
         />
         <Route
@@ -103,6 +108,28 @@ export default function App() {
         <Route
           path="/flipkart"
           element={loggedIn ? <Flipkart /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/amazon"
+          element={loggedIn ? <Amazon /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/swiggy-dineout"
+          element={
+            loggedIn ? <SwiggyDineoutChat /> : <Navigate to="/" replace />
+          }
+        />
+        <Route
+          path="/bookingcom"
+          element={loggedIn ? <BookingCom /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/shopping"
+          element={loggedIn ? <Shopping /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/cabs"
+          element={loggedIn ? <Cabs /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
