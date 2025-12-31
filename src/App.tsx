@@ -129,8 +129,7 @@ export default function App() {
         />
         <Route
           path="/cabs"
-          element={<Cabs />}
-          // element={loggedIn ? <Cabs /> : <Navigate to="/" replace />}
+          element={loggedIn ? <Cabs /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>

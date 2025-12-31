@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import VoiceRecorderButton from "../components/VoiceRecorderButton";
 import RideComparison from "./RideComparison";
 // Last working Code!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 interface Message {
@@ -23,13 +22,13 @@ export default function Cabs() {
   const [olaOtp, setOlaOtp] = useState("");
   const [olaOtpPopup, setOlaOtpPopup] = useState(false);
   const [olaSessionId, setOlaSessionId] = useState("");
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
   async function handleSend() {
     setShowChat(true);
     pushUser(messageInput);
     setIsLoading(true);
 
-    // 1️⃣ Create EMPTY comparison card immediately
     setMessages((prev) => [
       ...prev,
       {
@@ -48,26 +47,22 @@ export default function Cabs() {
       body: JSON.stringify({ prompt: messageInput }),
     };
 
-    // 2️⃣ RAPIDO API (FAST)
     fetch("https://api.khwaaish.com/api/rapido-llm/search", config)
       .then((res) => res.json())
       .then((data) => {
         updateComparison("rapido", data);
+        console.log("Rapido Data", data);
       })
       .catch(() => {
         updateComparison("rapido", { error: "Rapido failed" });
       });
 
-    // 3️⃣ OLA API (SLOW)
     fetch("https://api.khwaaish.com/api/ola/location-login", config)
       .then((res) => res.json())
       .then((data) => {
         setOlaSessionId(data.session_id);
         updateComparison("ola", data);
-
-        if (data.status === "otp_sent") {
-          setOlaOtpPopup(true);
-        }
+        console.log("Ola Data", data);
       })
       .catch(() => {
         updateComparison("ola", { error: "Ola failed" });
@@ -108,6 +103,7 @@ export default function Cabs() {
             rapidoData={message.comparisonData.rapidoData}
             prompt={messageInput}
             pushSystem={pushSystem}
+            setOlaOtpPopup={setOlaOtpPopup}
           />
         </div>
       );
@@ -137,25 +133,33 @@ export default function Cabs() {
   };
 
   async function verifyOlaOTP() {
-    const config = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        session_id: olaSessionId,
-        otp: olaOtp,
-      }),
-    };
+    if (!olaOtp) return;
 
-    const response = await fetch(
-      "https://api.khwaaish.com/api/ola/verify-otp",
-      config
-    );
-    const data = await response.json();
-    console.log(data);
-    if (data.status === "success") {
-      updateComparison("ola", data);
+    setIsVerifyingOtp(true);
+    try {
+      const config = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: olaSessionId,
+          otp: olaOtp,
+        }),
+      };
+
+      const response = await fetch(
+        "https://api.khwaaish.com/api/ola/verify-otp",
+        config
+      );
+      const data = await response.json();
+      console.log(data);
+      if (data.status === "success") {
+        updateComparison("ola", data);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsVerifyingOtp(false);
     }
-
     setOlaOtpPopup(false);
   }
 
@@ -164,64 +168,9 @@ export default function Cabs() {
       {showChat ? (
         <div className="relative min-h-screen w-full bg-black overflow-hidden">
           {/* Chat Messages */}
-          <div className="flex-1 h-[calc(100vh-80px)] overflow-y-auto px-4 py-6 space-y-4">
+          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
             {messages.map((m) => renderMessage(m))}
           </div>
-
-          {/* Input */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="absolute bottom-0 left-0 right-0 z-40 mx-auto max-w-4xl px-4 py-4 
-                     bg-gradient-to-t from-black/80 via-black/40 to-transparent"
-          >
-            <div className="flex items-center gap-3 rounded-full px-4 py-3 border border-gray-800 bg-white/10 backdrop-blur">
-              <input
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    if (!messageInput.trim()) return;
-                    handleSend();
-                  }
-                }}
-                placeholder="What is your khwaaish?"
-                className="flex-1 bg-transparent text-white placeholder-white/60 outline-none"
-              />
-
-              <VoiceRecorderButton
-                onTextReady={(text) =>
-                  setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
-                }
-              />
-
-              <button
-                type="submit"
-                className={`p-2.5 rounded-full ${
-                  messageInput
-                    ? "bg-red-600 hover:bg-red-500"
-                    : "bg-white/20 hover:bg-white/30"
-                }`}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 12h14M12 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-            </div>
-          </form>
         </div>
       ) : (
         // Chat Interface No Changes Needed
@@ -466,21 +415,60 @@ export default function Cabs() {
         </div>
       )}
       {olaOtpPopup && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-80">
-            <h2 className="text-lg font-semibold mb-4 text-white">Enter OTP</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-800 bg-gradient-to-b from-gray-900 to-black p-6 shadow-xl">
+            {/* Header */}
+            <div className="mb-4 text-center">
+              <h2 className="text-xl font-semibold text-white">Verify OTP</h2>
+              <p className="text-sm text-gray-400 mt-1">Enter Ola OTP</p>
+            </div>
+
+            {/* OTP Input */}
             <input
               type="text"
               value={olaOtp}
+              disabled={isVerifyingOtp}
               onChange={(e) => setOlaOtp(e.target.value)}
-              className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg mb-4 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-              placeholder="Enter 6-digit OTP"
+              placeholder="Enter 4-digit OTP"
+              className="w-full rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-center text-lg tracking-widest text-white placeholder-gray-500 outline-none focus:border-red-500 disabled:opacity-60"
             />
+
+            {/* Action Button */}
             <button
               onClick={verifyOlaOTP}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+              disabled={isVerifyingOtp}
+              className={`mt-5 w-full rounded-xl py-3 font-medium text-white transition-all flex items-center justify-center gap-2 ${
+                isVerifyingOtp
+                  ? "bg-red-600/60 cursor-not-allowed"
+                  : "bg-red-600 hover:bg-red-500"
+              }`}
             >
-              Verify
+              {isVerifyingOtp ? (
+                <>
+                  <svg
+                    className="h-5 w-5 animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
+                  </svg>
+                  Verifying OTP...
+                </>
+              ) : (
+                "Verify OTP"
+              )}
             </button>
           </div>
         </div>

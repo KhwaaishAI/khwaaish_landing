@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface RideComparisonProps {
   olaData: any;
   rapidoData: any;
   prompt?: string;
   pushSystem?: any;
+  setOlaOtpPopup?: any;
 }
 
 const RideSkeleton = () => {
@@ -31,11 +32,18 @@ export default function RideComparison({
   rapidoData,
   prompt,
   pushSystem,
+  setOlaOtpPopup,
 }: RideComparisonProps) {
   const [olaRideName, setOlaRideName] = useState<string>("");
   const [rapidoRideName, setRapidoRideName] = useState<string>("");
   const [olaData, setOlaData] = useState<any>(initialOlaData);
   const [isRefreshingOla, setIsRefreshingOla] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (olaData?.ride_name) {
+      setOlaRideName(olaData.ride_name);
+    }
+  }, [olaData?.ride_name]);
 
   const isOlaLoading = !olaData || !olaData?.rides;
   const isRapidoLoading = !rapidoData || !rapidoData?.rides;
@@ -231,27 +239,36 @@ export default function RideComparison({
             </div>
           </div>
           <button
-            onClick={() => OlaBook()}
-            className="w-full mt-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+            onClick={() => {
+              if (olaData?.status === "otp_sent") {
+                setOlaOtpPopup(true);
+              } else {
+                OlaBook();
+              }
+            }}
+            disabled={
+              isOlaLoading ||
+              (olaData?.status !== "otp_sent" &&
+                olaData?.status !== "rides_ready" &&
+                olaData?.status !== "success")
+            }
+            className={`w-full mt-4 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
+              olaData?.status === "otp_sent"
+                ? "bg-red-600 hover:bg-red-700 text-white"
+                : olaData?.status === "rides_ready" ||
+                  olaData?.status === "success"
+                ? "bg-red-600 hover:bg-red-700 text-white"
+                : "bg-gray-600 cursor-not-allowed text-white"
+            }`}
           >
-            <span>
+            <span className="">
               {olaData?.status === "otp_sent"
-                ? "Verify OTP & Book"
-                : "Book Ola Ride"}
+                ? "Enter OTP"
+                : olaData?.status === "rides_ready" ||
+                  olaData?.status === "success"
+                ? "Book Ola Ride"
+                : "Checking Ola availability"}
             </span>
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              />
-            </svg>
           </button>
         </div>
 
@@ -271,9 +288,6 @@ export default function RideComparison({
               </div>
               <div className="flex flex-col items-end">
                 {renderStatus(rapidoData?.status)}
-                <button className="bg-red-500 text-white p-1 rounded text-sm ">
-                  Refresh
-                </button>
               </div>
             </div>
 
