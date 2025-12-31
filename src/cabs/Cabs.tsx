@@ -1,18 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import FlowerLoader from "../components/FlowerLoader";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
 import RideComparison from "./RideComparison";
-
-const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
-
+// Last working Code!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 interface Message {
   role: "user" | "system" | "comparison";
   content: string;
   comparisonData?: {
-    olaData: any;
-    rapidoData: any;
-    uberData?: any;
+    olaData?: any;
+    rapidoData?: any;
     timestamp?: Date;
   };
 }
@@ -21,32 +17,80 @@ export default function Cabs() {
   const [showChat, setShowChat] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [messageInput, setMessageInput] = useState("");
+  // Book me a Bike from Ghatkoper East to Juhu Beach. My Number is 6350511150
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [olaOtp, setOlaOtp] = useState("");
+  const [olaOtpPopup, setOlaOtpPopup] = useState(false);
+  const [olaSessionId, setOlaSessionId] = useState("");
 
   async function handleSend() {
     setShowChat(true);
     pushUser(messageInput);
-    setMessageInput("");
     setIsLoading(true);
 
-    try {
-      const { olaData, rapidoData, uberData } = await fetchRideAPIs();
-
-      setIsLoading(false);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "comparison",
-          content: "Ride comparison results:",
-          comparisonData: { olaData, rapidoData, uberData },
+    // 1️⃣ Create EMPTY comparison card immediately
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "comparison",
+        content: "Ride comparison results:",
+        comparisonData: {
+          olaData: undefined,
+          rapidoData: undefined,
         },
-      ]);
-    } catch (error) {
-      setIsLoading(false);
-      pushSystem("Sorry, I couldn't fetch ride information. Please try again.");
-    }
+      },
+    ]);
+
+    const config = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: messageInput }),
+    };
+
+    // 2️⃣ RAPIDO API (FAST)
+    fetch("https://api.khwaaish.com/api/rapido-llm/search", config)
+      .then((res) => res.json())
+      .then((data) => {
+        updateComparison("rapido", data);
+      })
+      .catch(() => {
+        updateComparison("rapido", { error: "Rapido failed" });
+      });
+
+    // 3️⃣ OLA API (SLOW)
+    fetch("https://api.khwaaish.com/api/ola/location-login", config)
+      .then((res) => res.json())
+      .then((data) => {
+        setOlaSessionId(data.session_id);
+        updateComparison("ola", data);
+
+        if (data.status === "otp_sent") {
+          setOlaOtpPopup(true);
+        }
+      })
+      .catch(() => {
+        updateComparison("ola", { error: "Ola failed" });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }
+
+  function updateComparison(type: "ola" | "rapido", data: any) {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.role === "comparison"
+          ? {
+              ...msg,
+              comparisonData: {
+                ...msg.comparisonData,
+                [type === "ola" ? "olaData" : "rapidoData"]: data,
+              },
+            }
+          : msg
+      )
+    );
   }
 
   const pushSystem = (text: string) =>
@@ -62,7 +106,8 @@ export default function Cabs() {
           <RideComparison
             olaData={message.comparisonData.olaData}
             rapidoData={message.comparisonData.rapidoData}
-            uberData={message.comparisonData.uberData}
+            prompt={messageInput}
+            pushSystem={pushSystem}
           />
         </div>
       );
@@ -91,45 +136,27 @@ export default function Cabs() {
     );
   };
 
-  async function fetchRideAPIs() {
-    const promptData = {
-      prompt:
-        "Book me Bike from Ghatkoper East to Juhu Beach. My Number is 6350511150",
-    };
-
+  async function verifyOlaOTP() {
     const config = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(promptData),
+      body: JSON.stringify({
+        session_id: olaSessionId,
+        otp: olaOtp,
+      }),
     };
 
-    const [olaResponse, rapidoResponse, uberResponse] = await Promise.all([
-      fetch("https://api.khwaaish.com/api/ola/location-login", config),
-      fetch("https://api.khwaaish.com/api/rapido-llm/search", config),
-      fetch("https://api.khwaaish.com/api/uber-new/location", config),
-    ]);
-
-    let olaData, rapidoData, uberData;
-
-    try {
-      olaData = await olaResponse.json();
-    } catch {
-      olaData = { error: "Failed to parse Ola response" };
+    const response = await fetch(
+      "https://api.khwaaish.com/api/ola/verify-otp",
+      config
+    );
+    const data = await response.json();
+    console.log(data);
+    if (data.status === "success") {
+      updateComparison("ola", data);
     }
 
-    try {
-      rapidoData = await rapidoResponse.json();
-    } catch {
-      rapidoData = { error: "Failed to parse Rapido response" };
-    }
-
-    try {
-      uberData = await uberResponse.json();
-    } catch {
-      uberData = { error: "Failed to parse Uber response" };
-    }
-
-    return { olaData, rapidoData, uberData };
+    setOlaOtpPopup(false);
   }
 
   return (
@@ -139,7 +166,6 @@ export default function Cabs() {
           {/* Chat Messages */}
           <div className="flex-1 h-[calc(100vh-80px)] overflow-y-auto px-4 py-6 space-y-4">
             {messages.map((m) => renderMessage(m))}
-            {isLoading && <FlowerLoader />}
           </div>
 
           {/* Input */}
@@ -198,6 +224,7 @@ export default function Cabs() {
           </form>
         </div>
       ) : (
+        // Chat Interface No Changes Needed
         <div className="min-h-screen w-screen bg-black text-white">
           {/* Sidebar - always visible */}
           <aside
@@ -375,7 +402,7 @@ export default function Cabs() {
                         handleSend();
                       }
                     }}
-                    placeholder="What is your household...."
+                    placeholder="Book me a Bike from Location A to Location B. My Number is 98295XXXXX"
                     className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white placeholder-white/60"
                     style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
                   />
@@ -405,16 +432,14 @@ export default function Cabs() {
                   </div>
                 </div>
 
-                {/* Cards */}
+                {/* Card */}
                 <div className="flex flex-wrap justify-center lg:flex-nowrap w-full gap-4">
-                  {/* GROCERIES */}
-
                   <Link
-                    to="/groceries"
+                    to="/cabs"
                     className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
-                  border border-gray-700 hover:border-green-500/50 transition-all cursor-pointer group"
+                  border border-gray-700 hover:border-yellow-500/50 transition-all cursor-pointer group"
                   >
-                    <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                       <svg
                         className="w-6 h-6"
                         fill="none"
@@ -425,19 +450,39 @@ export default function Cabs() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                          d="M5 13l4 4L19 7"
                         />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Groceries</h3>
+                    <h3 className="text-lg font-semibold mb-2">Cabs</h3>
                     <p className="text-sm text-gray-400">
-                      Order fresh groceries from your nearest stations
+                      Book a Ride at best price possible
                     </p>
                   </Link>
                 </div>
               </div>
             </div>
           </main>
+        </div>
+      )}
+      {olaOtpPopup && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-80">
+            <h2 className="text-lg font-semibold mb-4 text-white">Enter OTP</h2>
+            <input
+              type="text"
+              value={olaOtp}
+              onChange={(e) => setOlaOtp(e.target.value)}
+              className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg mb-4 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              placeholder="Enter 6-digit OTP"
+            />
+            <button
+              onClick={verifyOlaOTP}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+            >
+              Verify
+            </button>
+          </div>
         </div>
       )}
     </>
