@@ -27,8 +27,6 @@ export default function ProductGrid({
 
           const imgSrc = (p as any).image_url;
 
-          const sizes = (p as any).available_sizes;
-
           return (
             <div
               key={key}

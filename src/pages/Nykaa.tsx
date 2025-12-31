@@ -8,6 +8,7 @@ import ProductGrid from "../components/nykaa/ProductGrid";
 import SizePopup from "../components/nykaa/SizePopup";
 import AddressPopup from "../components/nykaa/AddressPopup";
 import UpiPopup from "../components/nykaa/UpiPopup";
+import LandingView from "../components/LandingView";
 
 const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITEAPIBASEURL;
 
@@ -16,6 +17,7 @@ export default function NykaaChat() {
   const [messageInput, setMessageInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const pushSystem = (text: string) => {
     setMessages((prev) => [
@@ -77,6 +79,12 @@ export default function NykaaChat() {
 
     // unique
     return Array.from(new Set(cleaned));
+  };
+
+  const handleNewChat = () => {
+    setShowChat(true);
+    setMessages([]);
+    setMessageInput("");
   };
 
   const renderMessage = (m: Message) => {
@@ -220,36 +228,19 @@ export default function NykaaChat() {
           </form>
         </div>
       ) : (
-        <div className="min-h-screen flex items-center justify-center p-6">
-          <div className="w-full max-w-2xl space-y-4 text-center">
-            <h2 className="text-2xl font-semibold">Nykaa Shopping</h2>
-            <p className="text-gray-400">
-              Search for products and complete checkout in a guided flow.
-            </p>
-
-            <div className="w-full relative">
-              <input
-                type="text"
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder="Search products..."
-                className="w-full rounded-full px-5 py-3 text-white placeholder-white/60 outline-none bg-white/15 border border-gray-800"
-              />
-              <button
-                onClick={handleSend}
-                className="mt-3 w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg font-semibold"
-              >
-                Search
-              </button>
-            </div>
-          </div>
-        </div>
+        <LandingView
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          messageInput={messageInput}
+          setMessageInput={setMessageInput}
+          onSend={handleSend}
+          onNewChat={handleNewChat}
+          title="Welcome to Nykaa Shopping!"
+          subtitle="Search for any product you want to buy"
+          searchPlaceholder="Search for products on Nykaa..."
+          cardTitle="Nykaa Shopping"
+          cardDescription="Search and buy products from Nykaa with voice commands"
+        />
       )}
     </div>
   );
