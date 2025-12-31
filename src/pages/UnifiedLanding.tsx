@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { AmazonProduct, FlipkartProduct } from "../types/unified";
 import type { Address, AddressFromAPI } from "../types/flipkart";
 
-import { searchAmazon, searchFlipkart } from "../utils/api";
+import { searchAmazon, searchFlipkart } from "../utils/api/api";
 
 import UnifiedLandingView from "../components/unified/UnifiedLandingView";
 import UnifiedChatView from "../components/unified/UnifiedChatView";

@@ -7,7 +7,7 @@ import Chat1 from "./pages/Chat1";
 import Chat2 from "./pages/Chat2";
 import Chat3 from "./pages/Chat3";
 import Chat4 from "./pages/Chat4";
-import Chat5 from "./pages/Chat5";
+import Chat5 from "./pages/Nykaa";
 import Chat6 from "./pages/Chat6";
 import Chat7 from "./pages/Chat7";
 import Chat8 from "./pages/Chat8";
