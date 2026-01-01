@@ -10,8 +10,8 @@ import {
 interface BookingModalProps {
     isOpen: boolean;
     onClose: () => void;
-    flight: any; // The selected flight object
-    initialSessionId: string; // From the search results global deep link or similar context
+    flight: any;
+    initialSessionId: string;
 }
 
 // Skeleton Component for loading states
@@ -69,24 +69,6 @@ export default function BookingModal({
         card_brand: "visa",
     });
 
-    // Helper to convert "11:00 PM" back to "23:00" if needed
-    const convertTo24Hour = (timeStr: string) => {
-        const parts = timeStr.split(' ');
-        if (parts.length < 2) return timeStr;
-
-        const [time, modifier] = parts;
-        let [hoursStr, minutes] = time.split(':');
-        let hours = parseInt(hoursStr, 10);
-
-        if (hours === 12) {
-            hours = 0;
-        }
-        if (modifier === 'PM' || modifier === 'pm') {
-            hours = hours + 12;
-        }
-        return `${hours.toString().padStart(2, '0')}:${minutes}`;
-    };
-
     // Step 0: Initialize - Call Select Flight
     useEffect(() => {
         if (isOpen && step === 0 && flight) {
@@ -94,9 +76,11 @@ export default function BookingModal({
                 setLoading(true);
                 setError(null);
                 try {
-                    const flightTime = flight.rawDepartureTime || (flight.departureTime.includes("M") ? convertTo24Hour(flight.departureTime) : flight.departureTime);
+                    // Always use the raw time exactly as received from the search API
+                    // (same approach as Agoda flow) to match backend expectations.
+                    const flightTime = flight.rawDepartureTime || flight.departureTime;
 
-                    console.log("Initializing booking with:", { sessionId, flightTime });
+                    console.log("Initializing booking with:", { sessionId, flightTime, rawDepartureTime: flight.rawDepartureTime, displayedDepartureTime: flight.departureTime });
 
                     const res = await selectFlight({
                         session_id: sessionId,
@@ -408,6 +392,17 @@ export default function BookingModal({
                             {/* Step 4: Payment */}
                             {step === 4 && (
                                 <div className="space-y-6">
+                                    <div className="bg-gray-800/80 p-5 rounded-2xl mb-4 border border-gray-700/50 shadow-inner">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-gray-400 text-sm">Amount to Pay</span>
+                                            <span className="text-2xl font-bold text-green-400">₹{flight.price.toLocaleString("en-IN")}</span>
+                                        </div>
+                                        <div className="text-xs text-gray-500 font-mono mt-1 flex items-center gap-2">
+                                            <span className="bg-gray-700 px-1.5 py-0.5 rounded">{flight.airline}</span>
+                                            <span>{flight.flightNumber}</span>
+                                        </div>
+                                    </div>
+
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-gray-400 ml-1">Cardholder Name</label>
                                         <input type="text" value={paymentDetails.cardholder_name} onChange={e => setPaymentDetails({ ...paymentDetails, cardholder_name: e.target.value })} className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all" placeholder="Name on card" />

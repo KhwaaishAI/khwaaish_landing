@@ -262,7 +262,7 @@ export default function AgodaBookingModal({
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-xs font-semibold text-gray-400 ml-1">Month</label>
-                                                <input type="text" placeholder="MM" value={passengerDetails.dob_month} onChange={e => setPassengerDetails({ ...passengerDetails, dob_month: e.target.value })} className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500 transition-all" />
+                                                <input type="text" placeholder="MM(Jan - Dec)" value={passengerDetails.dob_month} onChange={e => setPassengerDetails({ ...passengerDetails, dob_month: e.target.value })} className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500 transition-all" />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-xs font-semibold text-gray-400 ml-1">Year</label>

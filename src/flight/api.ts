@@ -1,6 +1,7 @@
 import type { AgodaFlightRequest, BookingFlightRequest, AgodaSelectFlightRequest, AgodaFlightDetailsRequest, AgodaUPIRequest } from "./types";
 
-const API_BASE_URL = "https://api.khwaaish.com";
+// const API_BASE_URL = "https://api.khwaaish.com";
+const API_BASE_URL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
 
 // Helper for verbose logging
 const logApiCall = (name: string, url: string, payload: any) => {
@@ -201,7 +202,7 @@ export async function submitFlightDetails(params: any) {
     logApiCall("Flight Details", endpoint, params);
 
     try {
-        const response = await fetch(endpoint, {
+        const response = await fetchWithRetry(endpoint, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -230,7 +231,7 @@ export async function selectTicketType(params: any) {
     logApiCall("Select Ticket Type", endpoint, params);
 
     try {
-        const response = await fetch(endpoint, {
+        const response = await fetchWithRetry(endpoint, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -259,7 +260,7 @@ export async function submitPayment(params: any) {
     logApiCall("Payment", endpoint, params);
 
     try {
-        const response = await fetch(endpoint, {
+        const response = await fetchWithRetry(endpoint, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
