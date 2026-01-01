@@ -21,6 +21,7 @@ import Flipkart from "./pages/Flipkart";
 import SwiggyDineoutChat from "./pages/Swiggy_DIneout";
 import Amazon from "./pages/Amazon";
 import UnifiedLanding from "./pages/UnifiedLanding";
+import WestsideChat from "./pages/Westside";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -66,6 +67,10 @@ export default function App() {
         <Route
           path="/nykaa"
           element={loggedIn ? <Chat5 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/westside"
+          element={loggedIn ? <WestsideChat /> : <Navigate to="/" replace />}
         />
         <Route
           path="/jiomart"
