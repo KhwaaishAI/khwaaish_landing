@@ -488,6 +488,24 @@ export default function Home() {
                     Book hotels and flights
                   </p>
                 </Link>
+                <Link
+                  to="/flight"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-blue-400/70 hover:shadow-[0_0_25px_rgba(59,130,246,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img
+                      src="/logo/flight.jpg"
+                      alt="Flight"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Flight
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Search and book flights
+                  </p>
+                </Link>
               </div>
             </div>
           </div>

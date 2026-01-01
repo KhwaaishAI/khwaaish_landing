@@ -23,6 +23,7 @@ import Amazon from "./pages/Amazon";
 import BookingCom from "./pages/BookingCom";
 import Shopping from "./pages/Shopping";
 import Cabs from "./cabs/Cabs";
+import Flight from "./flight/Flight";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -130,6 +131,10 @@ export default function App() {
         <Route
           path="/cabs"
           element={loggedIn ? <Cabs /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/flight"
+          element={loggedIn ? <Flight /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
