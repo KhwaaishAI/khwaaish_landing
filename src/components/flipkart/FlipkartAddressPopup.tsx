@@ -1,46 +1,43 @@
-import type { Address, AddressFromAPI } from "../../types/flipkart";
+import React from "react";
 import PopupLoader from "../PopupLoader";
+import type {
+  FlipkartAddress,
+  FlipkartAddressFromAPI,
+} from "../../types/flipkart";
 
 type Props = {
   open: boolean;
 
-  addresses: AddressFromAPI[];
+  addresses: FlipkartAddressFromAPI[];
   selectedAddressId: string;
-  setSelectedAddressId: (id: string) => void;
+  setSelectedAddressId: React.Dispatch<React.SetStateAction<string>>;
 
-  address: Address;
-  setAddress: (a: Address) => void;
-
-  onCancel: () => void;
-  onUseThisAddress: () => void;
-  onSaveAndPlaceOrder: () => void;
-
-  forceNewAddress: boolean;
+  address: FlipkartAddress;
+  setAddress: React.Dispatch<React.SetStateAction<FlipkartAddress>>;
 
   loadingBuy: boolean;
+
+  onCancelExisting: () => void;
+  onUseExisting: () => void;
+  onBuyWithNew: () => void;
 };
 
-export default function AddressPopup({
+export default function FlipkartAddressPopup({
   open,
   addresses,
   selectedAddressId,
   setSelectedAddressId,
   address,
   setAddress,
-  onCancel,
-  onUseThisAddress,
-  onSaveAndPlaceOrder,
-  forceNewAddress,
   loadingBuy,
+  onCancelExisting,
+  onUseExisting,
+  onBuyWithNew,
 }: Props) {
   if (!open) return null;
-  console.log("AddressPopup:", {
-    forceNewAddress,
-    addressesLen: addresses.length,
-  });
 
-  // Address selection UI
-  if (!forceNewAddress && addresses.length > 0) {
+  // Existing addresses
+  if (addresses.length > 0) {
     return (
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
         <div className="bg-gray-900 p-6 rounded-2xl w-96 space-y-4 border border-gray-700 max-h-[80vh] overflow-y-auto">
@@ -93,13 +90,13 @@ export default function AddressPopup({
 
           <div className="flex gap-3 pt-2">
             <button
-              onClick={onCancel}
+              onClick={onCancelExisting}
               className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold"
             >
               Cancel
             </button>
             <button
-              onClick={onUseThisAddress}
+              onClick={onUseExisting}
               disabled={!selectedAddressId || loadingBuy}
               className="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
@@ -111,7 +108,7 @@ export default function AddressPopup({
     );
   }
 
-  // New address UI (when no saved addresses)
+  // New address form
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
       <div className="bg-gray-900 p-6 rounded-2xl w-96 space-y-4 border border-gray-700 max-h-[80vh] overflow-y-auto">
@@ -175,7 +172,7 @@ export default function AddressPopup({
         </div>
 
         <button
-          onClick={onSaveAndPlaceOrder}
+          onClick={onBuyWithNew}
           disabled={loadingBuy}
           className="w-full py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
         >

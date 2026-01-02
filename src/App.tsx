@@ -17,12 +17,12 @@ import Instamart from "./pages/Instamart";
 import Booking from "./pages/Booking";
 import Agoda from "./pages/Agoda";
 import Airbnb from "./pages/Airbnb";
-import Flipkart from "./pages/Flipkart";
 import SwiggyDineoutChat from "./pages/Swiggy_DIneout";
-import Amazon from "./pages/Amazon";
 import UnifiedLanding from "./pages/UnifiedLanding";
 import WestsideChat from "./pages/Westside";
 import PantaloonsChat from "./pages/Pantaloons";
+import Flipkart from "./pages/Flipkart";
+import Amazon from "./pages/Amazon";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);

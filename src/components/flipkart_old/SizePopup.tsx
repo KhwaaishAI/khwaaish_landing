@@ -1,4 +1,4 @@
-import type { Product } from "../../types/flipkart";
+import type { Product } from "../../types/flipkart_old";
 import PopupLoader from "../PopupLoader";
 
 type Props = {

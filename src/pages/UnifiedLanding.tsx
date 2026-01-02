@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { AmazonProduct, FlipkartProduct } from "../types/unified";
-import type { Address, AddressFromAPI } from "../types/flipkart";
+import type { Address, AddressFromAPI } from "../types/flipkart_old";
 
 import { searchAmazon, searchFlipkart } from "../utils/api/api";
 
@@ -9,11 +9,11 @@ import UnifiedLandingView from "../components/unified/UnifiedLandingView";
 import UnifiedChatView from "../components/unified/UnifiedChatView";
 
 // Reuse existing popups from flipkart flow
-import PhonePopup from "../components/flipkart/PhonePupup";
-import SizePopup from "../components/flipkart/SizePopup";
-import OtpPopup from "../components/flipkart/OtpPopup";
-import AddressPopup from "../components/flipkart/AddressPopup";
-import Upipopup from "../components/flipkart/UpiPopup";
+import PhonePopup from "../components/flipkart_old/PhonePupup";
+import SizePopup from "../components/flipkart_old/SizePopup";
+import OtpPopup from "../components/flipkart_old/OtpPopup";
+import AddressPopup from "../components/flipkart_old/AddressPopup";
+import Upipopup from "../components/flipkart_old/UpiPopup";
 
 type UnifiedMessage = {
   id: string;

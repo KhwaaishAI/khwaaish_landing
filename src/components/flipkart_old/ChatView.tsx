@@ -3,7 +3,7 @@
 import React from "react";
 
 import ProductListMessage from "./ProductListMessage";
-import type { Message, Product } from "../../types/flipkart";
+import type { Message, Product } from "../../types/flipkart_old";
 import FlowerLoader from "../FlowerLoader";
 import VoiceRecorderButton from "../VoiceRecorderButton";
 

@@ -1,13 +1,14 @@
-import type { Product } from "../../types/flipkart";
+import React from "react";
+import type { FlipkartProduct } from "../../types/flipkart";
 
 type Props = {
   products: any[];
-  pendingProduct: Product | null;
+  pendingProduct: FlipkartProduct | null;
   lastSearchQuery: string;
-  onSelect: (p: Product) => void;
+  onSelect: (p: any) => void;
 };
 
-export default function ProductListMessage({
+export default function FlipkartProductGrid({
   products,
   pendingProduct,
   lastSearchQuery,
