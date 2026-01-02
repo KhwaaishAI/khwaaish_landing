@@ -1,4 +1,4 @@
-import type { Product, ProductDetails } from "../../types/amazon";
+import type { Product, ProductDetails } from "../../types/amazon_old";
 
 type Props = {
   details: ProductDetails;

@@ -1,4 +1,4 @@
-import type { Product } from "../../types/amazon";
+import type { Product } from "../../types/amazon_old";
 import PopupLoader from "../PopupLoader";
 
 type Props = {

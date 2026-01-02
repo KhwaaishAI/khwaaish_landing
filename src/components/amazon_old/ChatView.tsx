@@ -1,4 +1,4 @@
-import type { Message, Product } from "../../types/amazon";
+import type { Message, Product } from "../../types/amazon_old";
 import FlowerLoader from "../FlowerLoader";
 import VoiceRecorderButton from "../VoiceRecorderButton";
 import LoadingDetailsMessage from "./LoadingDetailsMessage";
