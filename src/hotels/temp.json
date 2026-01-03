@@ -1,0 +1,1085 @@
+{
+"booking": {
+  "session_id": null,
+  "response": "Great! 🏨 I'm looking for a hotel in Mumbai for 2 adults and 1 child, checking in on 📅 2026-01-20 and checking out on 📅 2026-01-22. Is that all correct? I'll start searching for you! 🔍\n\n🔍 Found 26 properties!\n\n💡 Use session_id `d8d3f64c-4057-4698-be3f-94454dc7bf9f` to book a property.",
+  "action": "ready_to_search",
+  "extracted_data": {
+    "destination": "Mumbai",
+    "checkin_date": "2026-01-20",
+    "checkout_date": "2026-01-22",
+    "adults": 2,
+    "children": 1,
+    "rooms": 1
+  },
+  "search_results": {
+    "status": "success",
+    "session_id": "d8d3f64c-4057-4698-be3f-94454dc7bf9f",
+    "results": [
+      {
+        "name": "Trident Nariman Point",
+        "price": "₹ 37,000",
+        "rating": "8.9",
+        "rating_text": "Excellent",
+        "reviews_count": "4,445 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/604298804.webp?k=3699f759d6450c4da8e45e9502ee6be990768a59d6ee62ef0b8dc84d261e4bba&o=",
+        "property_url": "https://www.booking.com/hotel/in/trident-nariman-point.html",
+        "address": "Nariman Point, Mumbai (Nariman Point)",
+        "distance_from_downtown": "17.6 km from downtown",
+        "room_type": "Premier Double or Twin Room with City View",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 6,660 taxes and fees"
+      },
+      {
+        "name": "Sofitel Mumbai BKC",
+        "price": "₹ 51,600",
+        "rating": "8.4",
+        "rating_text": "Very Good",
+        "reviews_count": "1,480 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/519805933.webp?k=e2e52c585bf484bc9a25cbf6c84afcb663992e34da74c9dd672a647d0362ebb4&o=",
+        "property_url": "https://www.booking.com/hotel/in/sofitel-mumbai-bkc.html",
+        "address": "Bandra, Mumbai (Bandra Kurla Complex)",
+        "distance_from_downtown": "1.3 km from downtown",
+        "room_type": "Luxury King Room with 20% discount off on Food and Beverage",
+        "cancellation_policy": "N/A",
+        "taxes_and_fees": "+₹ 9,288 taxes and fees"
+      },
+      {
+        "name": "Ginger Mumbai Airport",
+        "price": "₹ 17,998",
+        "rating": "7.3",
+        "rating_text": "Good",
+        "reviews_count": "1,637 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/533708472.webp?k=56f35a4e056d9e16ee37596769dc9f926b8f2e6e41041b7d0dd430ee006af6cf&o=",
+        "property_url": "https://www.booking.com/hotel/in/ginger-mumbai-airport.html",
+        "address": "Western Suburbs, Mumbai (Western Suburbs)",
+        "distance_from_downtown": "3.5 km from downtown",
+        "room_type": "Luxe Twin Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 3,240 taxes and fees"
+      },
+      {
+        "name": "Fairmont Mumbai",
+        "price": "₹ 30,600",
+        "rating": "9.0",
+        "rating_text": "Wonderful",
+        "reviews_count": "332 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/796348389.webp?k=cc089e0fd3f03a6062df947bd07179f3b4ef27081d2ad14e029bee2e349fd7d2&o=",
+        "property_url": "https://www.booking.com/hotel/in/fairmont-mumbai.html",
+        "address": "Western Suburbs, Mumbai (Andheri)",
+        "distance_from_downtown": "2.9 km from downtown",
+        "room_type": "Fairmont Twin Room with City View and Complimentary Airport Transfers and Soft Mini Bar , Daily 4 Piece Laundry(Non Cumulative) and 10% discount Off on Blu Xone-Fairmont Spa and Longevity",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 5,508 taxes and fees"
+      },
+      {
+        "name": "President - IHCL SeleQtions",
+        "price": "₹ 28,400",
+        "rating": "8.3",
+        "rating_text": "Very Good",
+        "reviews_count": "1,866 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/796470095.webp?k=0ea92e562da04121d0509e56f6854947535072c46fe471ee0a9ac78b224432ca&o=",
+        "property_url": "https://www.booking.com/hotel/in/taj-president.html",
+        "address": "South Mumbai, Mumbai (Mumbai Historical And Heritage)",
+        "distance_from_downtown": "19 km from downtown",
+        "room_type": "Superior Room City View Queen Bed",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 5,112 taxes and fees"
+      },
+      {
+        "name": "Hilton Garden Inn Mumbai International Airport",
+        "price": "₹ 25,746",
+        "rating": "8.3",
+        "rating_text": "Very Good",
+        "reviews_count": "255 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/657174125.webp?k=54ea0fa0da18652e632cb76b1d681e3ca1a267735e889095facd8c4861fad796&o=",
+        "property_url": "https://www.booking.com/hotel/in/hilton-garden-inn-mumbai-international-airport.html",
+        "address": "Western Suburbs, Mumbai (Andheri)",
+        "distance_from_downtown": "3.5 km from downtown",
+        "room_type": "King Room with City View",
+        "cancellation_policy": "N/A",
+        "taxes_and_fees": "+₹ 4,634 taxes and fees"
+      },
+      {
+        "name": "MyOtel - Santacruz",
+        "price": "₹ 9,206",
+        "rating": "7.1",
+        "rating_text": "Good",
+        "reviews_count": "141 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/668043730.webp?k=18a7ef94deee0c31ea44c46cb04c8750a7ea202082824ec8cb91523746746d25&o=",
+        "property_url": "https://www.booking.com/hotel/in/myotel-santacruz.html",
+        "address": "Santacruz, Mumbai (Western Suburbs)",
+        "distance_from_downtown": "3.6 km from downtown",
+        "room_type": "Queen Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 460 taxes and fees"
+      },
+      {
+        "name": "Abode Bombay",
+        "price": "₹ 22,399",
+        "rating": "8.8",
+        "rating_text": "Excellent",
+        "reviews_count": "1,640 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/79058206.webp?k=916b1e8615a27df26181725bb16fd9077f56eb5e140c0f867909ec84d4e5e8a2&o=",
+        "property_url": "https://www.booking.com/hotel/in/regency-inn-pvt-ltd.html",
+        "address": "Colaba, Mumbai (Mumbai Historical And Heritage)",
+        "distance_from_downtown": "17.6 km from downtown",
+        "room_type": "Simple Room - Non Smoking",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 4,032 taxes and fees"
+      },
+      {
+        "name": "Taj Santacruz",
+        "price": "₹ 36,500",
+        "rating": "8.8",
+        "rating_text": "Excellent",
+        "reviews_count": "1,985 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/125011716.webp?k=35a2f03c7cf7597d5ba49b4612ab88751144adfbd2f3739787d4380f388e9242&o=",
+        "property_url": "https://www.booking.com/hotel/in/taj-santacruz.html",
+        "address": "Western Suburbs, Mumbai (Western Suburbs)",
+        "distance_from_downtown": "3.1 km from downtown",
+        "room_type": "Luxury Room City View Twin Bed with Bathtub",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 6,570 taxes and fees"
+      },
+      {
+        "name": "The Resort",
+        "price": "₹ 15,578",
+        "rating": "8.1",
+        "rating_text": "Very Good",
+        "reviews_count": "807 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/550249154.webp?k=7ccc8c1af3a5d3aa9b77fb834e224a9e2c0ab054514f2b4d7d21be71d4f9dd97&o=",
+        "property_url": "https://www.booking.com/hotel/in/the-resort.html",
+        "address": "Western Suburbs, Mumbai (Western Suburbs)",
+        "distance_from_downtown": "13.8 km from downtown",
+        "room_type": "Deluxe Room with Complimentary Hi-Tea and 10% discount on Food & Beverages and Spa",
+        "cancellation_policy": "N/A",
+        "taxes_and_fees": "+₹ 2,804 taxes and fees"
+      },
+      {
+        "name": "HOTEL AMBER PARAMOUNT",
+        "price": "₹ 8,294",
+        "rating": "8.0",
+        "rating_text": "Very Good",
+        "reviews_count": "422 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/512985411.webp?k=46267c94c88c00b6cc3982951bf5f36432003afbf82d4e4a1954c71a5fcee87b&o=",
+        "property_url": "https://www.booking.com/hotel/in/amber-paramount.html",
+        "address": "Western Suburbs, Mumbai (Andheri)",
+        "distance_from_downtown": "9 km from downtown",
+        "room_type": "Deluxe Double Room",
+        "cancellation_policy": "N/A",
+        "taxes_and_fees": "+₹ 415 taxes and fees"
+      },
+      {
+        "name": "Four Seasons Hotel Mumbai",
+        "price": "₹ 47,000",
+        "rating": "8.8",
+        "rating_text": "Excellent",
+        "reviews_count": "663 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/34412063.webp?k=09983637307bf26a1e3ebac5ef8cc29baaed4be6f58ad666f500d614e3652bc6&o=",
+        "property_url": "https://www.booking.com/hotel/in/four-seasons-mumbai.html",
+        "address": "Worli, Mumbai",
+        "distance_from_downtown": "10.9 km from downtown",
+        "room_type": "Deluxe Twin Room with Sea View",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 8,460 taxes and fees"
+      },
+      {
+        "name": "Hotel Zara International",
+        "price": "₹ 5,330",
+        "rating": "7.1",
+        "rating_text": "Good",
+        "reviews_count": "216 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/741773448.webp?k=125be15c987ed9eab1e072e8115b25d9e008b947206fb3a11dffb7f0eb5dd506&o=",
+        "property_url": "https://www.booking.com/hotel/in/zara-international.html",
+        "address": "Western Suburbs, Mumbai (Andheri)",
+        "distance_from_downtown": "4.9 km from downtown",
+        "room_type": "Double Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 266 taxes and fees"
+      },
+      {
+        "name": "Trident Bandra Kurla",
+        "price": "₹ 58,000",
+        "rating": "9.0",
+        "rating_text": "Wonderful",
+        "reviews_count": "3,182 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/33034375.webp?k=4ffa1f3996b130b69674b949dab3b601242f08672decf60f62a6b7885493bfad&o=",
+        "property_url": "https://www.booking.com/hotel/in/the-trident-bandra-kurla.html",
+        "address": "Bandra, Mumbai (Bandra Kurla Complex)",
+        "distance_from_downtown": "1.5 km from downtown",
+        "room_type": "Premier Room king bed",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 10,440 taxes and fees"
+      },
+      {
+        "name": "FabHotel Royal International - Nr Mumbai International Airport",
+        "price": "₹ 6,258",
+        "rating": "7.1",
+        "rating_text": "Good",
+        "reviews_count": "908 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/754755021.webp?k=ca7d2f5527c2d28a7d5a2777522915d9b32bbb5edaa917df005afddb37f55e59&o=",
+        "property_url": "https://www.booking.com/hotel/in/fabhotel-ri-mumbai-international-airport.html",
+        "address": "Western Suburbs, Mumbai (Andheri)",
+        "distance_from_downtown": "5.4 km from downtown",
+        "room_type": "Deluxe Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 313 taxes and fees"
+      },
+      {
+        "name": "FabHotel Aksa International - Nr Mumbai International Airport",
+        "price": "₹ 4,207",
+        "rating": "5.2",
+        "rating_text": "Review score",
+        "reviews_count": "548 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/757200191.webp?k=83dd2932057f0c9b2ba19823e5e74d98e14aad612d5ff7fccce3fa79618ff582&o=",
+        "property_url": "https://www.booking.com/hotel/in/aksa-international.html",
+        "address": "Western Suburbs, Mumbai (Andheri)",
+        "distance_from_downtown": "4.2 km from downtown",
+        "room_type": "Deluxe Double Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 210 taxes and fees"
+      },
+      {
+        "name": "The Westin Mumbai Powai Lake",
+        "price": "₹ 46,000",
+        "rating": "8.5",
+        "rating_text": "Very Good",
+        "reviews_count": "685 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/469618657.webp?k=1e827935f6adbd0f1ba85314809ba34398fadfd493613da04bebf92f13bfc09e&o=",
+        "property_url": "https://www.booking.com/hotel/in/renaissance-mumbai-convention-center.html",
+        "address": "Powai, Mumbai",
+        "distance_from_downtown": "7 km from downtown",
+        "room_type": "Guest Room 1 King -  Hill View",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 8,280 taxes and fees"
+      },
+      {
+        "name": "Hotel Bawa International",
+        "price": "₹ 16,650",
+        "rating": "7.5",
+        "rating_text": "Good",
+        "reviews_count": "778 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/78990736.webp?k=bfd2e7e387e2ba6fd667b4d7a4316170b8bf2f720e3efd1c5b62332099f74c44&o=",
+        "property_url": "https://www.booking.com/hotel/in/bawa-international.html",
+        "address": "Western Suburbs, Mumbai (Western Suburbs)",
+        "distance_from_downtown": "3.4 km from downtown",
+        "room_type": "Executive Room",
+        "cancellation_policy": "N/A",
+        "taxes_and_fees": "+₹ 2,997 taxes and fees"
+      },
+      {
+        "name": "Aurika, Mumbai International Airport - Luxury by Lemon Tree Hotels",
+        "price": "₹ 29,400",
+        "rating": "8.6",
+        "rating_text": "Excellent",
+        "reviews_count": "1,329 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/530661047.webp?k=a398aba8652a73144aa40e678e5050420b5f0124876aad03059b1408ff8bed97&o=",
+        "property_url": "https://www.booking.com/hotel/in/aurika-mumbai-skycity.html",
+        "address": "Western Suburbs, Mumbai (Andheri)",
+        "distance_from_downtown": "3.4 km from downtown",
+        "room_type": "Deluxe King Room (Happy Hours 1+1(On select Brands only).Timing : 1700hrs – 2000hrs) and 10% discount on Spa",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 8,761 taxes and fees"
+      },
+      {
+        "name": "FabHotel RK International - Nr Mumbai International Airport",
+        "price": "₹ 6,016",
+        "rating": "6.7",
+        "rating_text": "Review score",
+        "reviews_count": "659 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/752465957.webp?k=006366e86f009e4d660928a729e65a428be9fce417b8748d148f8996ee87887d&o=",
+        "property_url": "https://www.booking.com/hotel/in/treebo-phoenix-international.html",
+        "address": "Western Suburbs, Mumbai (Andheri)",
+        "distance_from_downtown": "1.3 km from downtown",
+        "room_type": "Superior King Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 301 taxes and fees"
+      },
+      {
+        "name": "Taj Lands End",
+        "price": "₹ 46,610",
+        "rating": "8.3",
+        "rating_text": "Very Good",
+        "reviews_count": "2,821 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/13800549.webp?k=ac6d85a915dbee2fa4e14ccf15c44b2dd5570a5a1b97ff05a9e53c97e95e4951&o=",
+        "property_url": "https://www.booking.com/hotel/in/taj-lands-end.html",
+        "address": "Bandra, Mumbai (Western Suburbs)",
+        "distance_from_downtown": "7.1 km from downtown",
+        "room_type": "Deluxe Room Twin Bed",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 8,390 taxes and fees"
+      },
+      {
+        "name": "Grand Hyatt Mumbai Hotel and Residences",
+        "price": "₹ 34,000",
+        "rating": "8.4",
+        "rating_text": "Very Good",
+        "reviews_count": "1,596 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/720185063.webp?k=8e51cad0063de058cdd49329d5e02c7ca622139251949d182c96c9bb2d33fe6b&o=",
+        "property_url": "https://www.booking.com/hotel/in/grand-hyatt.html",
+        "address": "Santacruz, Mumbai (Western Suburbs)",
+        "distance_from_downtown": "2.8 km from downtown",
+        "room_type": "Twin Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 6,120 taxes and fees"
+      },
+      {
+        "name": "Hotel Harbour View Colaba",
+        "price": "₹ 17,000",
+        "rating": "8.0",
+        "rating_text": "Very Good",
+        "reviews_count": "954 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/121529259.webp?k=ed75a4acddf474a744a6ff19eda4d191d55932390e7b61fff0e3ef907d471a4e&o=",
+        "property_url": "https://www.booking.com/hotel/in/harbour-view.html",
+        "address": "Colaba, Mumbai (Mumbai Historical And Heritage)",
+        "distance_from_downtown": "18.1 km from downtown",
+        "room_type": "Deluxe Tranquil Sleep Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 3,060 taxes and fees"
+      },
+      {
+        "name": "Grand Hotel Mumbai - Ballard Estate, Fort",
+        "price": "₹ 18,900",
+        "rating": "7.3",
+        "rating_text": "Good",
+        "reviews_count": "507 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/309179823.webp?k=3a2bc07b2035081ff92e39e493a67d1f4474405bad50b2e02d36240e6e7c6792&o=",
+        "property_url": "https://www.booking.com/hotel/in/grand-mumbai.html",
+        "address": "South Mumbai, Mumbai (Mumbai Historical And Heritage)",
+        "distance_from_downtown": "16 km from downtown",
+        "room_type": "Deluxe Double or Twin Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 3,402 taxes and fees"
+      },
+      {
+        "name": "asar Elite by Orion Hotels",
+        "price": "₹ 16,899",
+        "rating": "6.4",
+        "rating_text": "Review score",
+        "reviews_count": "101 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/669203708.webp?k=da9ffca5c11b5da7ea2a6a0b608c12581388ad575adaef99f457e231ea22889f&o=",
+        "property_url": "https://www.booking.com/hotel/in/the-orion-juhu.html",
+        "address": "Juhu, Mumbai (Western Suburbs)",
+        "distance_from_downtown": "6.7 km from downtown",
+        "room_type": "Deluxe Double or Twin Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 3,042 taxes and fees"
+      },
+      {
+        "name": "Ginger Mumbai Andheri (MIDC)",
+        "price": "₹ 14,998",
+        "rating": "7.2",
+        "rating_text": "Good",
+        "reviews_count": "629 reviews",
+        "image_url": "https://cf.bstatic.com/xdata/images/hotel/square240/475264931.webp?k=ba47c2559e394c9fb9e16e9755f6fc82ce128e7f3d0481c33d6976376408aad7&o=",
+        "property_url": "https://www.booking.com/hotel/in/ginger-mumbai-andheri.html",
+        "address": "Western Suburbs, Mumbai (Andheri)",
+        "distance_from_downtown": "5.9 km from downtown",
+        "room_type": "Twin Room",
+        "cancellation_policy": "Free cancellation",
+        "taxes_and_fees": "+₹ 750 taxes and fees"
+      }
+    ],
+    "message": "Search completed. Browser is kept open for booking."
+  }
+},
+
+
+"agoda": {
+  "session_id": "default",
+  "response": "Got it! ✨ I'll confirm your booking details: a hotel in **Mumbai** 🏨 for **2 adults** and **1 child**, checking in on **January 20th, 2026**, and checking out on **January 22nd, 2026**. I'm now searching on Agoda for the best options! 🔍\n\n🔍 Found 11 properties on Agoda!\n\n💡 Use session_id `5fdd7994-7d21-4027-9569-a75a2fc10b00` to book a property.",
+  "action": "ready_to_search",
+  "extracted_data": {
+    "destination": "Mumbai",
+    "check_in": "2026-01-20",
+    "check_out": "2026-01-22",
+    "adults": 2,
+    "children": 1,
+    "rooms": 1
+  },
+  "search_results": {
+    "status": "success",
+    "session_id": "5fdd7994-7d21-4027-9569-a75a2fc10b00",
+    "results": [
+      {
+        "name": "The LaLiT Mumbai",
+        "url": "https://www.agoda.com/en-in/the-lalit-mumbai/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&tspTypes=15,1,8&los=2&searchrequestid=aadc8a28-2e3d-42fa-aa58-8645bea41265",
+        "image_url": "//pix8.agoda.net/hotelImages/43879/0/604250d16d9ebba5902f136c3075603b.jpg?ca=7&ce=1",
+        "rating_score": "8.3",
+        "rating_text": "Excellent",
+        "review_count": "7,487 reviews",
+        "location": "Andheri East, Mumbai - City center",
+        "landmark": "477 m from Ajmera Marol Naka Station",
+        "original_price": "25,305",
+        "price": "Rs. 10,899",
+        "badges": [],
+        "offers": [
+          "+ FREE CANCELLATION"
+        ]
+      },
+      {
+        "name": "Sofitel Mumbai BKC ",
+        "url": "https://www.agoda.com/en-in/sofitel-mumbai-bkc-an-accorhotels-brand/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&tspTypes=8&los=2&searchrequestid=aadc8a28-2e3d-42fa-aa58-8645bea41265",
+        "image_url": "//q-xx.bstatic.com/xdata/images/hotel/max500/796699411.jpg?k=0a7b89641808c46b8d772f04a1f2f3fc39f77f7fd69df37e44ba41a39b22f4d8",
+        "rating_score": "8.6",
+        "rating_text": "Excellent",
+        "review_count": "2,877 reviews",
+        "location": "Bandra Kurla Complex, Mumbai - 3.7 km to center",
+        "landmark": "342 m from Mumbai BKC • 4.8 km from Juhu Beach",
+        "original_price": "36,363",
+        "price": "Rs. 30,500",
+        "badges": [
+          "Promoted",
+          "Agoda Preferred"
+        ],
+        "offers": [
+          "+ FREE CANCELLATION"
+        ]
+      },
+      {
+        "name": "Hotel cliffton",
+        "url": "https://www.agoda.com/en-in/hotel-cliffton/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&tspTypes=8&los=2&searchrequestid=9fba67ae-6e71-40ad-b4a7-6daa6d3dc22f",
+        "image_url": "//pix8.agoda.net/hotelImages/12440846/-1/cb99da8a926fc20e446e3093be4d3bba.jpg?ca=12&ce=1",
+        "rating_score": "7.6",
+        "rating_text": "Very good",
+        "review_count": "2,322 reviews",
+        "location": "Andheri West, Mumbai - 3.6 km to center",
+        "landmark": "918 m from Oshiwara Station • 3.5 km from Juhu Beach",
+        "original_price": "",
+        "price": "Rs. 47,611",
+        "badges": [
+          "Promoted",
+          "Agoda Preferred"
+        ],
+        "offers": [
+          "AGODASPONSORED applied - Rs. 10,557 off!",
+          "+ FREE CANCELLATION",
+          "ONLY 1 LEFT"
+        ]
+      },
+      {
+        "name": "Ginger Mumbai Airport",
+        "url": "https://www.agoda.com/en-in/ginger-mumbai-airport/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&tspTypes=7,8&los=2&searchrequestid=9fba67ae-6e71-40ad-b4a7-6daa6d3dc22f",
+        "image_url": null,
+        "rating_score": "",
+        "rating_text": "",
+        "review_count": "",
+        "location": "",
+        "landmark": "",
+        "original_price": "",
+        "price": "",
+        "badges": [],
+        "offers": []
+      },
+      {
+        "name": "The St. Regis Mumbai",
+        "url": "https://www.agoda.com/en-in/the-st-regis-mumbai/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&tspTypes=-1&los=2&searchrequestid=aadc8a28-2e3d-42fa-aa58-8645bea41265",
+        "image_url": null,
+        "rating_score": "",
+        "rating_text": "",
+        "review_count": "",
+        "location": "",
+        "landmark": "",
+        "original_price": "",
+        "price": "",
+        "badges": [],
+        "offers": []
+      },
+      {
+        "name": "Trident, Bandra Kurla, Mumbai",
+        "url": "https://www.agoda.com/en-in/trident-bandra-kurla-hotel/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&tspTypes=-1&los=2&searchrequestid=9fba67ae-6e71-40ad-b4a7-6daa6d3dc22f",
+        "image_url": null,
+        "rating_score": "",
+        "rating_text": "",
+        "review_count": "",
+        "location": "",
+        "landmark": "",
+        "original_price": "",
+        "price": "",
+        "badges": [],
+        "offers": []
+      },
+      {
+        "name": "Super Townhouse Oak Times Square Le Western",
+        "url": "https://www.agoda.com/en-in/fabhotel-le-western-andheri/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&los=2&searchrequestid=9fba67ae-6e71-40ad-b4a7-6daa6d3dc22f",
+        "image_url": null,
+        "rating_score": "",
+        "rating_text": "",
+        "review_count": "",
+        "location": "",
+        "landmark": "",
+        "original_price": "",
+        "price": "",
+        "badges": [],
+        "offers": []
+      },
+      {
+        "name": "The Resort Mumbai",
+        "url": "https://www.agoda.com/en-in/the-resort/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&tspTypes=1&los=2&searchrequestid=9fba67ae-6e71-40ad-b4a7-6daa6d3dc22f",
+        "image_url": null,
+        "rating_score": "",
+        "rating_text": "",
+        "review_count": "",
+        "location": "",
+        "landmark": "",
+        "original_price": "",
+        "price": "",
+        "badges": [],
+        "offers": []
+      },
+      {
+        "name": "Hilton Garden Inn Mumbai International Airport",
+        "url": "https://www.agoda.com/en-in/hilton-garden-inn-mumbai-international-airport/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&los=2&searchrequestid=aadc8a28-2e3d-42fa-aa58-8645bea41265",
+        "image_url": null,
+        "rating_score": "",
+        "rating_text": "",
+        "review_count": "",
+        "location": "",
+        "landmark": "",
+        "original_price": "",
+        "price": "",
+        "badges": [],
+        "offers": []
+      },
+      {
+        "name": "Novotel Mumbai International Airport",
+        "url": "https://www.agoda.com/en-in/novotel-mumbai-international-airport/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&los=2&searchrequestid=9fba67ae-6e71-40ad-b4a7-6daa6d3dc22f",
+        "image_url": null,
+        "rating_score": "",
+        "rating_text": "",
+        "review_count": "",
+        "location": "",
+        "landmark": "",
+        "original_price": "",
+        "price": "",
+        "badges": [],
+        "offers": []
+      },
+      {
+        "name": "Ramada Plaza by Wyndham Palm Grove",
+        "url": "https://www.agoda.com/en-in/ramada-plaza-palm-grove-hotel/hotel/mumbai-in.html?countryId=35&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=2&children=1&rooms=1&maxRooms=0&checkIn=2026-01-20&isCalendarCallout=false&childAges=-1&numberOfGuest=0&missingChildAges=false&travellerType=2&showReviewSubmissionEntry=false&currencyCode=INR&isFreeOccSearch=false&flightSearchCriteria=[object Object]&los=2&searchrequestid=9fba67ae-6e71-40ad-b4a7-6daa6d3dc22f",
+        "image_url": null,
+        "rating_score": "",
+        "rating_text": "",
+        "review_count": "",
+        "location": "",
+        "landmark": "",
+        "original_price": "",
+        "price": "",
+        "badges": [],
+        "offers": []
+      }
+    ]
+  }
+},
+
+"oyo": {
+  "status": "ok",
+  "source": "network",
+  "search_url": "https://www.oyorooms.com/api/pwa/search/hotels?fields=id%2Cname%2Ccity%2Cstreet%2Ccategory%2Cgeo_location%2Calternate_name%2Ccountry_name%2Ccountry_id%2Cshort_address%2Caddress%2Chotel_name_without_category%2Ccategorywise_images%2Ccategory_wise_media%2Ccategory_availability%2Cexternal_booking_url%2Cstatus%2Cseo_url&additional_fields=hotel_badge%2Ccategory_info%2Ccancellation_policies%2Cbest_image%2Croom_pricing%2Cavailability%2Camenities%2Crestrictions%2Ccaptains_info%2Cguest_ratings%2Curgency_info%2Ccategory_wise_pricing%2Cproperty_tag%2Cimages%2Chotel_images&tax_exclusive_pricing=true&tax_exclusive_final_pricing=true&available_room_count%5Bcheckin%5D=20%2F01%2F2026&available_room_count%5Bcheckout%5D=22%2F01%2F2026&available_room_count%5Bmin_count%5D=1&filters%5Bcity_id%5D=5&filters%5Ball_room_categories%5D=true&pre_apply_coupon_switch=true&search_redirection_enabled=true&pageType=LISTING&rooms_config=0%2C1%2C0&requested_coupon=&services=meals&source=Web+Booking&format_response%5Bbatch%5D%5Bcount%5D=20&format_response%5Bbatch%5D%5Boffset%5D=0&format_response%5Bsort_params%5D%5Bsort_on%5D=&format_response%5Bsort_params%5D%5Bascending%5D=true&locale=en",
+  "hotels": [
+    {
+      "hotel_id": "330390",
+      "name": "Super Townhouse Oak New Nashik Highway Kalyan Bhiwandi",
+      "location": "New Nashik Highway Road, Muthwal, Village, Bhiwandi, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/330390/qnvfvjpybycy.jpg",
+      "price": "1449",
+      "facilities": [
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "36": "Geyser"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "13": "AC"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/330390/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "booking_url": "https://www.oyorooms.com/330390/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "raw": null
+    },
+    {
+      "hotel_id": "249561",
+      "name": "Super Hotel O We Stay Hostel",
+      "location": "We Stay Hotel , Opp.Gurudwara, Near Chakala Metro Station , Andheri Road ,Andheri East, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/249561/swhjimfswdku.jpg",
+      "price": "426",
+      "facilities": [
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "36": "Geyser"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "200222": "Parking"
+        },
+        {
+          "200223": "Late check-in"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "13": "AC"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/249561/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=285324",
+      "booking_url": "https://www.oyorooms.com/249561/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=285324",
+      "raw": null
+    },
+    {
+      "hotel_id": "230496",
+      "name": "Hotel O Ulhasnagar Railway Junction Formerly Garden Inn",
+      "location": "Prajapita Bramhakumari Marg, Gol Maidan Area, Sidhi Vinayak Nagar, Ulhasnagar, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/230496/ebxfvwvqklej.jpg",
+      "price": "870",
+      "facilities": [
+        {
+          "46": "Elevator"
+        },
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "36": "Geyser"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "13": "AC"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/230496/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "booking_url": "https://www.oyorooms.com/230496/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "raw": null
+    },
+    {
+      "hotel_id": "352903",
+      "name": "Super Hotel O Gymkhana Dombivli Mumbai",
+      "location": "Balaji Darshan Building, Gymkhana Road, Near Balaji Mandir, Sagaril Village, Dombivili East, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/352903/uflomjjvjrep.jpg",
+      "price": "1092",
+      "facilities": [
+        {
+          "46": "Elevator"
+        },
+        {
+          "9": "Reception"
+        },
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "36": "Geyser"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "200191": "Free Wi-Fi"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "13": "AC"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/352903/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "booking_url": "https://www.oyorooms.com/352903/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "raw": null
+    },
+    {
+      "hotel_id": "111572",
+      "name": "Super Townhouse PBG Mall Vashi",
+      "location": "Palm Beach Galleria Mall, Palm Beach Road, Vashi, Mumbai, India, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/111572/vysquynihbea.jpg",
+      "price": "1962",
+      "facilities": [
+        {
+          "4": "Private entrance"
+        },
+        {
+          "32": "Dining area"
+        },
+        {
+          "338": "Toiletries available"
+        },
+        {
+          "133": "Washing Machine"
+        },
+        {
+          "117": "Garden/Backyard"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "70": "Refrigerator"
+        },
+        {
+          "200223": "Late check-in"
+        },
+        {
+          "15": "24/7 check-in"
+        },
+        {
+          "344": "Dress Hanger"
+        },
+        {
+          "230": "In room Kettle"
+        },
+        {
+          "24": "Daily housekeeping"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "25": "Attached bathroom"
+        },
+        {
+          "40": "Hair Dryer"
+        },
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "72": "Iron"
+        },
+        {
+          "52": "Card payment"
+        },
+        {
+          "58": "Banquet hall"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "43": "In-house Restaurant"
+        },
+        {
+          "72": "Iron"
+        },
+        {
+          "46": "Elevator"
+        },
+        {
+          "36": "Geyser"
+        },
+        {
+          "68": "CCTV cameras"
+        },
+        {
+          "124": "DTH"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/111572/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "booking_url": "https://www.oyorooms.com/111572/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "raw": null
+    },
+    {
+      "hotel_id": "8914",
+      "name": "Super Collection O Airport Metro Andheri East",
+      "location": "Plot Number 3, Behind Leela Business Park, Near Airport Road, Andheri Kurla Road, Andheri East, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/8914/tsjxbsxavfrm.jpg",
+      "price": "1672",
+      "facilities": [
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "36": "Geyser"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "200223": "Late check-in"
+        },
+        {
+          "13": "AC"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/8914/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "booking_url": "https://www.oyorooms.com/8914/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "raw": null
+    },
+    {
+      "hotel_id": "218494",
+      "name": "Super Hotel O Seawoods Near Palm Beach Road Formerly Sai Roop",
+      "location": "Service Road, Seawoods West, Karave Village, Karave Nagar, Seawoods, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/218494/wodjtfuhmtgk.jpg",
+      "price": "2154",
+      "facilities": [
+        {
+          "46": "Elevator"
+        },
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "36": "Geyser"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "24": "Daily housekeeping"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "200222": "Parking"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "200223": "Late check-in"
+        },
+        {
+          "13": "AC"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/218494/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "booking_url": "https://www.oyorooms.com/218494/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "raw": null
+    },
+    {
+      "hotel_id": "110465",
+      "name": "Super Collection O Thane Formerly Dove Residency",
+      "location": "Near Maheshwari Multispeciality Hospital, Thane Ghodbunder Road, Kasarvadavli, Bhayander Pada Thane, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/110465/thvwqnespxap.jpg",
+      "price": "1528",
+      "facilities": [
+        {
+          "4": "Private entrance"
+        },
+        {
+          "129": "Parking facility"
+        },
+        {
+          "9": "Reception"
+        },
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "70": "Refrigerator"
+        },
+        {
+          "200222": "Parking"
+        },
+        {
+          "10": "Security"
+        },
+        {
+          "200223": "Late check-in"
+        },
+        {
+          "52": "Card payment"
+        },
+        {
+          "15": "24/7 check-in"
+        },
+        {
+          "58": "Banquet hall"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "46": "Elevator"
+        },
+        {
+          "36": "Geyser"
+        },
+        {
+          "24": "Daily housekeeping"
+        },
+        {
+          "56": "Conference room"
+        },
+        {
+          "68": "CCTV cameras"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "27": "First-aid kit"
+        },
+        {
+          "25": "Attached bathroom"
+        },
+        {
+          "131": "Kitchen"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/110465/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "booking_url": "https://www.oyorooms.com/110465/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "raw": null
+    },
+    {
+      "hotel_id": "328832",
+      "name": "Super Collection O Kalamboli New Panvel Formerly Golden Paradise",
+      "location": "Plot No. 477, Asudgaon Panvel Road, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/328832/wjaqyxvtpudx.jpg",
+      "price": "1484",
+      "facilities": [
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "36": "Geyser"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "13": "AC"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/328832/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "booking_url": "https://www.oyorooms.com/328832/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "raw": null
+    },
+    {
+      "hotel_id": "113064",
+      "name": "Collection O Panchratna",
+      "location": "MG Road Opposite SBI Bank Near Acharya Jagande Chowk Old Panvel, Mumbai",
+      "imageurl": "https://images.oyoroomscdn.com/uploads/hotel_image/113064/3c42bd654e046d2e.jpg",
+      "price": "1838",
+      "facilities": [
+        {
+          "4": "Private entrance"
+        },
+        {
+          "53": "Free Wifi"
+        },
+        {
+          "128": "Power backup"
+        },
+        {
+          "70": "Refrigerator"
+        },
+        {
+          "52": "Card payment"
+        },
+        {
+          "15": "24/7 check-in"
+        },
+        {
+          "58": "Banquet hall"
+        },
+        {
+          "43": "In-house Restaurant"
+        },
+        {
+          "68": "CCTV cameras"
+        },
+        {
+          "56": "Conference room"
+        },
+        {
+          "24": "Daily housekeeping"
+        },
+        {
+          "13": "AC"
+        },
+        {
+          "39": "TV"
+        },
+        {
+          "62": "Bar"
+        },
+        {
+          "25": "Attached bathroom"
+        }
+      ],
+      "rating": "1",
+      "hotel_url": "https://www.oyorooms.com/113064/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "booking_url": "https://www.oyorooms.com/113064/?checkin=20/01/2026&checkout=22/01/2026&rooms=1&guests=2&rooms_config=1-1_0&selected_rcid=1",
+      "raw": null
+    }
+  ]
+}
+}
