@@ -25,6 +25,7 @@ import Flipkart from "./pages/Flipkart";
 import Amazon from "./pages/Amazon";
 import Combined from "./pages/Combined";
 import UnifiedChat from "./pages/Unified";
+import ShoppersStopChat from "./pages/ShoppersStop";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -140,6 +141,12 @@ export default function App() {
         <Route
           path="/unified"
           element={loggedIn ? <UnifiedChat /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/shoppers-stop"
+          element={
+            loggedIn ? <ShoppersStopChat /> : <Navigate to="/" replace />
+          }
         />
       </Routes>
     </BrowserRouter>
