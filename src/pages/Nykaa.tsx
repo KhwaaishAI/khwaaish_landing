@@ -145,11 +145,6 @@ export default function NykaaChat() {
       </div>
     );
   };
-  console.log(
-    "pendingProduct sizes",
-    product?.availablesizes,
-    (product as any)?.available_sizes
-  );
 
   return (
     <div className="min-h-screen w-screen bg-black text-white">

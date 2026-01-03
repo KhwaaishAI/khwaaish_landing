@@ -308,7 +308,7 @@ export default function Home() {
                 </Link>
 
                 {/* Nykaa */}
-                <Link
+                {/* <Link
                   to="/nykaa"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-pink-400/70 hover:shadow-[0_0_25px_rgba(244,114,182,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
@@ -323,10 +323,10 @@ export default function Home() {
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     personal care shopping.
                   </p>
-                </Link>
+                </Link> */}
 
                 {/* Westside */}
-                <Link
+                {/* <Link
                   to="/westside"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-pink-400/70 hover:shadow-[0_0_25px_rgba(244,114,182,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
@@ -343,10 +343,10 @@ export default function Home() {
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     personal care shopping.
                   </p>
-                </Link>
+                </Link> */}
 
                 {/* Pantaloons */}
-                <Link
+                {/* <Link
                   to="/pantaloons"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-pink-400/70 hover:shadow-[0_0_25px_rgba(244,114,182,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
@@ -363,7 +363,7 @@ export default function Home() {
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     personal care shopping.
                   </p>
-                </Link>
+                </Link> */}
 
                 {/* JioMart */}
                 <Link
@@ -458,7 +458,9 @@ export default function Home() {
                     Unique homes and stays from Airbnb.
                   </p>
                 </Link>
-                <Link
+
+                {/* Flipart */}
+                {/* <Link
                   to="/flipkart"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
@@ -475,8 +477,10 @@ export default function Home() {
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Buy anything from Flipkart.
                   </p>
-                </Link>
-                <Link
+                </Link> */}
+
+                {/* Amazon */}
+                {/* <Link
                   to="/amazon"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
@@ -491,7 +495,9 @@ export default function Home() {
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Buy products from Amazon
                   </p>
-                </Link>
+                </Link> */}
+
+                {/* Swiggy Dineout */}
                 <Link
                   to="/swiggy-dineout"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
@@ -510,7 +516,9 @@ export default function Home() {
                     Book tables at fine dining restaurants
                   </p>
                 </Link>
-                <Link
+
+                {/* Unified Landing old */}
+                {/* <Link
                   to="/unified-landing"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
@@ -527,22 +535,29 @@ export default function Home() {
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Order products from flipkart & amazon
                   </p>
-                </Link>
+                </Link> */}
+
+                {/* Combined (Amazon + Flipkart) */}
                 <Link
                   to="/combined"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                  className="group relative flex flex-col items-start justify-center gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/flipkart.png"
-                      alt="Swiggy"
-                      className="w-full h-full object-contain"
-                    />
-                    <img
-                      src="/logo/amazon.png"
-                      alt="Swiggy"
-                      className="w-full h-full object-contain"
-                    />
+                  <div className="flex items-center justify-center gap-x-3 text-2xl">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/flipkart.png"
+                        alt="flipkart"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <p>+</p>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/amazon.png"
+                        alt="amazon"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">
                     Flipkart + Amazon
@@ -551,27 +566,42 @@ export default function Home() {
                     Order products from flipkart & amazon
                   </p>
                 </Link>
+
+                {/* Unified (Nykaa + Pantaloons + Westside) */}
                 <Link
                   to="/unified"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/nykaa.jpg"
-                      alt="Swiggy"
-                      className="w-full h-full object-contain"
-                    />
-                    <img
-                      src="/logo/westside.png"
-                      alt="Swiggy"
-                      className="w-full h-full object-contain"
-                    />
+                  <div className="flex items-center justify-center gap-x-3 text-2xl">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/nykaa.png"
+                        alt="Swiggy"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <p>+</p>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/pantaloons.png"
+                        alt="Swiggy"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <p>+</p>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/westside.png"
+                        alt="Swiggy"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">
                     Nykaa + Pantaloons + Westside
                   </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Order products from flipkart & amazon
+                    Order products from nykaa, pantaloons & westside
                   </p>
                 </Link>
               </div>
