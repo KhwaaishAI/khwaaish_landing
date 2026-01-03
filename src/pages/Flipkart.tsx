@@ -171,6 +171,7 @@ export default function Flipkart() {
         phone={flow.phone}
         setPhone={flow.setPhone}
         onContinue={flow.handlePhoneSubmit}
+        onCancel={() => flow.setShowPhonePopup(false)}
         loading={flow.loadingPhone}
       />
 

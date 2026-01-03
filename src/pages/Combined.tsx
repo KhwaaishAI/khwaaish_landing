@@ -154,6 +154,7 @@ export default function Combined() {
         phone={flow.flipkartFlow.phone}
         setPhone={flow.flipkartFlow.setPhone}
         onContinue={flow.flipkartFlow.handlePhoneSubmit}
+        onCancel={() => flow.flipkartFlow.setShowPhonePopup(false)}
         loading={flow.flipkartFlow.loadingPhone}
       />
 
