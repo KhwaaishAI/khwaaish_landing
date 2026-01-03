@@ -13,7 +13,7 @@ import type {
   AmazonAddAddressResponse,
   AmazonPayWithUpiBody,
   AmazonPayWithUpiResponse,
-} from "../types/amazon";
+} from "../../types/amazon";
 
 const normalizeBaseURL = (BaseURL: string) => BaseURL.replace(/\/+$/, "");
 

@@ -15,9 +15,7 @@ import AmazonUpiPopup from "../components/amazon/AmazonUpiPopup";
 import useAmazonFlow from "../utils/hooks/useAmazonFlow";
 import AmazonSelectAddressPopup from "../components/amazon/AmazonSelectAddressPopup";
 
-const BaseURL = import.meta.env.DEV
-  ? import.meta.env.VITE_API_BASE_URL
-  : import.meta.env.VITE_API_BASE_URL;
+const BaseURL = import.meta.env.VITE_API_BASE_URL;
 
 type Message = { id: string; role: "user" | "system"; content: string };
 

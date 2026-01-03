@@ -13,7 +13,7 @@ import FlipkartUpiPopup from "../components/flipkart/FlipkartUpiPopup";
 
 import { useFlipkartFlow } from "../utils/hooks/useFlipkartFlow";
 
-const BaseURL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL;
+const BaseURL = import.meta.env.VITE_API_BASE_URL;
 
 interface Message {
   id: string;

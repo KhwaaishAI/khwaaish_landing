@@ -153,6 +153,10 @@ export default function useAmazonFlow({
     }
   };
 
+  const setSessionFromOutside = (sid: string) => {
+    if (sid) setSessionId(sid);
+  };
+
   // Product details (details-only)
   const handleOpenDetails = async (product: AmazonSearchResultItem) => {
     console.log("AMAZON STEP D1: Product details button clicked:", product);
@@ -660,6 +664,7 @@ export default function useAmazonFlow({
     setShowSelectAddressPopup,
     setShowUpiPopup,
     setSelectedAddressIndex,
+    setSessionFromOutside,
 
     handleSearch,
     handleOpenDetails,
