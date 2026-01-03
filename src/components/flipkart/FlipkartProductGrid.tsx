@@ -22,7 +22,7 @@ export default function FlipkartProductGrid({
 
       <div className="max-w-6xl">
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
-          {products?.slice(0, 18).map((p: any, index: number) => {
+          {products?.slice(0, 5).map((p: any, index: number) => {
             const key = p.product_url + index;
             const isSelected =
               pendingProduct && pendingProduct.product_url === p.product_url;
