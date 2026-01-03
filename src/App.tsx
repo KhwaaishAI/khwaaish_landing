@@ -24,6 +24,7 @@ import PantaloonsChat from "./pages/Pantaloons";
 import Flipkart from "./pages/Flipkart";
 import Amazon from "./pages/Amazon";
 import Combined from "./pages/Combined";
+import UnifiedChat from "./pages/Unified";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -135,6 +136,10 @@ export default function App() {
         <Route
           path="/combined"
           element={loggedIn ? <Combined /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/unified"
+          element={loggedIn ? <UnifiedChat /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>

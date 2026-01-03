@@ -32,12 +32,12 @@ export default function WestsideProductGrid({
                 isSelected ? "bg-[#1e1416] hover:bg-[#151622]" : "bg-[#11121a]",
               ].join(" ")}
             >
-              <div className="relative w-full h-36 bg-gray-800">
+              <div className="relative w-full  bg-gray-800">
                 {p.image_url ? (
                   <img
                     src={p.image_url}
                     alt={p.product_name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     onError={(e) => {
                       console.log(
                         "WESTSIDE UI image failed to load",
@@ -55,7 +55,7 @@ export default function WestsideProductGrid({
               </div>
 
               <div className="flex-1 flex flex-col px-3 py-3 gap-2">
-                <div className="min-h-[52px] space-y-1">
+                {/* <div className="min-h-[52px] space-y-1">
                   <p className="text-xs text-gray-300 line-clamp-2">
                     {p.product_name}
                   </p>
@@ -63,17 +63,17 @@ export default function WestsideProductGrid({
 
                 <div className="flex items-center justify-between mt-1">
                   <p className="text-base font-bold text-white">{p.price}</p>
-                </div>
+                </div> */}
 
-                <div className="mt-2 flex justify-end">
+                <div className="mt-2 flex justify-center">
                   <button className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-medium transition-colors">
-                    Select Size
+                    Show details & size
                   </button>
                 </div>
               </div>
 
               {isSelected ? (
-                <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-[10px] font-bold">
+                <div className="absolute bottom-2 right-12 w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-[10px] font-bold">
                   1
                 </div>
               ) : null}

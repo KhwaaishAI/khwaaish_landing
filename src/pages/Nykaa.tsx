@@ -69,15 +69,12 @@ export default function NykaaChat() {
     await handleSearch(userText);
   };
 
+  // inside Nykaa.tsx, keep the same function name if you want
   const getAvailableSizes = (p: any): string[] => {
-    const raw = p?.available_sizes;
-
+    const raw =
+      p?.availablesizes ?? p?.available_sizes ?? p?.availableSizes ?? [];
     const arr = Array.isArray(raw) ? raw : [];
-
-    // normalize + remove junk
-    const cleaned = arr.map((s) => String(s).trim()).filter(Boolean);
-
-    // unique
+    const cleaned = arr.map((s: any) => String(s).trim()).filter(Boolean);
     return Array.from(new Set(cleaned));
   };
 
@@ -148,6 +145,11 @@ export default function NykaaChat() {
       </div>
     );
   };
+  console.log(
+    "pendingProduct sizes",
+    product?.availablesizes,
+    (product as any)?.available_sizes
+  );
 
   return (
     <div className="min-h-screen w-screen bg-black text-white">

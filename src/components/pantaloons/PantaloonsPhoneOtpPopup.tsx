@@ -70,7 +70,7 @@ export default function PantaloonsPhoneOtpPopup({
             <button
               onClick={onCheckSession}
               disabled={loadingCheck}
-              className="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingCheck ? <PopupLoader /> : null}
               Check session
@@ -89,7 +89,7 @@ export default function PantaloonsPhoneOtpPopup({
               <button
                 onClick={onVerifyOtp}
                 disabled={loadingVerify}
-                className="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loadingVerify ? <PopupLoader /> : null}
                 Verify & continue

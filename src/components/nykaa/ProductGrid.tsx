@@ -18,7 +18,7 @@ export default function ProductGrid({
       </h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
-        {products.slice(0, 18).map((p, index) => {
+        {products.slice(0, 5).map((p, index) => {
           const key = `${p.brand || "brand"}-${p.name}-${p.price || index}`;
           const isSelected =
             selectedProduct &&

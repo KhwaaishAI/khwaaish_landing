@@ -373,10 +373,22 @@ export function usePantaloonsFlow({ BaseURL, pushSystem }: Opts) {
     setLoadingRun(true);
     try {
       const { res, data } = await pantaloonsAutomationRun(BaseURL, payload);
+
+      console.log("PANTALOONS FLOW automation/run http:", res.status, res.ok);
+      console.log("PANTALOONS FLOW automation/run data:", data);
+
       if (!res.ok) {
-        pushSystem(
-          data?.message || data?.detail || "Order failed. Please try again."
-        );
+        // CLOSE POPUP on error (as requested)
+        setShowUpiAddressPopup(false);
+
+        const msg =
+          data?.message ||
+          data?.detail ||
+          data?.error ||
+          `Error from Pantaloons server (HTTP ${res.status})`;
+
+        console.log("PANTALOONS FLOW automation/run FAILED msg:", msg);
+        pushSystem(msg);
         return;
       }
 
@@ -387,14 +399,22 @@ export function usePantaloonsFlow({ BaseURL, pushSystem }: Opts) {
       ) {
         pushSystem("success");
       } else {
-        pushSystem(data?.status || data || "Order placed (status unknown).");
+        pushSystem(
+          data?.status || data?.detail || "Order placed (status unknown)."
+        );
       }
 
       setShowUpiAddressPopup(false);
       console.log("PANTALOONS FLOW automation complete:", data);
-    } catch (err) {
+    } catch (err: any) {
       console.log("PANTALOONS FLOW automation/run ERROR:", err);
-      pushSystem("Something went wrong while placing order.");
+
+      // CLOSE POPUP on error (as requested)
+      setShowUpiAddressPopup(false);
+
+      pushSystem(
+        `Error from Pantaloons server: ${err?.message || "Unknown error"}`
+      );
     } finally {
       setLoadingRun(false);
     }
