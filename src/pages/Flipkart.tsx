@@ -196,6 +196,11 @@ export default function Flipkart() {
         otp={flow.otp}
         setOtp={flow.setOtp}
         onVerify={flow.handleOtpSubmit}
+        onCancel={() => {
+          flow.setShowOtpPopup(false);
+          flow.setShowPhonePopup(true);
+          flow.setOtp(""); // optional
+        }}
         loading={flow.loadingOtp}
       />
 

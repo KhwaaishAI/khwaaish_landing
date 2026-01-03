@@ -221,24 +221,26 @@ export function useFlipkartFlow({
     }
 
     setLoadingPhone(true);
-
     try {
-      setShowPhonePopup(false);
-
       if (pendingProduct) {
         if (isClothingSearch) {
+          // Move forward to size -> safe to close phone now
+          setShowPhonePopup(false);
           pushSystem(
             "Mobile number collected. Please select a size for your product."
           );
           setShowSizePopup(true);
         } else {
+          // Keep phone popup open while add-to-cart runs
           pushSystem("Mobile number collected. Adding to cart...");
           await handleAddToCart();
+
+          // If add-to-cart opened OTP popup, close phone popup now
+          if (showOtpPopup) {
+            setShowPhonePopup(false);
+          }
         }
       }
-    } catch (err) {
-      console.log("STEP 03: Error:", err);
-      alert("Something went wrong!");
     } finally {
       setLoadingPhone(false);
     }
@@ -347,10 +349,12 @@ export function useFlipkartFlow({
         pushSystem(
           "Item added to cart successfully! OTP verification required."
         );
+        setShowPhonePopup(false); // <-- add this
         setShowOtpPopup(true);
       } else if (data?.status === "otp_required" || data?.requires_otp) {
         console.log("STEP 02.5: OTP required");
         pushSystem("OTP verification required to add item to cart.");
+        setShowPhonePopup(false); // <-- add this
         setShowOtpPopup(true);
       } else {
         console.log("STEP 02.6: Unknown response");
@@ -543,6 +547,7 @@ export function useFlipkartFlow({
         console.log("STEP 05.1: Buy API HTTP error:", res.status, errMsg);
 
         setShowAddressPopup(false);
+        setShowPhonePopup(false);
         pushSystem("Error from Flipkart server. Please try again.");
         return;
       }

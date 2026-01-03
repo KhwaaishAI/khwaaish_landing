@@ -180,6 +180,11 @@ export default function Combined() {
         setOtp={flow.flipkartFlow.setOtp}
         onVerify={flow.flipkartFlow.handleOtpSubmit}
         loading={flow.flipkartFlow.loadingOtp}
+        onCancel={() => {
+          flow.flipkartFlow.setShowOtpPopup(false);
+          flow.flipkartFlow.setShowPhonePopup(true);
+          flow.flipkartFlow.setOtp(""); // optional
+        }}
       />
 
       <FlipkartAddressPopup
