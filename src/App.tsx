@@ -25,7 +25,7 @@ import Flipkart from "./pages/Flipkart";
 import Amazon from "./pages/Amazon";
 import Combined from "./pages/Combined";
 import UnifiedChat from "./pages/Unified";
-import ShoppersStopChat from "./pages/ShoppersStop";
+import TataCliq from "./pages/TataCliq";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -143,10 +143,8 @@ export default function App() {
           element={loggedIn ? <UnifiedChat /> : <Navigate to="/" replace />}
         />
         <Route
-          path="/shoppers-stop"
-          element={
-            loggedIn ? <ShoppersStopChat /> : <Navigate to="/" replace />
-          }
+          path="/tata-cliq"
+          element={loggedIn ? <TataCliq /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
