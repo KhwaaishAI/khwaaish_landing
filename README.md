@@ -1,4 +1,5 @@
-# Khwaaish AI - Landing Page
+# Khwaaish AI - Landing Pageb temp for prototype hello ge
+
 
 A modern, ChatGPT-style landing page built with React, TypeScript, and TailwindCSS, matching the Figma design specification.
 

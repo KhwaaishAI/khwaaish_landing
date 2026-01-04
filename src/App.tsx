@@ -26,6 +26,10 @@ import Amazon from "./pages/Amazon";
 import Combined from "./pages/Combined";
 import UnifiedChat from "./pages/Unified";  
 import TataCliq from "./pages/TataCliq";
+import BookingCom from "./pages/BookingCom";
+import Shopping from "./pages/Shopping";
+import Cabs from "./cabs/Cabs";
+import Flight from "./flight/Flight";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -61,7 +65,7 @@ export default function App() {
           element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
         />
         <Route
-          path="/shopping"
+          path="/myntra"
           element={loggedIn ? <Chat3 /> : <Navigate to="/" replace />}
         />
         <Route
@@ -145,6 +149,20 @@ export default function App() {
         <Route
           path="/tata-cliq"
           element={loggedIn ? <TataCliq /> : <Navigate to="/" replace />}
+          path="/bookingcom"
+          element={loggedIn ? <BookingCom /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/shopping"
+          element={loggedIn ? <Shopping /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/cabs"
+          element={loggedIn ? <Cabs /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/flight"
+          element={loggedIn ? <Flight /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
