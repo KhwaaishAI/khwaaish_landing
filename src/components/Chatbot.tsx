@@ -227,7 +227,40 @@ export default function Chatbot() {
                   : "bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-bl-md border border-red-600/20"
                   }`}
               >
-                <p className="leading-relaxed">{m.text}</p>
+                {m.role === "system" ? (
+                  <div className="leading-relaxed space-y-2">
+                    {m.text.split(/\d+\.\s+/).filter(Boolean).length > 1 ? (
+                      // If response contains numbered points
+                      <ol className="space-y-2 list-none">
+                        {m.text.split(/\d+\.\s+/).filter(Boolean).map((point, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span className="text-red-400 font-bold flex-shrink-0">{idx + 1}.</span>
+                            <span className="flex-1">{point.trim()}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : m.text.includes('•') || m.text.includes('-') ? (
+                      // If response contains bullet points
+                      <ul className="space-y-2 list-none">
+                        {m.text.split(/[•\-]\s+/).filter(Boolean).map((point, idx) => (
+                          idx === 0 && !m.text.startsWith('•') && !m.text.startsWith('-') ? (
+                            <p key={idx} className="mb-2">{point.trim()}</p>
+                          ) : (
+                            <li key={idx} className="flex gap-2">
+                              <span className="text-red-400 flex-shrink-0">•</span>
+                              <span className="flex-1">{point.trim()}</span>
+                            </li>
+                          )
+                        ))}
+                      </ul>
+                    ) : (
+                      // Regular paragraph
+                      <p>{m.text}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="leading-relaxed">{m.text}</p>
+                )}
                 <span className="block mt-1.5 text-[10px] text-white/40 text-right">
                   {m.time}
                 </span>
