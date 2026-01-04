@@ -239,7 +239,9 @@ export default function Amazon() {
       if (!response.ok) {
         const text = await response.text().catch(() => "");
         throw new Error(
-          `Product details request failed (${response.status}). ${text || ""}`.trim()
+          `Product details request failed (${response.status}). ${
+            text || ""
+          }`.trim()
         );
       }
 
@@ -1142,9 +1144,9 @@ export default function Amazon() {
               />
 
               <VoiceRecorderButton
-                onTextReady={(text) =>
-                  setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
-                }
+                onTextReady={(text) => {
+                  setMessageInput(text);
+                }}
               />
 
               <button
@@ -1352,6 +1354,11 @@ export default function Amazon() {
                     style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                    <VoiceRecorderButton
+                      onTextReady={(text) => {
+                        setMessageInput(text);
+                      }}
+                    />
                     <button
                       onClick={() => handleSend()}
                       className={`p-2 ${

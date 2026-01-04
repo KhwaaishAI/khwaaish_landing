@@ -56,7 +56,8 @@ export default function App() {
         />
         <Route
           path="/chat2"
-          element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
+          element={<Chat2 />}
+          // element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
         />
         <Route
           path="/myntra"
@@ -100,7 +101,8 @@ export default function App() {
         />
         <Route
           path="/agoda"
-          element={loggedIn ? <Agoda /> : <Navigate to="/" replace />}
+          element={<Agoda />}
+          // element={loggedIn ? <Agoda /> : <Navigate to="/" replace />}
         />
         <Route
           path="/airbnb"

@@ -1,9 +1,16 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import FlowerLoader from "../components/FlowerLoader";
 import PopupLoader from "../components/PopupLoader";
-import { Link } from "react-router-dom";
-import { mockAgodaResponse, mockOyoResponse, mockBookingResponse } from "./mockData";
+import {
+  mockAgodaResponse,
+  mockOyoResponse,
+  mockBookingResponse,
+} from "./mockData";
 import ComparisonResults from "./ComparisonResults";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
+
+const BaseURL = import.meta.env.VITE_API_BASE_URL || "";
+const USE_MOCK_DATA = true; // switch to false for real APIs
 
 interface Message {
   id: string;
@@ -91,11 +98,8 @@ export default function HotelsComparison() {
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
-
-  // Refs for horizontal scrolling
-  const agodaScrollRef = useRef<HTMLDivElement>(null);
-  const oyoScrollRef = useRef<HTMLDivElement>(null);
-  const bookingScrollRef = useRef<HTMLDivElement>(null);
+  const [agodaSessionId, setAgodaSessionId] = useState("default");
+  const [bookingSessionId, setBookingSessionId] = useState<string | null>(null);
 
   // Popup states
   const [showOyoLoginPopup, setShowOyoLoginPopup] = useState(false);
@@ -115,16 +119,11 @@ export default function HotelsComparison() {
   // OYO states
   const [oyoPhone, setOyoPhone] = useState("");
   const [oyoOtp, setOyoOtp] = useState("");
-  const [oyoSession, setOyoSession] = useState("");
   const [oyoUpi, setOyoUpi] = useState("");
 
   // Booking.com states
   const [bookingEmail, setBookingEmail] = useState("");
   const [bookingOtp, setBookingOtp] = useState("");
-
-
-  // Agoda states
-
 
   // Booking form (common for all)
   const [bookingParams, setBookingParams] = useState({
@@ -161,18 +160,10 @@ export default function HotelsComparison() {
       { id: crypto.randomUUID(), role: "user", content: text },
     ]);
 
-  // Horizontal scroll functions
-  const scrollLeft = (ref: React.RefObject<HTMLDivElement>) => {
-    if (ref.current) {
-      ref.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
-  };
-
-  const scrollRight = (ref: React.RefObject<HTMLDivElement>) => {
-    if (ref.current) {
-      ref.current.scrollBy({ left: 300, behavior: "smooth" });
-    }
-  };
+  const isApiSuccess = (res: any) =>
+    res?.success === true ||
+    res?.status === "ok" ||
+    res?.status === "booking_confirmed";
 
   // Function to extract comparison hotels
   const extractComparisonHotels = (
@@ -273,7 +264,7 @@ export default function HotelsComparison() {
     });
 
     // Convert map to comparison hotels
-    hotelMap.forEach((hotelData, key) => {
+    hotelMap.forEach((hotelData) => {
       const agodaPrice = hotelData.agoda?.price || "--";
       const oyoPrice = hotelData.oyo?.price || "--";
       const bookingPrice = hotelData.booking?.price || "--";
@@ -285,10 +276,11 @@ export default function HotelsComparison() {
         { platform: "booking" as const, price: bookingPrice },
       ].filter((p) => p.price !== "--");
 
-      let bestPrice: { platform: "agoda" | "oyo" | "booking"; price: string } = {
-        platform: "agoda",
-        price: "--",
-      };
+      let bestPrice: { platform: "agoda" | "oyo" | "booking"; price: string } =
+        {
+          platform: "agoda",
+          price: "--",
+        };
       if (prices.length > 0) {
         // Convert price strings to numbers for comparison
         const numericPrices = prices.map((p) => ({
@@ -344,23 +336,16 @@ export default function HotelsComparison() {
 
   // Search all platforms simultaneously
   const handleSearchAll = async () => {
-    console.log("handleSearchAll called");
-    console.log("Message input:", messageInput);
-
-    if (!messageInput.trim()) {
-      console.log("Empty message, returning");
-      return;
-    }
+    if (!messageInput.trim()) return;
 
     const userMessage = messageInput.trim();
+
     pushUser(userMessage);
     setMessageInput("");
     setShowChat(true);
     setIsLoading(true);
     setLoadingSearch(true);
 
-    console.log("Resetting platform results...");
-    // Reset previous results
     setPlatformResults([
       { platform: "agoda", status: "loading", data: null, hotels: [] },
       { platform: "oyo", status: "loading", data: null, hotels: [] },
@@ -368,71 +353,132 @@ export default function HotelsComparison() {
     ]);
 
     try {
-      console.log("Using Mock Data...");
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate delay
+      // Optional mock delay
+      if (USE_MOCK_DATA) {
+        await new Promise((r) => setTimeout(r, 1200));
+      }
+
+      const [agodaRes, oyoRes, bookingRes] = await Promise.allSettled([
+        USE_MOCK_DATA
+          ? Promise.resolve(mockAgodaResponse)
+          : fetch(`${BaseURL}/api/agoda/chat`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                message: userMessage,
+                session_id: agodaSessionId,
+              }),
+            }).then((r) => r.json()),
+
+        USE_MOCK_DATA
+          ? Promise.resolve(mockOyoResponse)
+          : fetch(`${BaseURL}/oyo_automation/oyo/search/natural`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ query: userMessage }),
+            }).then((r) => r.json()),
+
+        USE_MOCK_DATA
+          ? Promise.resolve(mockBookingResponse)
+          : fetch(`${BaseURL}/api/booking/chat`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: userMessage }),
+            }).then((r) => r.json()),
+      ]);
 
       const results: PlatformResults[] = [];
 
-      // Process Agoda Mock
-      const agodaData = mockAgodaResponse;
-      results.push({
-        platform: "agoda",
-        status: "success",
-        data: agodaData,
-        hotels: agodaData.search_results.results,
-        extractedData: agodaData.extracted_data,
-        sessionId: agodaData.search_results.session_id,
-      });
+      //  AGODA ----------
+      if (agodaRes.status === "fulfilled") {
+        const agodaData = agodaRes.value;
+        if (agodaData.search_results?.session_id) {
+          setAgodaSessionId(agodaData.search_results.session_id);
+        }
 
-
-      // Process OYO Mock
-      const oyoData = mockOyoResponse;
-      results.push({
-        platform: "oyo",
-        status: "success",
-        data: oyoData,
-        hotels: oyoData.hotels,
-        extractedData: {
-          destination:
-            userMessage.match(/in\s+([^,\s]+)/)?.[1] || "Destination",
-          adults: 2,
-          children: 0,
-          rooms: 2,
-        },
-      });
-
-      // Process Booking Mock
-      const bookingData = mockBookingResponse;
-      results.push({
-        platform: "booking",
-        status: "success",
-        data: bookingData,
-        hotels: bookingData.search_results.results,
-        extractedData: bookingData.extracted_data,
-        sessionId:
-          bookingData.session_id || bookingData.search_results.session_id,
-      });
-      if (bookingData.session_id) {
+        results.push({
+          platform: "agoda",
+          status: "success",
+          data: agodaData,
+          hotels: agodaData.search_results?.results ?? [],
+          extractedData: agodaData.extracted_data,
+          sessionId: agodaData.search_results?.session_id,
+        });
+      } else {
+        results.push({
+          platform: "agoda",
+          status: "error",
+          data: null,
+          hotels: [],
+        });
       }
 
-      console.log("Final results:", results);
+      //  OYO ----------
+      if (oyoRes.status === "fulfilled") {
+        const oyoData = oyoRes.value;
+        results.push({
+          platform: "oyo",
+          status: "success",
+          data: oyoData,
+          hotels: oyoData.hotels ?? [],
+          extractedData: {
+            destination:
+              userMessage.match(/in\s+([^,\s]+)/)?.[1] || "Destination",
+            adults: 2,
+            children: 0,
+            rooms: 1,
+          },
+        });
+      } else {
+        results.push({
+          platform: "oyo",
+          status: "error",
+          data: null,
+          hotels: [],
+        });
+      }
+
+      //  BOOKING ----------
+      if (bookingRes.status === "fulfilled") {
+        const bookingData = bookingRes.value;
+
+        const session =
+          bookingData.search_results?.session_id || bookingData.session_id;
+
+        if (session) {
+          setBookingSessionId(session);
+        }
+
+        results.push({
+          platform: "booking",
+          status: "success",
+          data: bookingData,
+          hotels: bookingData.search_results?.results ?? [],
+          extractedData: bookingData.extracted_data,
+          sessionId: session,
+        });
+      } else {
+        results.push({
+          platform: "booking",
+          status: "error",
+          data: null,
+          hotels: [],
+        });
+      }
+
       setPlatformResults(results);
 
-      // Show comparison results
       pushSystem(
         JSON.stringify({
           type: "comparison_results",
-          results: results,
           query: userMessage,
+          results,
         })
       );
-    } catch (error) {
-      console.error("Search error:", error);
-      pushSystem(
-        "Sorry, I encountered an error while searching. Please try again."
-      );
+    } catch (err) {
+      console.error("Search error:", err);
+      pushSystem("Something went wrong while searching. Please try again.");
     } finally {
-      console.log("Search completed");
       setIsLoading(false);
       setLoadingSearch(false);
     }
@@ -453,8 +499,7 @@ export default function HotelsComparison() {
     switch (platform) {
       case "oyo":
         console.log("Showing OYO login popup");
-        // Try OYO login first
-        await handleOyoLoginWithAutoCheck(hotel);
+        await handleOyoLoginWithAutoCheck();
         break;
       case "booking":
         console.log("Showing Booking.com login popup");
@@ -468,7 +513,7 @@ export default function HotelsComparison() {
   };
 
   // OYO Login with auto-check for already logged in status
-  const handleOyoLoginWithAutoCheck = async (hotel: any) => {
+  const handleOyoLoginWithAutoCheck = async () => {
     console.log("OYO login with auto-check called (MOCK)");
 
     if (!oyoPhone.trim()) {
@@ -490,32 +535,135 @@ export default function HotelsComparison() {
 
   // OYO Login (regular)
   const handleOyoLogin = async () => {
-    console.log("OYO Login called (MOCK)");
-
     if (!oyoPhone.trim()) {
       alert("Please enter phone number");
       return;
     }
 
     setLoadingOyoLogin(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    console.log("OYO login successful, showing OTP popup");
-    setShowOyoLoginPopup(false);
-    setShowOyoOtpPopup(true);
+    try {
+      let responseData: any;
 
-    setLoadingOyoLogin(false);
+      if (USE_MOCK_DATA) {
+        console.log("OYO Login called (MOCK)");
+        await new Promise((r) => setTimeout(r, 1000));
+
+        responseData = {
+          status: "otp_sent",
+          message: "OTP sent successfully",
+        };
+      } else {
+        const response = await fetch(
+          `${BaseURL}/oyo_automation/oyo/login/start`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: oyoPhone }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        responseData = await response.json();
+      }
+
+      /**
+       * IMPORTANT:
+       * Backend may return:
+       * - status: "ok"
+       * - status: "otp_sent"
+       * - success: true
+       */
+      const isLoginSuccess =
+        responseData?.success === true ||
+        responseData?.status === "ok" ||
+        responseData?.status === "otp_sent";
+
+      if (!isLoginSuccess) {
+        throw new Error(
+          responseData?.message || "Failed to send OTP. Please try again."
+        );
+      }
+
+      console.log("OYO login successful, showing OTP popup");
+
+      setShowOyoLoginPopup(false);
+      setShowOyoOtpPopup(true);
+    } catch (error) {
+      console.error("OYO Login error:", error);
+      alert("Unable to send OTP. Please try again.");
+    } finally {
+      setLoadingOyoLogin(false);
+    }
   };
 
   // OYO OTP Verification
   const handleOyoOtpVerify = async () => {
-    console.log("OYO OTP Verification called (MOCK)");
+    if (!oyoOtp?.trim()) {
+      alert("Please enter OTP");
+      return;
+    }
+
     setLoadingOyoOtp(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log("OYO OTP verification successful");
-    setShowOyoOtpPopup(false);
-    setShowBookingPopup(true);
-    setLoadingOyoOtp(false);
+
+    try {
+      let responseData: any;
+
+      if (USE_MOCK_DATA) {
+        console.log("OYO OTP Verification called (MOCK)");
+        await new Promise((r) => setTimeout(r, 1000));
+
+        responseData = {
+          status: "ok",
+          message: "OTP verified successfully",
+        };
+      } else {
+        const response = await fetch(
+          `${BaseURL}/oyo_automation/oyo/login/verify`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              phone: oyoPhone,
+              otp: oyoOtp,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        responseData = await response.json();
+      }
+
+      /**
+       * Backend may return:
+       * - status: "ok"
+       * - success: true
+       */
+      const isOtpVerified =
+        responseData?.success === true || responseData?.status === "ok";
+
+      if (!isOtpVerified) {
+        throw new Error(
+          responseData?.message || "Invalid OTP. Please try again."
+        );
+      }
+
+      console.log("OYO OTP verification successful");
+
+      setShowOyoOtpPopup(false);
+      setShowBookingPopup(true);
+    } catch (error) {
+      console.error("OYO OTP verification error:", error);
+      alert("OTP verification failed. Please try again.");
+    } finally {
+      setLoadingOyoOtp(false);
+    }
   };
 
   // Booking.com Login
@@ -527,7 +675,6 @@ export default function HotelsComparison() {
     }
     setLoadingBookingLogin(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
 
     setShowBookingLoginPopup(false);
     setShowBookingOtpPopup(true);
@@ -547,10 +694,7 @@ export default function HotelsComparison() {
 
   // Final Booking (common for all platforms)
   const handleFinalBooking = async () => {
-    console.log("Final Booking called (MOCK)");
-
     if (!selectedHotel || !selectedPlatform) {
-      console.log("No hotel or platform selected");
       alert("Please select a hotel first");
       return;
     }
@@ -561,36 +705,289 @@ export default function HotelsComparison() {
       !bookingParams.email ||
       !bookingParams.phone_number
     ) {
-      console.log("Incomplete booking details");
       alert("Please fill all booking details");
       return;
     }
 
+    // EXTRA validation only for OYO
+    if (selectedPlatform === "oyo" && !oyoUpi.trim()) {
+      alert("Please enter UPI ID for OYO booking");
+      return;
+    }
+
     setLoadingFinalBooking(true);
-    console.log("Starting final booking process (MOCK)...");
-    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    console.log("Booking successful");
-    pushSystem(
-      JSON.stringify({
-        type: "booking_confirmation",
-        platform: selectedPlatform,
-        hotel_name: selectedHotel.name,
-        guest_name: `${bookingParams.first_name} ${bookingParams.last_name}`,
-        email: bookingParams.email,
-        phone: bookingParams.phone_number,
-      })
-    );
+    try {
+      let responseData: any;
 
-    setShowBookingPopup(false);
-    setShowPaymentPopup(true); // Enable payment flow for demo
+      // OYO REAL BOOKING --------
+      if (selectedPlatform === "oyo") {
+        if (USE_MOCK_DATA) {
+          console.log("OYO Booking called (MOCK)");
+          await new Promise((r) => setTimeout(r, 1500));
 
-    setLoadingFinalBooking(false);
-    console.log("Final booking completed");
+          responseData = {
+            status: "booking_confirmed",
+            booking_id: "OYO-MOCK-" + Date.now(),
+          };
+        } else {
+          const response = await fetch(`${BaseURL}/oyo_automation/book`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              phone_number: bookingParams.phone_number,
+              hotel_url: selectedHotel.hotel_url,
+              name: `${bookingParams.first_name} ${bookingParams.last_name}`,
+              email: bookingParams.email,
+              pay_mode: "pay_now",
+              upi_id: oyoUpi,
+              headless: true,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+          }
+
+          responseData = await response.json();
+        }
+
+        if (!isApiSuccess(responseData)) {
+          throw new Error(responseData?.message || "OYO booking failed");
+        }
+
+        // SUCCESS
+        pushSystem(
+          JSON.stringify({
+            type: "booking_confirmation",
+            platform: "oyo",
+            hotel_name: selectedHotel.name,
+            guest_name: `${bookingParams.first_name} ${bookingParams.last_name}`,
+            email: bookingParams.email,
+            phone: bookingParams.phone_number,
+            booking_id: responseData.booking_id || "OYO-CONFIRMED",
+          })
+        );
+
+        setShowBookingPopup(false);
+        setShowPaymentPopup(true);
+        return; // IMPORTANT: stop here
+      }
+
+      // Agoda REAL BOOKING --------
+      if (selectedPlatform === "agoda") {
+        try {
+          let responseData: any;
+
+          if (USE_MOCK_DATA) {
+            console.log("Agoda Booking called (MOCK)");
+            await new Promise((r) => setTimeout(r, 1200));
+
+            responseData = {
+              status: "ok",
+              booking_id: "AGODA-MOCK-" + Date.now(),
+            };
+          } else {
+            const response = await fetch(`${BaseURL}/api/agoda/book`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                session_id: agodaSessionId,
+                hotel_url: selectedHotel.url,
+                first_name: bookingParams.first_name,
+                last_name: bookingParams.last_name,
+                email: bookingParams.email,
+                phone_number: bookingParams.phone_number,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP Error: ${response.status}`);
+            }
+
+            responseData = await response.json();
+          }
+
+          if (!isApiSuccess(responseData)) {
+            throw new Error(responseData?.message || "Agoda booking failed");
+          }
+
+          // Move to payment popup
+          setShowBookingPopup(false);
+          setShowPaymentPopup(true);
+          return;
+        } catch (err) {
+          console.error("Agoda booking error:", err);
+          alert("Agoda booking failed. Please try again.");
+          setLoadingFinalBooking(false);
+          return;
+        }
+      }
+
+      // BOOKING.COM REAL BOOKING --------
+      if (selectedPlatform === "booking") {
+        try {
+          let responseData: any;
+
+          if (!bookingSessionId) {
+            alert("Booking session expired. Please search again.");
+            setLoadingFinalBooking(false);
+            return;
+          }
+
+          if (USE_MOCK_DATA) {
+            console.log("Booking.com Booking called (MOCK)");
+            await new Promise((r) => setTimeout(r, 1200));
+
+            responseData = {
+              status: "ok",
+              booking_id: "BOOKING-MOCK-" + Date.now(),
+            };
+          } else {
+            const response = await fetch(`${BaseURL}/api/booking/book`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                session_id: bookingSessionId,
+                property_url: selectedHotel.url,
+                first_name: bookingParams.first_name,
+                last_name: bookingParams.last_name,
+                email: bookingParams.email,
+                phone_number: bookingParams.phone_number,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP Error: ${response.status}`);
+            }
+
+            responseData = await response.json();
+          }
+
+          if (!isApiSuccess(responseData)) {
+            throw new Error(
+              responseData?.message || "Booking.com booking failed"
+            );
+          }
+
+          // SUCCESS → directly confirm booking
+          pushSystem(
+            JSON.stringify({
+              type: "booking_confirmation",
+              platform: "booking",
+              hotel_name: selectedHotel.name,
+              guest_name: `${bookingParams.first_name} ${bookingParams.last_name}`,
+              email: bookingParams.email,
+              phone: bookingParams.phone_number,
+              booking_id: responseData.booking_id || "BOOKING-CONFIRMED",
+            })
+          );
+
+          setShowBookingPopup(false);
+          setLoadingFinalBooking(false);
+          return;
+        } catch (err) {
+          console.error("Booking.com booking error:", err);
+          alert("Booking.com booking failed. Please try again.");
+          setLoadingFinalBooking(false);
+          return;
+        }
+      }
+
+      // OTHER PLATFORMS (MOCK)
+
+      await new Promise((r) => setTimeout(r, 1500));
+
+      pushSystem(
+        JSON.stringify({
+          type: "booking_confirmation",
+          platform: selectedPlatform,
+          hotel_name: selectedHotel.name,
+          guest_name: `${bookingParams.first_name} ${bookingParams.last_name}`,
+          email: bookingParams.email,
+          phone: bookingParams.phone_number,
+        })
+      );
+
+      setShowBookingPopup(false);
+      setShowPaymentPopup(true);
+    } catch (error) {
+      console.error("Final booking error:", error);
+      alert("Booking failed. Please try again.");
+    } finally {
+      setLoadingFinalBooking(false);
+    }
   };
 
   // Payment
   const handlePayment = async () => {
+    if (selectedPlatform === "agoda") {
+      try {
+        let responseData: any;
+
+        if (!paymentParams.upi_id.trim()) {
+          alert("Please enter UPI ID");
+          return;
+        }
+        setLoadingPayment(true);
+
+        if (USE_MOCK_DATA) {
+          console.log("Agoda Payment called (MOCK)");
+          await new Promise((r) => setTimeout(r, 1200));
+
+          responseData = {
+            status: "ok",
+            payment_id: "AGODA-PAY-" + Date.now(),
+          };
+        } else {
+          const response = await fetch(`${BaseURL}/api/agoda/pay`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              session_id: agodaSessionId,
+              payment_method: "digital",
+              card_number: "",
+              card_holder_name: "",
+              expiry_date: "",
+              cvc: "",
+              upi_id: paymentParams.upi_id,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+          }
+
+          responseData = await response.json();
+        }
+
+        if (!isApiSuccess(responseData)) {
+          throw new Error(responseData?.message || "Payment failed");
+        }
+
+        pushSystem(
+          JSON.stringify({
+            type: "payment_success",
+            platform: "agoda",
+            hotel_name: selectedHotel?.name,
+            amount: selectedHotel?.price,
+            upi_id: paymentParams.upi_id,
+          })
+        );
+
+        setShowPaymentPopup(false);
+        setPaymentParams({ upi_id: "", payment_method: "digital" });
+        return;
+      } catch (err) {
+        console.error("Agoda payment error:", err);
+        alert("Payment failed. Please try again.");
+        setLoadingPayment(false);
+        return;
+      } finally {
+        setLoadingPayment(false);
+      }
+    }
+
     console.log("Payment called (MOCK)");
 
     if (!paymentParams.upi_id) {
@@ -632,15 +1029,12 @@ export default function HotelsComparison() {
 
     return (
       <ComparisonResults
-
         comparisonHotels={comparisonHotels}
         unmatchedHotels={unmatchedHotels}
         onBook={handleBookHotel}
       />
     );
   };
-
-
 
   // Render message content
   const renderMessage = (m: Message) => {
@@ -763,14 +1157,16 @@ export default function HotelsComparison() {
     ) : (
       <div
         key={m.id}
-        className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
-          }`}
+        className={`flex ${
+          m.role === "user" ? "justify-end" : "justify-start"
+        }`}
       >
         <div
-          className={`${m.role === "user"
-            ? "bg-gray-900/80 text-gray-100 border-gray-800"
-            : "bg-gray-900/80 text-gray-100 border-gray-800"
-            } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-5 py-4 border shadow-sm`}
+          className={`${
+            m.role === "user"
+              ? "bg-gray-900/80 text-gray-100 border-gray-800"
+              : "bg-gray-900/80 text-gray-100 border-gray-800"
+          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-5 py-4 border shadow-sm`}
         >
           {content}
         </div>
@@ -1052,8 +1448,8 @@ export default function HotelsComparison() {
                         selectedHotel.image_url?.startsWith("//")
                           ? `https:${selectedHotel.image_url}`
                           : selectedHotel.image_url ||
-                          selectedHotel.imageurl ||
-                          "/images/hotel-placeholder.jpg"
+                            selectedHotel.imageurl ||
+                            "/images/hotel-placeholder.jpg"
                       }
                       alt={selectedHotel.name}
                       className="w-full h-full object-cover"
@@ -1347,8 +1743,9 @@ export default function HotelsComparison() {
         <div className="relative min-h-screen w-full bg-black overflow-hidden">
           {/* Sidebar */}
           <aside
-            className={`fixed left-0 top-0 z-40 h-full border-r border-gray-800 bg-black transition-transform duration-300 w-64 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-              }`}
+            className={`fixed left-0 top-0 z-40 h-full border-r border-gray-800 bg-black transition-transform duration-300 w-64 ${
+              sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
           >
             <div className="flex justify-between items-center gap-2 px-4 py-3">
               <button
@@ -1412,8 +1809,9 @@ export default function HotelsComparison() {
 
           {/* Chat Messages - FIXED: Remove left margin on mobile, add proper margin on desktop */}
           <div
-            className={`overflow-y-auto px-4 py-6 space-y-4 ${sidebarOpen ? "md:ml-64" : "md:ml-0"
-              }`}
+            className={`overflow-y-auto px-4 py-6 space-y-4 ${
+              sidebarOpen ? "md:ml-64" : "md:ml-0"
+            }`}
           >
             {messages.map((m) => renderMessage(m))}
             {isLoading && <FlowerLoader />}
@@ -1422,8 +1820,9 @@ export default function HotelsComparison() {
           {/* Message Input - FIXED: Proper positioning */}
           <div
             className={`absolute bottom-0 left-0 right-0 z-40 mx-auto max-w-4xl px-4 py-4 
-                       bg-gradient-to-t from-black/80 via-black/40 to-transparent ${sidebarOpen ? "md:left-64" : "md:left-0"
-              }`}
+                       bg-gradient-to-t from-black/80 via-black/40 to-transparent ${
+                         sidebarOpen ? "md:left-64" : "md:left-0"
+                       }`}
           >
             <div className="flex items-center gap-3 rounded-full px-4 py-3 border border-gray-800 bg-white/10 backdrop-blur">
               <input
@@ -1447,10 +1846,11 @@ export default function HotelsComparison() {
                   handleSearchAll();
                 }}
                 disabled={loadingSearch || !messageInput.trim()}
-                className={`p-2.5 rounded-full ${messageInput && !loadingSearch
-                  ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
-                  : "bg-white/20 hover:bg-white/30"
-                  } transition-all`}
+                className={`p-2.5 rounded-full ${
+                  messageInput && !loadingSearch
+                    ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
+                    : "bg-white/20 hover:bg-white/30"
+                } transition-all`}
               >
                 {loadingSearch ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -1621,6 +2021,11 @@ export default function HotelsComparison() {
                     style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                    <VoiceRecorderButton
+                      onTextReady={(text) => {
+                        setMessageInput(text);
+                      }}
+                    />
                     <button
                       onClick={() => {
                         console.log("🔍 Search button clicked from landing");
@@ -1628,10 +2033,11 @@ export default function HotelsComparison() {
                         handleSearchAll();
                       }}
                       disabled={!messageInput.trim()}
-                      className={`p-2 ${messageInput
-                        ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
-                        : "bg-white/20 hover:bg-white/30"
-                        } rounded-full transition-all`}
+                      className={`p-2 ${
+                        messageInput
+                          ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
+                          : "bg-white/20 hover:bg-white/30"
+                      } rounded-full transition-all`}
                     >
                       <svg
                         className="w-5 h-5"

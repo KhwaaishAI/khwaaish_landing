@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import RideComparison from "./RideComparison";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
 // Last working Code!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 interface Message {
   role: "user" | "system" | "comparison";
@@ -356,6 +357,11 @@ export default function Cabs() {
                     style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                    <VoiceRecorderButton
+                      onTextReady={(text) => {
+                        setMessageInput(text);
+                      }}
+                    />
                     <button
                       onClick={() => handleSend()}
                       className={`p-2 ${

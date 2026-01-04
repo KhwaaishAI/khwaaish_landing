@@ -460,11 +460,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               placeholder="What is your khwaaish?"
               className="flex-1 bg-transparent text-white placeholder-white/60 outline-none"
             />
-
             <VoiceRecorderButton
-              onTextReady={(text) =>
-                setInputMessage((prev) => (prev ? `${prev} ${text}` : text))
-              }
+              onTextReady={(text) => {
+                setInputMessage(text);
+              }}
             />
 
             <button
