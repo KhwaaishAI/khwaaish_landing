@@ -275,12 +275,21 @@ export default function Home() {
                   to="/cabs"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(250,204,21,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/ola.jpg"
-                      alt="Ola"
-                      className="w-full h-full object-contain"
-                    />
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/ola.jpg"
+                        alt="Ola"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/rapido.png"
+                        alt="Rapido"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">
                     Travels
@@ -498,7 +507,9 @@ export default function Home() {
                       />
                     </div>
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-center w-full">Hotels</h3>
+                  <h3 className="text-sm sm:text-base font-semibold text-center w-full">
+                    Hotels
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug text-center w-full">
                     Book Hotels at best prices
                   </p>
