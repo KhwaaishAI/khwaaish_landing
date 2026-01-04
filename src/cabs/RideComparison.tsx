@@ -60,15 +60,48 @@ const RideSkeleton = () => {
   );
 };
 
+const RIDE_ICON_MAP: Record<string, string> = {
+  Bike: "/logo/bike.png",
+  Auto: "/logo/auto.png",
+  "Economy Cab": "/logo/Car.png",
+  Sedan: "/logo/sedan.png",
+  "SUV / XL": "/logo/suv.png",
+  Premium: "/logo/Car.png",
+};
+
 function RideRow({ ride, pickup, drop, onOlaBook }: any) {
+  const [unavailablePopup, setUnavailablePopup] = useState<boolean>(false);
+  const [rapidoLoader, setRapidoLoader] = useState<boolean>(false);
+
+  function handleUnavailablePopup() {
+    setRapidoLoader(true);
+
+    setTimeout(() => {
+      setRapidoLoader(false);
+      setUnavailablePopup(true);
+    }, 1500);
+  }
+
   return (
     <div className="flex items-center justify-between bg-gray-900/40 border border-gray-700/30 rounded-2xl px-6 py-4">
       {/* LEFT */}
-      <div className="flex flex-col">
-        <span className="text-lg font-semibold text-white">{ride.label}</span>
-        <span className="text-sm text-gray-400">
-          {pickup} → {drop}
-        </span>
+      <div className="flex items-center gap-4">
+        {/* Ride Icon */}
+        <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center">
+          <img
+            src={RIDE_ICON_MAP[ride.label]}
+            alt={ride.label}
+            className="w-12 h-12 object-contain"
+          />
+        </div>
+
+        {/* Ride Info */}
+        <div className="flex flex-col">
+          <span className="text-lg font-semibold text-white">{ride.label}</span>
+          <span className="text-sm text-gray-400">
+            {pickup} → {drop}
+          </span>
+        </div>
       </div>
 
       {/* RIGHT */}
@@ -93,19 +126,58 @@ function RideRow({ ride, pickup, drop, onOlaBook }: any) {
         </div>
 
         {/* RAPIDO */}
-        <div className="flex justify-between items-center bg-blue-300/10 rounded-lg px-3 py-2 opacity-70">
+        <div className="flex justify-between items-center bg-blue-300/10 rounded-lg px-3 py-2 ">
           <div>
             <div className="text-xs text-gray-400">Rapido</div>
             <div className="text-gray-400">{ride.rapido.price}</div>
           </div>
+
           <button
-            disabled
-            className="bg-gray-600 text-white text-sm px-3 py-1 rounded-md cursor-not-allowed"
+            onClick={handleUnavailablePopup}
+            disabled={rapidoLoader}
+            className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded-md 
+               flex items-center justify-center"
           >
-            Unavailable
+            {rapidoLoader ? (
+              <span className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+            ) : (
+              "Book"
+            )}
           </button>
         </div>
       </div>
+      {unavailablePopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div
+            className="w-full max-w-sm rounded-2xl border border-gray-800 
+                    bg-gradient-to-b from-gray-900 to-black p-6 shadow-xl"
+          >
+            {/* Header */}
+            <div className="mb-3 text-center">
+              <h2 className="text-lg font-semibold text-white">
+                Booking Unavailable
+              </h2>
+            </div>
+
+            {/* Message */}
+            <p className="text-sm text-gray-400 text-center leading-relaxed">
+              Currently facing some issue while booking from{" "}
+              <span className="text-white font-medium">Rapido</span>.
+              <br />
+              Please try again later.
+            </p>
+
+            {/* Action */}
+            <button
+              onClick={() => setUnavailablePopup(false)}
+              className="mt-5 w-full rounded-xl py-2.5 font-medium text-white 
+                   bg-red-600 hover:bg-red-500 transition-colors"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

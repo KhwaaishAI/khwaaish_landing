@@ -409,20 +409,23 @@ export default function Cabs() {
                     className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
                   border border-gray-700 hover:border-yellow-500/50 transition-all cursor-pointer group"
                   >
-                    <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
+                    <div className="flex mb-4 group-hover:scale-110 transition-transform">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                          <img
+                            src="/logo/ola.jpg"
+                            alt="Ola"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                          <img
+                            src="/logo/rapido.png"
+                            alt="Rapido"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <h3 className="text-lg font-semibold mb-2">Cabs</h3>
                     <p className="text-sm text-gray-400">
