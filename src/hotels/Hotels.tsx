@@ -10,7 +10,7 @@ import ComparisonResults from "./ComparisonResults";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 const BaseURL = import.meta.env.VITE_API_BASE_URL || "";
-const USE_MOCK_DATA = true; // switch to false for real APIs
+const USE_MOCK_DATA = false; // switch to false for real APIs
 
 interface Message {
   id: string;
@@ -89,8 +89,16 @@ export interface ComparisonHotel {
   };
 }
 
-// BaseURL removed as we are using mock data
-// const BaseURL = import.meta.env.VITE_API_BASE_URL || "";
+const handleApiError = (response: Response, platform: string) => {
+  if (response.status === 500) {
+    alert(`We got blocked by ${platform} this time. Please try again later.`);
+    throw new Error(`Blocked by ${platform}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(`HTTP Error: ${response.status}`);
+  }
+};
 
 export default function HotelsComparison() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -162,6 +170,7 @@ export default function HotelsComparison() {
 
   const isApiSuccess = (res: any) =>
     res?.success === true ||
+    res?.status === "success" ||
     res?.status === "ok" ||
     res?.status === "booking_confirmed";
 
@@ -368,7 +377,10 @@ export default function HotelsComparison() {
                 message: userMessage,
                 session_id: agodaSessionId,
               }),
-            }).then((r) => r.json()),
+            }).then(async (r) => {
+              handleApiError(r, "agoda");
+              return r.json();
+            }),
 
         USE_MOCK_DATA
           ? Promise.resolve(mockOyoResponse)
@@ -376,7 +388,10 @@ export default function HotelsComparison() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ query: userMessage }),
-            }).then((r) => r.json()),
+            }).then(async (r) => {
+              handleApiError(r, "oyo");
+              return r.json();
+            }),
 
         USE_MOCK_DATA
           ? Promise.resolve(mockBookingResponse)
@@ -384,7 +399,10 @@ export default function HotelsComparison() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ message: userMessage }),
-            }).then((r) => r.json()),
+            }).then(async (r) => {
+              handleApiError(r, "booking");
+              return r.json();
+            }),
       ]);
 
       const results: PlatformResults[] = [];
@@ -502,8 +520,8 @@ export default function HotelsComparison() {
         await handleOyoLoginWithAutoCheck();
         break;
       case "booking":
-        console.log("Showing Booking.com login popup");
-        setShowBookingLoginPopup(true);
+        console.log("Showing Booking.com Book popup");
+        setShowBookingPopup(true);
         break;
       case "agoda":
         console.log("Showing Agoda booking popup directly");
@@ -514,7 +532,7 @@ export default function HotelsComparison() {
 
   // OYO Login with auto-check for already logged in status
   const handleOyoLoginWithAutoCheck = async () => {
-    console.log("OYO login with auto-check called (MOCK)");
+    // console.log("OYO login with auto-check called (MOCK)");
 
     if (!oyoPhone.trim()) {
       console.log("No phone number, showing login popup");
@@ -554,6 +572,8 @@ export default function HotelsComparison() {
           message: "OTP sent successfully",
         };
       } else {
+        console.log("Login Start Number:", oyoPhone);
+
         const response = await fetch(
           `${BaseURL}/oyo_automation/oyo/login/start`,
           {
@@ -563,9 +583,7 @@ export default function HotelsComparison() {
           }
         );
 
-        if (!response.ok) {
-          throw new Error(`HTTP Error: ${response.status}`);
-        }
+        handleApiError(response, "OYO");
 
         responseData = await response.json();
       }
@@ -577,6 +595,14 @@ export default function HotelsComparison() {
        * - status: "otp_sent"
        * - success: true
        */
+
+      if (responseData?.status === "already_logged_in") {
+        console.log("Already logged in");
+        setShowOyoLoginPopup(false);
+        setShowBookingPopup(true);
+        return;
+      }
+
       const isLoginSuccess =
         responseData?.success === true ||
         responseData?.status === "ok" ||
@@ -621,6 +647,10 @@ export default function HotelsComparison() {
           message: "OTP verified successfully",
         };
       } else {
+        console.log("OTP Verification Details", {
+          phone: oyoPhone,
+          otp: oyoOtp,
+        });
         const response = await fetch(
           `${BaseURL}/oyo_automation/oyo/login/verify`,
           {
@@ -633,9 +663,7 @@ export default function HotelsComparison() {
           }
         );
 
-        if (!response.ok) {
-          throw new Error(`HTTP Error: ${response.status}`);
-        }
+        handleApiError(response, "OYO");
 
         responseData = await response.json();
       }
@@ -699,6 +727,8 @@ export default function HotelsComparison() {
       return;
     }
 
+    console.log(selectedHotel);
+
     if (
       !bookingParams.first_name ||
       !bookingParams.last_name ||
@@ -745,12 +775,11 @@ export default function HotelsComparison() {
             }),
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.status}`);
-          }
+          handleApiError(response, "OYO");
 
           responseData = await response.json();
         }
+        console.log(responseData);
 
         if (!isApiSuccess(responseData)) {
           throw new Error(responseData?.message || "OYO booking failed");
@@ -770,7 +799,7 @@ export default function HotelsComparison() {
         );
 
         setShowBookingPopup(false);
-        setShowPaymentPopup(true);
+        // setShowPaymentPopup(true);
         return; // IMPORTANT: stop here
       }
 
@@ -788,6 +817,15 @@ export default function HotelsComparison() {
               booking_id: "AGODA-MOCK-" + Date.now(),
             };
           } else {
+            console.log(
+              "Agoda Booking called",
+              agodaSessionId,
+              selectedHotel.url,
+              bookingParams.first_name,
+              bookingParams.last_name,
+              bookingParams.email,
+              bookingParams.phone_number
+            );
             const response = await fetch(`${BaseURL}/api/agoda/book`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -801,11 +839,10 @@ export default function HotelsComparison() {
               }),
             });
 
-            if (!response.ok) {
-              throw new Error(`HTTP Error: ${response.status}`);
-            }
+            handleApiError(response, "Agoda");
 
             responseData = await response.json();
+            console.log("Agoda Booking response", responseData);
           }
 
           if (!isApiSuccess(responseData)) {
@@ -844,12 +881,21 @@ export default function HotelsComparison() {
               booking_id: "BOOKING-MOCK-" + Date.now(),
             };
           } else {
+            console.log(
+              "Booking.com Booking called",
+              bookingSessionId,
+              selectedHotel.property_url,
+              bookingParams.first_name,
+              bookingParams.last_name,
+              bookingParams.email,
+              bookingParams.phone_number
+            );
             const response = await fetch(`${BaseURL}/api/booking/book`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 session_id: bookingSessionId,
-                property_url: selectedHotel.url,
+                property_url: selectedHotel.property_url,
                 first_name: bookingParams.first_name,
                 last_name: bookingParams.last_name,
                 email: bookingParams.email,
@@ -857,9 +903,7 @@ export default function HotelsComparison() {
               }),
             });
 
-            if (!response.ok) {
-              throw new Error(`HTTP Error: ${response.status}`);
-            }
+            handleApiError(response, "Booking.com");
 
             responseData = await response.json();
           }
@@ -910,7 +954,9 @@ export default function HotelsComparison() {
       );
 
       setShowBookingPopup(false);
-      setShowPaymentPopup(true);
+      if (selectedPlatform === "agoda") {
+        setShowPaymentPopup(true);
+      }
     } catch (error) {
       console.error("Final booking error:", error);
       alert("Booking failed. Please try again.");
@@ -940,6 +986,11 @@ export default function HotelsComparison() {
             payment_id: "AGODA-PAY-" + Date.now(),
           };
         } else {
+          console.log(
+            "Agoda Payment called",
+            agodaSessionId,
+            paymentParams.upi_id
+          );
           const response = await fetch(`${BaseURL}/api/agoda/pay`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -954,16 +1005,15 @@ export default function HotelsComparison() {
             }),
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.status}`);
-          }
+          handleApiError(response, "Agoda");
 
           responseData = await response.json();
         }
+        console.log("Agoda Payment response", responseData);
 
-        if (!isApiSuccess(responseData)) {
-          throw new Error(responseData?.message || "Payment failed");
-        }
+        // if (!isApiSuccess(responseData)) {
+        //   throw new Error(responseData?.message || "Payment failed");
+        // }
 
         pushSystem(
           JSON.stringify({
@@ -1225,6 +1275,13 @@ export default function HotelsComparison() {
               >
                 {loadingOyoLogin ? <PopupLoader /> : "Send OTP"}
               </button>
+              <button
+                onClick={() => setShowOyoLoginPopup(false)}
+                disabled={loadingOyoOtp}
+                className="w-full py-3.5 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 rounded-xl text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:shadow-lg hover:shadow-gray-500/20"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -1276,6 +1333,13 @@ export default function HotelsComparison() {
                 className="w-full py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:shadow-lg hover:shadow-red-500/20"
               >
                 {loadingOyoOtp ? <PopupLoader /> : "Verify OTP"}
+              </button>
+              <button
+                onClick={() => setShowOyoOtpPopup(false)}
+                disabled={loadingOyoOtp}
+                className="w-full py-3.5 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 rounded-xl text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:shadow-lg hover:shadow-gray-500/20"
+              >
+                Cancel
               </button>
             </div>
           </div>
@@ -1330,6 +1394,13 @@ export default function HotelsComparison() {
                 className="w-full py-3.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:shadow-lg hover:shadow-red-500/20"
               >
                 {loadingBookingLogin ? <PopupLoader /> : "Send OTP"}
+              </button>
+              <button
+                onClick={() => setShowBookingLoginPopup(false)}
+                disabled={loadingBookingLogin}
+                className="w-full py-3.5 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 rounded-xl text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-all hover:shadow-lg hover:shadow-gray-500/20"
+              >
+                Cancel
               </button>
             </div>
           </div>
@@ -1824,7 +1895,7 @@ export default function HotelsComparison() {
                          sidebarOpen ? "md:left-64" : "md:left-0"
                        }`}
           >
-            <div className="flex items-center gap-3 rounded-full px-4 py-3 border border-gray-800 bg-white/10 backdrop-blur">
+            {/* <div className="flex items-center gap-3 rounded-full px-4 py-3 border border-gray-800 bg-white/10 backdrop-blur">
               <input
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
@@ -1870,7 +1941,7 @@ export default function HotelsComparison() {
                   </svg>
                 )}
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       ) : (
@@ -2059,8 +2130,12 @@ export default function HotelsComparison() {
                 {/* Platform Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
                   <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-red-500/50 transition-all">
-                    <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mb-4">
-                      <span className="text-2xl">🏨</span>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/agoda.png"
+                        alt="Hotels"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     <h3 className="text-lg font-semibold mb-2">Agoda</h3>
                     <p className="text-sm text-gray-400">
@@ -2069,8 +2144,12 @@ export default function HotelsComparison() {
                   </div>
 
                   <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-red-500/50 transition-all">
-                    <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mb-4">
-                      <span className="text-2xl">🏨</span>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/oyo.png"
+                        alt="Hotels"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     <h3 className="text-lg font-semibold mb-2">OYO</h3>
                     <p className="text-sm text-gray-400">
@@ -2079,8 +2158,12 @@ export default function HotelsComparison() {
                   </div>
 
                   <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-red-500/50 transition-all">
-                    <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center mb-4">
-                      <span className="text-2xl">🏨</span>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/bookingC.png"
+                        alt="Hotels"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     <h3 className="text-lg font-semibold mb-2">Booking.com</h3>
                     <p className="text-sm text-gray-400">
