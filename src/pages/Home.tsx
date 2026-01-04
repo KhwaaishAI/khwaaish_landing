@@ -187,12 +187,12 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {/* Groceries */}
+                {/* Unified Groceries (Zepto + Swiggy Instamart) */}
                 <Link
                   to="/groceries"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-green-400/70 hover:shadow-[0_0_25px_rgba(34,197,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-1 mb-1">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md">
                       <img
                         src="/logo/zepto.jpg"
@@ -200,21 +200,7 @@ export default function Home() {
                         className="w-full h-full object-contain"
                       />
                     </div>
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold">
-                    Groceries
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Zepto groceries at your doorstep.
-                  </p>
-                </Link>
-
-                {/* Swiggy Instamart */}
-                <Link
-                  to="/instamart"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-green-400/70 hover:shadow-[0_0_25px_rgba(34,197,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm">+</span>
                     <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md border border-gray-200">
                       <img
                         src="/logo/swiggy-instamart.jpg"
@@ -224,30 +210,62 @@ export default function Home() {
                     </div>
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">
-                    Swiggy Instamart
+                    Groceries
                   </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Fast groceries from Swiggy Instamart.
+                    Zepto & Swiggy Instamart at your doorstep.
                   </p>
                 </Link>
 
-                {/* Travels */}
+                {/* JioMart */}
+                <Link
+                  to="/jiomart"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-green-400/70 hover:shadow-[0_0_25px_rgba(34,197,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md border border-gray-200">
+                      <img
+                        src="/logo/jiomart.jpg"
+                        alt="JioMart"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    JioMart
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Grocery shopping from JioMart.
+                  </p>
+                </Link>
+
+                {/* Travels (Ola + Rapido) */}
                 <Link
                   to="/cabs"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(250,204,21,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/ola.jpg"
-                      alt="Ola"
-                      className="w-full h-full object-contain"
-                    />
+                  <div className="flex items-center gap-1 mb-1">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md">
+                      <img
+                        src="/logo/ola.jpg"
+                        alt="Ola"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <span className="text-sm">+</span>
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md">
+                      <img
+                        src="/logo/rapido.png"
+                        alt="Rapido"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">
                     Travels
                   </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Book cabs in a single message.
+                    Ola & Rapido rides in a single message.
                   </p>
                 </Link>
 
@@ -319,40 +337,48 @@ export default function Home() {
                   </p>
                 </Link>
 
-                {/* Unified (Nykaa + Pantaloons + Westside) */}
+                {/* Unified (Nykaa + Pantaloons + Westside + Tata Cliq + Shoppers Stop) */}
                 <Link
                   to="/unified"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-5 py-4 md:px-4 md:py-4 transition-all cursor-pointer"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px rgba(244,63,94,0.35)] px-5 py-4 md:px-4 md:py-4 transition-all cursor-pointer"
                 >
                   <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-x-1 text-base">
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                       <img
                         src="/logo/nykaa.png"
                         alt="Nykaa"
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <p>+</p>
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <p className="text-xs">+</p>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                       <img
                         src="/logo/pantaloons.png"
                         alt="Pantaloons"
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <p>+</p>
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <p className="text-xs">+</p>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                       <img
                         src="/logo/westside.png"
                         alt="Westside"
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <p>+</p>
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <p className="text-xs">+</p>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                       <img
                         src="/logo/tatacliq.jpg"
                         alt="Tatacliq"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <p className="text-xs">+</p>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/shoppers_stop-2-removebg-preview.png"
+                        alt="Shoppers Stop"
                         className="w-full h-full object-contain"
                       />
                     </div>
@@ -361,7 +387,7 @@ export default function Home() {
                     Fashion Unified
                   </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Nykaa, Pantaloons, Westside & Tata Cliq
+                    Nykaa, Pantaloons, Westside, Tata Cliq & Shoppers Stop
                   </p>
                 </Link>
 

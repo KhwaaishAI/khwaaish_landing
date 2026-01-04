@@ -31,6 +31,7 @@ import Shopping from "./pages/Shopping";
 import Cabs from "./cabs/Cabs";
 import Hotels from "./hotels/Hotels";
 import Flight from "./flight/Flight";
+import UnifiedGroceries from "./pages/UnifiedGroceries";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -56,10 +57,10 @@ export default function App() {
           element={loggedIn ? <Home /> : <Navigate to="/" replace />}
         />
 
-        {/* Chat Pages */}
+        {/* Chat Pages */}\r
         <Route
           path="/groceries"
-          element={loggedIn ? <Chat1 /> : <Navigate to="/" replace />}
+          element={loggedIn ? <UnifiedGroceries /> : <Navigate to="/" replace />}
         />
         <Route
           path="/chat2"
