@@ -3,14 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import Chatbot from "../components/Chatbot";
 
 export default function Home() {
-  const [searchText, setSearchText] = useState("");
-  const [showChat, setShowChat] = useState(false);
-  const [messageInput, setMessageInput] = useState("");
-  const [messages, setMessages] = useState<
-    Array<{ id: string; role: "user" | "system"; text: string }>
-  >([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate();
+  const [showChat, setShowChat] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [searchText, setSearchText] = useState("");
+  const [messageInput, setMessageInput] = useState("");
 
   return (
     <div className="min-h-screen w-screen bg-black text-white">
@@ -23,7 +20,6 @@ export default function Home() {
       >
         {/* Logo and collapse */}
         <div className="flex justify-between items-center gap-2 px-4 py-3">
-          {/* Brand logo - clicking opens sidebar if ever used when closed */}
           <button
             className="flex items-center gap-2 hover:opacity-90 transition-opacity"
             onClick={() => setSidebarOpen(true)}
@@ -35,7 +31,6 @@ export default function Home() {
               className="h-12 w-auto sm:h-14 md:h-16 shrink-0 object-contain"
             />
           </button>
-          {/* Collapse / Toggle inside sidebar */}
           <button
             aria-label="Toggle sidebar"
             className="inline-flex items-center justify-center rounded-lg p-1.5 hover:bg-gray-900"
@@ -88,34 +83,14 @@ export default function Home() {
         {/* Sections */}
         <div className="mt-3 space-y-2 px-4 text-sm text-gray-400">
           <div className="flex items-center gap-2">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>History</span>
           </div>
           <div className="flex items-center gap-2">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span>Drafts</span>
           </div>
@@ -126,7 +101,6 @@ export default function Home() {
       <main className="flex-1 flex flex-col relative">
         {/* Top bar */}
         <div className="sticky top-0 left-0 right-0 z-20 p-2 flex items-center justify-between">
-          {/* Sidebar toggle */}
           {!sidebarOpen && (
             <button
               aria-label="Open sidebar"
@@ -142,18 +116,8 @@ export default function Home() {
           )}
           <div className="ml-auto flex items-center gap-3">
             <button className="p-2 hover:bg-gray-900 rounded-lg transition-colors">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </button>
             <div className="p-2 hover:bg-gray-900 rounded-full transition-colors">
@@ -164,7 +128,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Main Content (no scroll on desktop) */}
+        {/* Main Content Scrollable */}
         <div className="flex-1 overflow-y-auto md:overflow-hidden p-4 sm:p-6 relative">
           <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 relative">
             {/* Logo */}
@@ -185,22 +149,19 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Background animation using Circle.png */}
+            {/* Background animation */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-              {/* Top-right slowly spinning circle */}
               <img
                 src="/images/Circle.png"
                 alt=""
                 className="hidden md:block absolute -top-24 -right-12 w-48 opacity-60 motion-safe:animate-spin"
                 style={{ animationDuration: "18s" }}
               />
-              {/* Center-right floating circle */}
               <img
                 src="/images/Circle.png"
                 alt=""
                 className="hidden md:block absolute top-1/3 right-10 w-32 opacity-45 motion-safe:animate-bounce"
               />
-              {/* Bottom-left soft pulse circle */}
               <img
                 src="/images/Circle.png"
                 alt=""
@@ -226,7 +187,7 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {/* Groceries (Zepto) */}
+                {/* Groceries */}
                 <Link
                   to="/groceries"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-green-400/70 hover:shadow-[0_0_25px_rgba(34,197,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
@@ -248,7 +209,7 @@ export default function Home() {
                   </p>
                 </Link>
 
-                {/* Swiggy Instamart (dedicated) */}
+                {/* Swiggy Instamart */}
                 <Link
                   to="/instamart"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-green-400/70 hover:shadow-[0_0_25px_rgba(34,197,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
@@ -270,7 +231,7 @@ export default function Home() {
                   </p>
                 </Link>
 
-                {/* Ola */}
+                {/* Travels */}
                 <Link
                   to="/cabs"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(250,204,21,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
@@ -290,7 +251,7 @@ export default function Home() {
                   </p>
                 </Link>
 
-                {/* Food (Swiggy) */}
+                {/* Food */}
                 <Link
                   to="/food"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-orange-400/70 hover:shadow-[0_0_25px_rgba(249,115,22,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
@@ -308,63 +269,7 @@ export default function Home() {
                   </p>
                 </Link>
 
-                {/* Nykaa */}
-                <Link
-                  to="/nykaa"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-pink-400/70 hover:shadow-[0_0_25px_rgba(244,114,182,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
-                >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/nkyaa.jpg"
-                      alt="Nykaa"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Beauty</h3>
-                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    personal care shopping.
-                  </p>
-                </Link>
-
-                {/* JioMart */}
-                <Link
-                  to="/jiomart"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-sky-400/70 hover:shadow-[0_0_25px_rgba(56,189,248,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
-                >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/jiomart.jpg"
-                      alt="JioMart"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold">
-                    Essentials
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Daily essentials &amp; groceries.
-                  </p>
-                </Link>
-
-                {/* Tata Cliq */}
-                <Link
-                  to="/tatacliq"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-purple-400/70 hover:shadow-[0_0_25px_rgba(168,85,247,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
-                >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/tatacliq.jpg"
-                      alt="Tata Cliq"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Fasion</h3>
-                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Fashion &amp; lifestyle picks.
-                  </p>
-                </Link>
-
-                {/* Medical (Pharmeasy) */}
+                {/* Medical */}
                 <Link
                   to="/pharmeasy"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-teal-400/70 hover:shadow-[0_0_25px_rgba(45,212,191,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
@@ -380,79 +285,141 @@ export default function Home() {
                     Medical
                   </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    PharmEasy medicines &amp; healthcare.
+                    PharmEasy medicines & healthcare.
                   </p>
                 </Link>
 
-                {/* Agoda */}
+                {/* Combined (Amazon + Flipkart) */}
                 <Link
-                  to="/agoda"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-sky-400/70 hover:shadow-[0_0_25px_rgba(56,189,248,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                  to="/combined"
+                  className="group relative flex flex-col items-start justify-center gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/Agoda-Logo.png"
-                      alt="Agoda"
-                      className="w-full h-full object-contain"
-                    />
+                  <div className="flex items-center justify-center gap-x-3 text-2xl">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/flipkart.png"
+                        alt="flipkart"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <p>+</p>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/amazon.png"
+                        alt="amazon"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Agoda</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Flipkart + Amazon
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Discover deals on global stays with Agoda.
+                    Order products from flipkart & amazon
                   </p>
                 </Link>
 
-                {/* Airbnb */}
+                {/* Unified (Nykaa + Pantaloons + Westside) */}
                 <Link
-                  to="/airbnb"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-rose-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                  to="/unified"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-5 py-4 md:px-4 md:py-4 transition-all cursor-pointer"
                 >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/airbnb.png"
-                      alt="Airbnb"
-                      className="w-full h-full object-contain"
-                    />
+                  <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-x-1 text-base">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/nykaa.png"
+                        alt="Nykaa"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <p>+</p>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/pantaloons.png"
+                        alt="Pantaloons"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <p>+</p>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/westside.png"
+                        alt="Westside"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <p>+</p>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/tatacliq.jpg"
+                        alt="Tatacliq"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Airbnb</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Fashion Unified
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Unique homes and stays from Airbnb.
+                    Nykaa, Pantaloons, Westside & Tata Cliq
                   </p>
                 </Link>
+
+                {/* Hotels */}
                 <Link
-                  to="/flipkart"
+                  to="/hotels"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
+                  <div className="flex gap-1 w-full justify-center">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/agoda.png"
+                        alt="Agoda"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/bookingC.png"
+                        alt="Booking.com"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                      <img
+                        src="/logo/oyo.png"
+                        alt="Oyo"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold text-center w-full">Hotels</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug text-center w-full">
+                    Agoda, Booking.com & Oyo
+                  </p>
+                </Link>
+
+                {/* Flights */}
+                <Link
+                  to="/flight"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-blue-400/70 hover:shadow-[0_0_25px_rgba(59,130,246,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
                   <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                     <img
-                      src="/logo/flipkart.png"
-                      alt="Flipkart"
+                      src="/logo/flight.jpg"
+                      alt="Flight"
                       className="w-full h-full object-contain"
                     />
                   </div>
                   <h3 className="text-sm sm:text-base font-semibold">
-                    Flipkart
+                    Flight
                   </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Buy anything from Flipkart.
+                    Search and book flights
                   </p>
                 </Link>
-                <Link
-                  to="/amazon"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
-                >
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                    <img
-                      src="/logo/amazon.png"
-                      alt="Flipkart"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Amazon</h3>
-                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Buy products from Amazon
-                  </p>
-                </Link>
+
+                {/* Swiggy Dineout */}
                 <Link
                   to="/swiggy-dineout"
                   className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
@@ -471,38 +438,25 @@ export default function Home() {
                     Book tables at fine dining restaurants
                   </p>
                 </Link>
+
+                {/* Airbnb */}
                 <Link
-                  to="/hotels"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                  to="/airbnb"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-rose-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
                 >
-                  <div className="flex gap-3 w-full justify-center">
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                      <img
-                        src="/logo/agoda.png"
-                        alt="Hotels"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                      <img
-                        src="/logo/bookingC.png"
-                        alt="Hotels"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
-                      <img
-                        src="/logo/oyo.png"
-                        alt="Hotels"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img
+                      src="/logo/airbnb.png"
+                      alt="Airbnb"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-center w-full">Hotels</h3>
-                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug text-center w-full">
-                    Book Hotels at best prices
+                  <h3 className="text-sm sm:text-base font-semibold">Airbnb</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Unique homes and stays
                   </p>
                 </Link>
+
               </div>
             </div>
           </div>
@@ -518,7 +472,7 @@ export default function Home() {
         />
       )}
 
-      {/* Chatbot - Only in Home */}
+      {/* Chatbot */}
       <Chatbot />
     </div>
   );
