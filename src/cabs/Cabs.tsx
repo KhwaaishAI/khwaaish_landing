@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import RideComparison from "./RideComparison";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
+import FlowerLoader from "../components/FlowerLoader";
 // Last working Code!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 interface Message {
   role: "user" | "system" | "comparison";
@@ -24,22 +26,15 @@ export default function Cabs() {
   const [olaSessionId, setOlaSessionId] = useState("");
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
+  const [isOlaLoading, setIsOlaLoading] = useState(false);
+
   async function handleSend() {
     setShowChat(true);
     pushUser(messageInput);
     setIsLoading(true);
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "comparison",
-        content: "Ride comparison results:",
-        comparisonData: {
-          olaData: undefined,
-          rapidoData: undefined,
-        },
-      },
-    ]);
+    console.log(messageInput);
+    console.log("Calling both API");
 
     const config = {
       method: "POST",
@@ -47,29 +42,49 @@ export default function Cabs() {
       body: JSON.stringify({ prompt: messageInput }),
     };
 
-    fetch("https://api.khwaaish.com/api/rapido-llm/search", config)
-      .then((res) => res.json())
-      .then((data) => {
-        updateComparison("rapido", data);
-        console.log("Rapido Data", data);
-      })
-      .catch(() => {
-        updateComparison("rapido", { error: "Rapido failed" });
-      });
+    try {
+      const [rapidoRes, olaRes] = await Promise.allSettled([
+        fetch("https://api.khwaaish.com/api/rapido-llm/search", config).then(
+          (r) => r.json()
+        ),
+        fetch("https://api.khwaaish.com/api/ola/location-login", config).then(
+          (r) => r.json()
+        ),
+      ]);
 
-    fetch("https://api.khwaaish.com/api/ola/location-login", config)
-      .then((res) => res.json())
-      .then((data) => {
-        setOlaSessionId(data.session_id);
-        updateComparison("ola", data);
-        console.log("Ola Data", data);
-      })
-      .catch(() => {
-        updateComparison("ola", { error: "Ola failed" });
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      const rapidoData =
+        rapidoRes.status === "fulfilled"
+          ? rapidoRes.value
+          : { error: "Rapido failed" };
+
+      const olaData =
+        olaRes.status === "fulfilled" ? olaRes.value : { error: "Ola failed" };
+
+      if (olaData?.session_id) {
+        setOlaSessionId(olaData.session_id);
+      }
+
+      if (olaData?.status === "otp_sent") {
+        setOlaOtpPopup(true);
+      }
+
+      // SET MESSAGE ONLY AFTER DATA ARRIVES
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "comparison",
+          content: "Ride comparison results:",
+          comparisonData: {
+            rapidoData,
+            olaData,
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("API Error", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function updateComparison(type: "ola" | "rapido", data: any) {
@@ -170,6 +185,7 @@ export default function Cabs() {
           {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
             {messages.map((m) => renderMessage(m))}
+            {isLoading && <FlowerLoader />}
           </div>
         </div>
       ) : (
@@ -356,6 +372,11 @@ export default function Cabs() {
                     style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                    <VoiceRecorderButton
+                      onTextReady={(text) => {
+                        setMessageInput(text);
+                      }}
+                    />
                     <button
                       onClick={() => handleSend()}
                       className={`p-2 ${
@@ -388,20 +409,23 @@ export default function Cabs() {
                     className="relative w-full md:w-1/3 bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl 
                   border border-gray-700 hover:border-yellow-500/50 transition-all cursor-pointer group"
                   >
-                    <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
+                    <div className="flex mb-4 group-hover:scale-110 transition-transform">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                          <img
+                            src="/logo/ola.jpg"
+                            alt="Ola"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                          <img
+                            src="/logo/rapido.png"
+                            alt="Rapido"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      </div>
                     </div>
                     <h3 className="text-lg font-semibold mb-2">Cabs</h3>
                     <p className="text-sm text-gray-400">

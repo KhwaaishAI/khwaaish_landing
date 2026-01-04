@@ -101,16 +101,14 @@ export default function Amazon() {
     return (
       <div
         key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
+        className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
+          }`}
       >
         <div
-          className={`max-w-[85%] rounded-2xl px-4 py-3 border ${
-            m.role === "user"
+          className={`max-w-[85%] rounded-2xl px-4 py-3 border ${m.role === "user"
               ? "bg-white/15 text-white border-white/20"
               : "bg-gray-900/80 text-gray-100 border-gray-800"
-          }`}
+            }`}
         >
           <div className="text-sm leading-relaxed whitespace-pre-wrap">
             {typeof parsed === "string" ? parsed : String(parsed)}
@@ -197,23 +195,6 @@ export default function Amazon() {
       {/* MAIN UI */}
       {showChat ? (
         <div className="relative min-h-screen w-full bg-black overflow-hidden">
-          {/* <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-            <div className="flex items-center gap-3">
-              <Link to="/" className="text-sm text-gray-300 hover:text-white">
-                Back
-              </Link>
-              <div className="text-sm text-gray-200">
-                Amazon Shopping {lastSearchQuery ? `• ${lastSearchQuery}` : ""}
-              </div>
-            </div>
-            <button
-              onClick={onNewChat}
-              className="text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 border border-gray-800"
-            >
-              New chat
-            </button>
-          </div> */}
-
           <div className="flex-1 h-[calc(100vh-80px)] overflow-y-auto px-4 py-6 space-y-4">
             {messages.map(renderMessage)}
             {isLoading ? <FlowerLoader /> : null}
@@ -246,11 +227,10 @@ export default function Amazon() {
               />
               <button
                 type="submit"
-                className={`p-2.5 rounded-full ${
-                  messageInput
+                className={`p-2.5 rounded-full ${messageInput
                     ? "bg-red-600 hover:bg-red-500"
                     : "bg-white/20 hover:bg-white/30"
-                } transition-colors`}
+                  } transition-colors`}
               >
                 <span className="text-sm font-semibold">Send</span>
               </button>

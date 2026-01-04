@@ -477,9 +477,8 @@ export default function Instamart() {
                   <div
                     key={key + index}
                     onClick={() => setSelectedProductKey(key)}
-                    className={`relative flex flex-col bg-[#11121a] rounded-2xl overflow-hidden shadow-sm transition-colors cursor-pointer ${
-                      isSelected ? "bg-[#181924]" : "hover:bg-[#151622]"
-                    }`}
+                    className={`relative flex flex-col bg-[#11121a] rounded-2xl overflow-hidden shadow-sm transition-colors cursor-pointer ${isSelected ? "bg-[#181924]" : "hover:bg-[#151622]"
+                      }`}
                   >
                     {isSelected && (
                       <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-[10px] font-bold">
@@ -580,11 +579,10 @@ export default function Instamart() {
             <div className="mt-4 flex justify-end">
               <button
                 onClick={handleConfirmCart}
-                className={`px-5 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 ${
-                  loadingInstamartCart
-                    ? "bg-gray-600 cursor-not-allowed text-gray-400"
-                    : "bg-red-600 hover:bg-red-500 text-white shadow-lg hover:shadow-red-500/25"
-                }`}
+                className={`px-5 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 ${loadingInstamartCart
+                  ? "bg-gray-600 cursor-not-allowed text-gray-400"
+                  : "bg-red-600 hover:bg-red-500 text-white shadow-lg hover:shadow-red-500/25"
+                  }`}
                 disabled={loadingInstamartCart}
               >
                 {loadingInstamartCart ? (
@@ -697,11 +695,10 @@ export default function Instamart() {
                 }
                 setShowUpiPopup(true);
               }}
-              className={`px-5 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 ${
-                loadingInstamartBuyWithAddress
-                  ? "bg-gray-600 cursor-not-allowed text-gray-200"
-                  : "bg-red-600 hover:bg-red-500 text-white"
-              }`}
+              className={`px-5 py-2 rounded-xl font-semibold flex items-center justify-center gap-2 ${loadingInstamartBuyWithAddress
+                ? "bg-gray-600 cursor-not-allowed text-gray-200"
+                : "bg-red-600 hover:bg-red-500 text-white"
+                }`}
               disabled={loadingInstamartBuyWithAddress}
             >
               {loadingInstamartBuyWithAddress ? (
@@ -758,11 +755,10 @@ export default function Instamart() {
                   return (
                     <label
                       key={idVal}
-                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer ${
-                        checked
-                          ? "border-red-500 bg-white/5"
-                          : "border-gray-800 bg-transparent"
-                      }`}
+                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer ${checked
+                        ? "border-red-500 bg-white/5"
+                        : "border-gray-800 bg-transparent"
+                        }`}
                     >
                       <input
                         type="radio"
@@ -848,16 +844,14 @@ export default function Instamart() {
     ) : (
       <div
         key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
+        className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
+          }`}
       >
         <div
-          className={`${
-            m.role === "user"
-              ? "bg-white/15 text-white border-white/20"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } 
+          className={`${m.role === "user"
+            ? "bg-white/15 text-white border-white/20"
+            : "bg-gray-900/80 text-gray-100 border-gray-800"
+            } 
           max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
         >
           {content}
@@ -907,26 +901,6 @@ export default function Instamart() {
             <h2 className="text-xl font-semibold text-white">
               Enter your details
             </h2>
-
-            {hasInstamartAccount === false && (
-              <>
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={signupName}
-                  onChange={(e) => setSignupName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-                />
-
-                <input
-                  type="email"
-                  placeholder="Email (e.g. user@gmail.com)"
-                  value={signupEmail}
-                  onChange={(e) => setSignupEmail(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-gray-700 text-white outline-none"
-                />
-              </>
-            )}
 
             <input
               type="text"
@@ -1107,18 +1081,17 @@ export default function Instamart() {
               />
 
               <VoiceRecorderButton
-                onTextReady={(text) =>
-                  setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
-                }
+                onTextReady={(text) => {
+                  setMessageInput(text);
+                }}
               />
 
               <button
                 type="submit"
-                className={`p-2.5 rounded-full ${
-                  messageInput
-                    ? "bg-red-600 hover:bg-red-500"
-                    : "bg-white/20 hover:bg-white/30"
-                }`}
+                className={`p-2.5 rounded-full ${messageInput
+                  ? "bg-red-600 hover:bg-red-500"
+                  : "bg-white/20 hover:bg-white/30"
+                  }`}
               >
                 <svg
                   className="w-5 h-5"
@@ -1273,13 +1246,17 @@ export default function Instamart() {
                     style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                    <VoiceRecorderButton
+                      onTextReady={(text) => {
+                        setMessageInput(text);
+                      }}
+                    />
                     <button
                       onClick={() => handleSend()}
-                      className={`p-2 ${
-                        messageInput
-                          ? "bg-red-600 hover:bg-red-500"
-                          : "bg-white/20 hover:bg-white/30"
-                      } rounded-full transition-colors`}
+                      className={`p-2 ${messageInput
+                        ? "bg-red-600 hover:bg-red-500"
+                        : "bg-white/20 hover:bg-white/30"
+                        } rounded-full transition-colors`}
                     >
                       <svg
                         className="w-5 h-5"

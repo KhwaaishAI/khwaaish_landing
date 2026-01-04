@@ -146,16 +146,14 @@ export default function Flipkart() {
     ) : (
       <div
         key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
+        className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
+          }`}
       >
         <div
-          className={`${
-            m.role === "user"
-              ? "bg-white/15 text-white border-white/20"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          className={`${m.role === "user"
+            ? "bg-white/15 text-white border-white/20"
+            : "bg-gray-900/80 text-gray-100 border-gray-800"
+            } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
         >
           {content}
         </div>
@@ -272,18 +270,17 @@ export default function Flipkart() {
               />
 
               <VoiceRecorderButton
-                onTextReady={(text) =>
-                  setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
-                }
+                onTextReady={(text) => {
+                  setMessageInput(text);
+                }}
               />
 
               <button
                 type="submit"
-                className={`p-2.5 rounded-full ${
-                  messageInput
-                    ? "bg-red-600 hover:bg-red-500"
-                    : "bg-white/20 hover:bg-white/30"
-                }`}
+                className={`p-2.5 rounded-full ${messageInput
+                  ? "bg-red-600 hover:bg-red-500"
+                  : "bg-white/20 hover:bg-white/30"
+                  }`}
               >
                 <svg
                   className="w-5 h-5"
@@ -302,21 +299,20 @@ export default function Flipkart() {
             </div>
           </form>
         </div>
-      ) : (
-        <LandingView
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          messageInput={messageInput}
-          setMessageInput={setMessageInput}
-          onSend={handleSend}
-          onNewChat={handleNewChat}
-          title="Welcome to Flipkart Shopping!"
-          subtitle="Search for any product you want to buy"
-          searchPlaceholder="Search for products on Flipkart..."
-          cardTitle="Flipkart Shopping"
-          cardDescription="Search and buy products from Flipkart with voice commands"
-        />
-      )}
+      ) : <LandingView
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        messageInput={messageInput}
+        setMessageInput={setMessageInput}
+        onSend={handleSend}
+        onNewChat={handleNewChat}
+        title="Welcome to Flipkart Shopping!"
+        subtitle="Search for any product you want to buy"
+        searchPlaceholder="Search for products on Flipkart..."
+        cardTitle="Flipkart Shopping"
+        cardDescription="Search and buy products from Flipkart with voice commands"
+      />
+      }
     </div>
   );
 }

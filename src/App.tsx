@@ -24,12 +24,14 @@ import PantaloonsChat from "./pages/Pantaloons";
 import Flipkart from "./pages/Flipkart";
 import Amazon from "./pages/Amazon";
 import Combined from "./pages/Combined";
-import UnifiedChat from "./pages/Unified";  
+import UnifiedChat from "./pages/Unified";
 import TataCliq from "./pages/TataCliq";
 import BookingCom from "./pages/BookingCom";
 import Shopping from "./pages/Shopping";
 import Cabs from "./cabs/Cabs";
+import Hotels from "./hotels/Hotels";
 import Flight from "./flight/Flight";
+import UnifiedGroceries from "./pages/UnifiedGroceries";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -55,14 +57,15 @@ export default function App() {
           element={loggedIn ? <Home /> : <Navigate to="/" replace />}
         />
 
-        {/* Chat Pages */}
+        {/* Chat Pages */}\r
         <Route
           path="/groceries"
-          element={loggedIn ? <Chat1 /> : <Navigate to="/" replace />}
+          element={loggedIn ? <UnifiedGroceries /> : <Navigate to="/" replace />}
         />
         <Route
           path="/chat2"
-          element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
+          element={<Chat2 />}
+        // element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
         />
         <Route
           path="/myntra"
@@ -114,7 +117,8 @@ export default function App() {
         />
         <Route
           path="/agoda"
-          element={loggedIn ? <Agoda /> : <Navigate to="/" replace />}
+          element={<Agoda />}
+        // element={loggedIn ? <Agoda /> : <Navigate to="/" replace />}
         />
         <Route
           path="/airbnb"
@@ -149,6 +153,8 @@ export default function App() {
         <Route
           path="/tata-cliq"
           element={loggedIn ? <TataCliq /> : <Navigate to="/" replace />}
+        />
+        <Route
           path="/bookingcom"
           element={loggedIn ? <BookingCom /> : <Navigate to="/" replace />}
         />
@@ -159,6 +165,10 @@ export default function App() {
         <Route
           path="/cabs"
           element={loggedIn ? <Cabs /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/hotels"
+          element={loggedIn ? <Hotels /> : <Navigate to="/" replace />}
         />
         <Route
           path="/flight"

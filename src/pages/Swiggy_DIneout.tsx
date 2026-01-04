@@ -958,6 +958,11 @@ export default function SwiggyDineoutChat() {
                     style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                    <VoiceRecorderButton
+                      onTextReady={(text) => {
+                        setMessageInput(text);
+                      }}
+                    />
                     <button
                       onClick={handleSend}
                       disabled={loadingSearch}
