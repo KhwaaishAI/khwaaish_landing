@@ -570,9 +570,9 @@ export default function Home() {
                 {/* Unified (Nykaa + Pantaloons + Westside) */}
                 <Link
                   to="/unified"
-                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-yellow-400/70 hover:shadow-[0_0_25px_rgba(244,63,94,0.35)] px-5 py-4 md:px-4 md:py-4 transition-all cursor-pointer"
                 >
-                  <div className="flex items-center justify-center gap-x-3 text-2xl">
+                  <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-x-1 text-base">
                     <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                       <img
                         src="/logo/nykaa.png"
@@ -599,7 +599,7 @@ export default function Home() {
                     <p>+</p>
                     <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
                       <img
-                        src="/logo/tatacliq.png"
+                        src="/logo/tatacliq.jpg"
                         alt="Tatacliq"
                         className="w-full h-full object-contain"
                       />
@@ -609,7 +609,7 @@ export default function Home() {
                     Nykaa + Pantaloons + Westside + Tata Cliq
                   </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
-                    Order products from nykaa, pantaloons & westside
+                    Order products from nykaa, pantaloons, westside & tatacliq
                   </p>
                 </Link>
 
