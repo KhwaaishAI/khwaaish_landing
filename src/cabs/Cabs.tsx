@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import RideComparison from "./RideComparison";
 import VoiceRecorderButton from "../components/VoiceRecorderButton";
+import FlowerLoader from "../components/FlowerLoader";
 // Last working Code!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 interface Message {
   role: "user" | "system" | "comparison";
@@ -25,22 +26,15 @@ export default function Cabs() {
   const [olaSessionId, setOlaSessionId] = useState("");
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
+  const [isOlaLoading, setIsOlaLoading] = useState(false);
+
   async function handleSend() {
     setShowChat(true);
     pushUser(messageInput);
     setIsLoading(true);
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "comparison",
-        content: "Ride comparison results:",
-        comparisonData: {
-          olaData: undefined,
-          rapidoData: undefined,
-        },
-      },
-    ]);
+    console.log(messageInput);
+    console.log("Calling both API");
 
     const config = {
       method: "POST",
@@ -48,29 +42,49 @@ export default function Cabs() {
       body: JSON.stringify({ prompt: messageInput }),
     };
 
-    fetch("https://api.khwaaish.com/api/rapido-llm/search", config)
-      .then((res) => res.json())
-      .then((data) => {
-        updateComparison("rapido", data);
-        console.log("Rapido Data", data);
-      })
-      .catch(() => {
-        updateComparison("rapido", { error: "Rapido failed" });
-      });
+    try {
+      const [rapidoRes, olaRes] = await Promise.allSettled([
+        fetch("https://api.khwaaish.com/api/rapido-llm/search", config).then(
+          (r) => r.json()
+        ),
+        fetch("https://api.khwaaish.com/api/ola/location-login", config).then(
+          (r) => r.json()
+        ),
+      ]);
 
-    fetch("https://api.khwaaish.com/api/ola/location-login", config)
-      .then((res) => res.json())
-      .then((data) => {
-        setOlaSessionId(data.session_id);
-        updateComparison("ola", data);
-        console.log("Ola Data", data);
-      })
-      .catch(() => {
-        updateComparison("ola", { error: "Ola failed" });
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      const rapidoData =
+        rapidoRes.status === "fulfilled"
+          ? rapidoRes.value
+          : { error: "Rapido failed" };
+
+      const olaData =
+        olaRes.status === "fulfilled" ? olaRes.value : { error: "Ola failed" };
+
+      if (olaData?.session_id) {
+        setOlaSessionId(olaData.session_id);
+      }
+
+      if (olaData?.status === "otp_sent") {
+        setOlaOtpPopup(true);
+      }
+
+      // SET MESSAGE ONLY AFTER DATA ARRIVES
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "comparison",
+          content: "Ride comparison results:",
+          comparisonData: {
+            rapidoData,
+            olaData,
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("API Error", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function updateComparison(type: "ola" | "rapido", data: any) {
@@ -171,6 +185,7 @@ export default function Cabs() {
           {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
             {messages.map((m) => renderMessage(m))}
+            {isLoading && <FlowerLoader />}
           </div>
         </div>
       ) : (
