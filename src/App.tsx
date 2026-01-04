@@ -7,7 +7,7 @@ import Chat1 from "./pages/Chat1";
 import Chat2 from "./pages/Chat2";
 import Chat3 from "./pages/Chat3";
 import Chat4 from "./pages/Chat4";
-import Chat5 from "./pages/Chat5";
+import Chat5 from "./pages/Nykaa";
 import Chat6 from "./pages/Chat6";
 import Chat7 from "./pages/Chat7";
 import Chat8 from "./pages/Chat8";
@@ -17,9 +17,15 @@ import Instamart from "./pages/Instamart";
 import Booking from "./pages/Booking";
 import Agoda from "./pages/Agoda";
 import Airbnb from "./pages/Airbnb";
-import Flipkart from "./pages/Flipkart";
 import SwiggyDineoutChat from "./pages/Swiggy_DIneout";
+import UnifiedLanding from "./pages/UnifiedLanding";
+import WestsideChat from "./pages/Westside";
+import PantaloonsChat from "./pages/Pantaloons";
+import Flipkart from "./pages/Flipkart";
 import Amazon from "./pages/Amazon";
+import Combined from "./pages/Combined";
+import UnifiedChat from "./pages/Unified";  
+import TataCliq from "./pages/TataCliq";
 import BookingCom from "./pages/BookingCom";
 import Shopping from "./pages/Shopping";
 import Cabs from "./cabs/Cabs";
@@ -69,6 +75,14 @@ export default function App() {
         <Route
           path="/nykaa"
           element={loggedIn ? <Chat5 /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/westside"
+          element={loggedIn ? <WestsideChat /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/pantaloons"
+          element={loggedIn ? <PantaloonsChat /> : <Navigate to="/" replace />}
         />
         <Route
           path="/jiomart"
@@ -121,6 +135,20 @@ export default function App() {
           }
         />
         <Route
+          path="/unified-landing"
+          element={loggedIn ? <UnifiedLanding /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/combined"
+          element={loggedIn ? <Combined /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/unified"
+          element={loggedIn ? <UnifiedChat /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/tata-cliq"
+          element={loggedIn ? <TataCliq /> : <Navigate to="/" replace />}
           path="/bookingcom"
           element={loggedIn ? <BookingCom /> : <Navigate to="/" replace />}
         />
