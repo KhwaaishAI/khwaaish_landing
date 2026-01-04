@@ -16,7 +16,7 @@ export default function ShoppersStopProductGrid({
       <h3 className="text-lg font-semibold mb-2">Shoppers Stop products</h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
-        {products.slice(0, 12).map((p, index) => {
+        {products.slice(0, 5).map((p, index) => {
           const key = `${p.url}-${index}`;
           const isSelected = selectedProductUrl === p.url;
 
@@ -37,7 +37,7 @@ export default function ShoppersStopProductGrid({
                   <img
                     src={p.image_url}
                     alt={p.title}
-                    className="w-full h-40 object-contain"
+                    className="w-full h-64 object-fit"
                     onError={(e) => {
                       console.log("SHOPPERSSTOP UI image failed:", p.image_url);
                       (e.currentTarget as HTMLImageElement).style.display =

@@ -387,7 +387,8 @@ export function useShoppersStopFlow({ BaseURL, pushSystem }: Opts) {
       );
 
       if (!res.ok || String(data?.status).toLowerCase() !== "success") {
-        failAndCloseAll(data?.message || "Error from Shoppers Stop server");
+        // failAndCloseAll(data?.message || "Error from Shoppers Stop server");
+        failAndCloseAll("Error from Shoppers Stop server");
         return;
       }
 
