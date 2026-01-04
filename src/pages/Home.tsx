@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Chatbot from "../components/Chatbot";
 
 export default function Home() {
   const [searchText, setSearchText] = useState("");
@@ -516,6 +517,9 @@ export default function Home() {
           className="fixed inset-0 z-30 bg-black/60 md:hidden"
         />
       )}
+
+      {/* Chatbot - Only in Home */}
+      <Chatbot />
     </div>
   );
 }
