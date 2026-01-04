@@ -1,7 +1,11 @@
 import type { WestsideBuyWithAddressBody } from "../../types/westside";
 
+const normalizeBaseURL = (BaseURL: string) =>
+  (BaseURL || "").replace(/\/+$/, "");
+
 export async function westsideSearch(BaseURL: string, query: string) {
   const body = { query, max_items: 5 };
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/westside/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -14,6 +18,7 @@ export async function westsideSearch(BaseURL: string, query: string) {
 
 export async function westsideView(BaseURL: string, product_url: string) {
   const body = { product_url };
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/westside/view`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -29,6 +34,7 @@ export async function westsideAddToCart(
   size: string
 ) {
   const body = { product_url, size };
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/westside/add-to-cart`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -44,6 +50,7 @@ export async function westsideAccountCheck(
   session_id: string
 ) {
   const body = { session_id };
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/westside/account-check`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -59,6 +66,7 @@ export async function westsideLogin(
   mobile: string
 ) {
   const body = { session_id, mobile };
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/westside/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -80,6 +88,7 @@ export async function westsideVerifyOtp(
   otp: string
 ) {
   const body = { session_id, otp };
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/westside/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -93,6 +102,7 @@ export async function westsideBuyWithAddress(
   BaseURL: string,
   payload: WestsideBuyWithAddressBody
 ) {
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/westside/buy-with-address`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

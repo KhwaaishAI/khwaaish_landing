@@ -4,10 +4,11 @@ import type {
   ShoppersStopSignupBody,
 } from "../../types/shoppersstop";
 
-const joinUrl = (base: string, path: string) =>
-  `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
+const normalizeBaseURL = (BaseURL: string) =>
+  (BaseURL || "").replace(/\/+$/, "");
 
 export async function shoppersstopSearch(BaseURL: string, query: string) {
+  BaseURL = normalizeBaseURL(BaseURL);
   const body = { query, max_items: 30 };
   const res = await fetch(`${BaseURL}/api/shoppersstop/search`, {
     method: "POST",
@@ -20,6 +21,7 @@ export async function shoppersstopSearch(BaseURL: string, query: string) {
 
 export async function shoppersstopView(BaseURL: string, product_url: string) {
   const body = { product_url };
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/shoppersstop/view`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -36,8 +38,9 @@ export async function shoppersstopAddToCart(
   phone: string
 ) {
   const body = { product_url, size, phone };
+  BaseURL = normalizeBaseURL(BaseURL);
 
-  // ✅ FIX: shoppersstop add-to-cart should be under /api/shoppersstop
+  // FIX: shoppersstop add-to-cart should be under /api/shoppersstop
   const res = await fetch(`${BaseURL}/api/shoppersstop/add-to-cart`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -54,6 +57,7 @@ export async function shoppersstopVerifyOtp(
   otp: string
 ) {
   const body = { session_id, otp };
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/shoppersstop/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -67,6 +71,7 @@ export async function shoppersstopSignup(
   BaseURL: string,
   payload: ShoppersStopSignupBody
 ) {
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/shoppersstop/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -81,6 +86,7 @@ export async function shoppersstopSaveAddress(
   session_id: string
 ) {
   const body = { session_id };
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/shoppersstop/save-address`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -94,6 +100,7 @@ export async function shoppersstopAddAddress(
   BaseURL: string,
   payload: ShoppersStopAddAddressBody
 ) {
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/shoppersstop/add-address`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -107,6 +114,7 @@ export async function shoppersstopPayment(
   BaseURL: string,
   payload: ShoppersStopPaymentBody
 ) {
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/shoppersstop/payment`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

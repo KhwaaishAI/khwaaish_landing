@@ -8,6 +8,7 @@ import LandingView from "../components/LandingView";
 import ProductGrid from "../components/nykaa/ProductGrid";
 import WestsideProductGrid from "../components/westside/WestsideProductGrid";
 import PantaloonsProductGrid from "../components/pantaloons/PantaloonsProductGrid";
+import ShoppersStopProductGrid from "../components/shoppersstop/ShoppersStopProductGrid";
 
 // Nykaa popups
 import SizePopup from "../components/nykaa/SizePopup";
@@ -26,14 +27,24 @@ import PantaloonsSizePopup from "../components/pantaloons/PantaloonsSizePopup";
 import PantaloonsPhoneOtpPopup from "../components/pantaloons/PantaloonsPhoneOtpPopup";
 import PantaloonsUpiAddressPopup from "../components/pantaloons/PantaloonsUpiAddressPopup";
 
+// Shoppers Stop popups (preserve original component names)
+import ShoppersStopProductPopup from "../components/shoppersstop/ShoppersStopProductPopup";
+import ShoppersStopOtpPopup from "../components/shoppersstop/ShoppersStopOtpPopup";
+import ShoppersStopSignupPopup from "../components/shoppersstop/ShoppersStopSignupPopup";
+import ShoppersStopSelectAddressPopup from "../components/shoppersstop/ShoppersStopSelectAddressPopup";
+import ShoppersStopAddAddressPopup from "../components/shoppersstop/ShoppersStopAddAddressPopup";
+import ShoppersStopUpiPopup from "../components/shoppersstop/ShoppersStopUpiPopup";
+
 // Flows (existing logic)
 import { useNykaaFlow } from "../utils/hooks/useNykaaFlow";
 import { useWestsideFlow } from "../utils/hooks/useWestsideFlow";
 import { usePantaloonsFlow } from "../utils/hooks/usePantaloonsFlow";
+import { useShoppersStopFlow } from "../utils/hooks/useShoppersStopFlow";
 
 import type { NykaaProduct } from "../types/nykaa";
 import type { WestsideProduct } from "../types/westside";
 import type { PantaloonsProduct } from "../types/pantaloons";
+import type { ShoppersStopProduct } from "../types/shoppersstop";
 
 // New unified search hook
 import { useUnifiedSearch } from "../utils/hooks/useUnifiedSearch";
@@ -48,10 +59,12 @@ type UnifiedProductsMessage = {
   nykaa: NykaaProduct[];
   westside: WestsideProduct[];
   pantaloons: PantaloonsProduct[];
+  shoppersstop: ShoppersStopProduct[];
   errors?: {
     nykaa?: string;
     westside?: string;
     pantaloons?: string;
+    shoppersstop?: string;
   };
 };
 
@@ -69,6 +82,7 @@ export default function Unified() {
       ...prev,
       { id: crypto.randomUUID(), role: "system", content: text },
     ]);
+
   const pushUser = (text: string) =>
     setMessages((prev) => [
       ...prev,
@@ -79,6 +93,9 @@ export default function Unified() {
   const nykaaFlow = useNykaaFlow({ BaseURL, pushSystem });
   const westsideFlow = useWestsideFlow({ BaseURL, pushSystem });
   const pantaloonsFlow = usePantaloonsFlow({ BaseURL, pushSystem });
+
+  // ShoppersStop flow (preserve original key/variable/function names)
+  const shoppersstopFlow = useShoppersStopFlow({ BaseURL, pushSystem });
 
   // Unified search
   const unified = useUnifiedSearch({ BaseURL });
@@ -96,7 +113,8 @@ export default function Unified() {
 
     setIsLoading(true);
     try {
-      const { nykaa, westside, pantaloons } = await unified.searchAll(q);
+      const { nykaa, westside, pantaloons, shoppersstop } =
+        await unified.searchAll(q);
 
       const payload: UnifiedProductsMessage = {
         type: "unified-products",
@@ -104,6 +122,7 @@ export default function Unified() {
         nykaa,
         westside,
         pantaloons,
+        shoppersstop,
         errors: unified.errors,
       };
 
@@ -131,16 +150,24 @@ export default function Unified() {
     setShowChat(true);
     setMessages([]);
     setMessageInput("");
+
+    // preserve existing flows; additionally close ShoppersStop popups
+    shoppersstopFlow.closeAllPopups();
   };
 
   const renderUnifiedProducts = (p: UnifiedProductsMessage) => {
     const nykaaSelected = nykaaFlow.pendingProduct;
+
     const westsideSelectedUrl =
       westsideFlow.pendingProduct?.product_url ?? null;
+
     const pantaloonsSelectedUrl =
       pantaloonsFlow.pendingProduct?.producturl ?? null;
 
-    const getNykaaAvailableSizes = (p: any): string[] => {
+    const shoppersstopSelectedUrl =
+      shoppersstopFlow.pendingProduct?.url ?? null;
+
+    const getNykaaAvailableSizesLocal = (p: any): string[] => {
       const raw =
         p?.availablesizes ?? p?.available_sizes ?? p?.availableSizes ?? [];
       const arr = Array.isArray(raw) ? raw : [];
@@ -150,7 +177,10 @@ export default function Unified() {
 
     return (
       <div className="w-full space-y-6">
-        {p.errors?.nykaa || p.errors?.westside || p.errors?.pantaloons ? (
+        {p.errors?.nykaa ||
+        p.errors?.westside ||
+        p.errors?.pantaloons ||
+        p.errors?.shoppersstop ? (
           <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-200">
             {p.errors?.nykaa ? <div>Nykaa: {p.errors.nykaa}</div> : null}
             {p.errors?.westside ? (
@@ -158,6 +188,9 @@ export default function Unified() {
             ) : null}
             {p.errors?.pantaloons ? (
               <div>Pantaloons: {p.errors.pantaloons}</div>
+            ) : null}
+            {p.errors?.shoppersstop ? (
+              <div>Shoppers Stop: {p.errors.shoppersstop}</div>
             ) : null}
           </div>
         ) : null}
@@ -168,7 +201,7 @@ export default function Unified() {
             <ProductGrid
               products={p.nykaa}
               selectedProduct={nykaaSelected}
-              onSelect={(product) => nykaaFlow.openSizeForProduct(product)}
+              onSelect={(product: any) => nykaaFlow.openSizeForProduct(product)}
             />
           ) : (
             <div className="text-sm text-white/60">
@@ -183,7 +216,7 @@ export default function Unified() {
             <WestsideProductGrid
               products={p.westside}
               selectedProductUrl={westsideSelectedUrl}
-              onSelect={(product) =>
+              onSelect={(product: any) =>
                 westsideFlow.openProductAndFetchSizes(product)
               }
             />
@@ -200,13 +233,30 @@ export default function Unified() {
             <PantaloonsProductGrid
               products={p.pantaloons}
               selectedProductUrl={pantaloonsSelectedUrl}
-              onSelect={(product) =>
+              onSelect={(product: any) =>
                 pantaloonsFlow.openProductThenAskPincode(product)
               }
             />
           ) : (
             <div className="text-sm text-white/60">
               No Pantaloons products found.
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold">Shoppers Stop results</h3>
+          {p.shoppersstop?.length ? (
+            <ShoppersStopProductGrid
+              products={p.shoppersstop}
+              selectedProductUrl={shoppersstopSelectedUrl}
+              onSelect={(product: any) =>
+                shoppersstopFlow.openProductAndFetchSizes(product)
+              }
+            />
+          ) : (
+            <div className="text-sm text-white/60">
+              No Shoppers Stop products found.
             </div>
           )}
         </div>
@@ -231,7 +281,7 @@ export default function Unified() {
       );
     }
 
-    // Preserve your existing "success" UI behavior (same pattern as brand pages)
+    // Preserve existing "success" UI behavior
     const isSuccess =
       (typeof parsed === "object" &&
         String(parsed?.status).toLowerCase().includes("success")) ||
@@ -294,7 +344,7 @@ export default function Unified() {
         sizes={
           nykaaFlow.pendingProduct
             ? getNykaaAvailableSizes(nykaaFlow.pendingProduct)
-            : []
+            : nykaaFlow.sizesFallback
         }
         selectedSize={nykaaFlow.selectedSize}
         onSelectSize={nykaaFlow.setSelectedSize}
@@ -302,6 +352,7 @@ export default function Unified() {
         onClose={() => nykaaFlow.setShowSizePopup(false)}
         loading={nykaaFlow.loadingCart}
       />
+
       <AddressPopup
         open={nykaaFlow.showAddressPopup}
         address={nykaaFlow.nykaaAddress}
@@ -310,6 +361,7 @@ export default function Unified() {
         onClose={() => nykaaFlow.setShowAddressPopup(false)}
         loading={nykaaFlow.loadingCart}
       />
+
       <UpiPopup
         open={nykaaFlow.showUpiPopup}
         upiId={nykaaFlow.upiId}
@@ -323,8 +375,8 @@ export default function Unified() {
       <WestsideSizePopup
         open={westsideFlow.showSizePopup}
         productName={
-          westsideFlow.viewData?.productname ??
-          westsideFlow.pendingProduct?.productname
+          westsideFlow.viewData?.product_name ??
+          westsideFlow.pendingProduct?.product_name
         }
         productPrice={
           westsideFlow.viewData?.price ?? westsideFlow.pendingProduct?.price
@@ -336,6 +388,7 @@ export default function Unified() {
         onClose={() => westsideFlow.setShowSizePopup(false)}
         loading={westsideFlow.loadingAddToCart || westsideFlow.loadingView}
       />
+
       <WestsideUpiPopup
         open={westsideFlow.showUpiPopup}
         upiId={westsideFlow.upiId}
@@ -344,6 +397,7 @@ export default function Unified() {
         onClose={() => westsideFlow.setShowUpiPopup(false)}
         loading={false}
       />
+
       <WestsideAddressPopup
         open={westsideFlow.showAddressPopup}
         address={westsideFlow.address}
@@ -352,6 +406,7 @@ export default function Unified() {
         onClose={() => westsideFlow.setShowAddressPopup(false)}
         loading={westsideFlow.loadingBuy}
       />
+
       <WestsideLoginOtpPopup
         open={westsideFlow.showLoginOtpPopup}
         mobile={westsideFlow.mobile}
@@ -374,6 +429,7 @@ export default function Unified() {
         onClose={() => pantaloonsFlow.setShowPincodePopup(false)}
         loading={pantaloonsFlow.loadingInfo}
       />
+
       <PantaloonsSizePopup
         open={pantaloonsFlow.showSizePopup}
         productName={
@@ -391,6 +447,7 @@ export default function Unified() {
         onClose={() => pantaloonsFlow.setShowSizePopup(false)}
         loading={false}
       />
+
       <PantaloonsPhoneOtpPopup
         open={pantaloonsFlow.showPhoneOtpPopup}
         phone={pantaloonsFlow.phone}
@@ -406,6 +463,7 @@ export default function Unified() {
         loadingVerify={pantaloonsFlow.loadingVerifyOtp}
         phase={pantaloonsFlow.phonePhase}
       />
+
       <PantaloonsUpiAddressPopup
         open={pantaloonsFlow.showUpiAddressPopup}
         upiId={pantaloonsFlow.upiId}
@@ -417,6 +475,76 @@ export default function Unified() {
         onRun={pantaloonsFlow.runAutomation}
         onClose={() => pantaloonsFlow.setShowUpiAddressPopup(false)}
         loading={pantaloonsFlow.loadingRun}
+      />
+
+      {/* SHOPPERS STOP POPUPS (wire EXACT prop names used by these components) */}
+      <ShoppersStopProductPopup
+        open={shoppersstopFlow.showProductPopup}
+        loading={shoppersstopFlow.loadingView}
+        loadingAddToCart={shoppersstopFlow.loadingAddToCart}
+        productTitle={shoppersstopFlow.pendingProduct?.title}
+        productPrice={shoppersstopFlow.pendingProduct?.price}
+        sizes={shoppersstopFlow.sizesToShow}
+        selectedSize={shoppersstopFlow.selectedSize}
+        onSelectSize={shoppersstopFlow.setSelectedSize}
+        phone={shoppersstopFlow.phone}
+        setPhone={shoppersstopFlow.setPhone}
+        bill={shoppersstopFlow.bill}
+        onAddToCart={shoppersstopFlow.handleAddToCart}
+        onClose={() => shoppersstopFlow.setShowProductPopup(false)}
+      />
+
+      <ShoppersStopOtpPopup
+        open={shoppersstopFlow.showOtpPopup}
+        otp={shoppersstopFlow.otp}
+        setOtp={shoppersstopFlow.setOtp}
+        bill={shoppersstopFlow.bill}
+        onVerifyOtp={shoppersstopFlow.verifyOtpAndContinue}
+        onCancelBack={shoppersstopFlow.backToProductFromOtp}
+        loadingVerify={
+          shoppersstopFlow.loadingVerifyOtp ||
+          shoppersstopFlow.loadingSaveAddress
+        }
+      />
+
+      <ShoppersStopSignupPopup
+        open={shoppersstopFlow.showSignupPopup}
+        signup={shoppersstopFlow.signup}
+        setSignup={shoppersstopFlow.setSignup}
+        onSubmit={shoppersstopFlow.submitSignupThenContinue}
+        onCancelBack={shoppersstopFlow.backToOtpFromSignup}
+        loading={
+          shoppersstopFlow.loadingSignup || shoppersstopFlow.loadingSaveAddress
+        }
+      />
+
+      <ShoppersStopSelectAddressPopup
+        open={shoppersstopFlow.showSelectAddressPopup}
+        addresses={shoppersstopFlow.addresses}
+        selectedAddressId={shoppersstopFlow.selectedAddressId}
+        setSelectedAddressId={shoppersstopFlow.setSelectedAddressId}
+        bill={shoppersstopFlow.bill}
+        onContinue={shoppersstopFlow.proceedAfterAddressSelected}
+        onCancelBack={shoppersstopFlow.backToOtpFromAddressSelection}
+        loading={shoppersstopFlow.loadingSaveAddress}
+      />
+
+      <ShoppersStopAddAddressPopup
+        open={shoppersstopFlow.showAddAddressPopup}
+        addAddress={shoppersstopFlow.addAddress}
+        setAddAddress={shoppersstopFlow.setAddAddress}
+        onSubmit={shoppersstopFlow.submitAddAddressThenContinue}
+        onCancelBack={shoppersstopFlow.backToOtpFromAddAddress}
+        loading={shoppersstopFlow.loadingAddAddress}
+      />
+
+      <ShoppersStopUpiPopup
+        open={shoppersstopFlow.showUpiPopup}
+        upiId={shoppersstopFlow.upiId}
+        setUpiId={shoppersstopFlow.setUpiId}
+        onPay={shoppersstopFlow.payNow}
+        onCancelBack={shoppersstopFlow.backToAddressSelectionFromUpi}
+        loading={shoppersstopFlow.loadingPayment}
       />
 
       {showChat ? (

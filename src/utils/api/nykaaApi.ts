@@ -1,6 +1,10 @@
 import type { NykaaAddress, PendingNykaaCart } from "../../types/nykaa";
 
+const normalizeBaseURL = (BaseURL: string) =>
+  (BaseURL || "").replace(/\/+$/, "");
+
 export async function nykaaSearch(BaseURL: string, query: string) {
+  BaseURL = normalizeBaseURL(BaseURL);
   const res = await fetch(`${BaseURL}/api/nykaa/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -26,6 +30,7 @@ export async function nykaaAddToCart(
     phone: address.phone.replace(/\D/g, "").slice(0, 10),
     email: address.email,
   };
+  BaseURL = normalizeBaseURL(BaseURL);
 
   const res = await fetch(`${BaseURL}/api/nykaa/add-to-cart`, {
     method: "POST",
@@ -50,6 +55,7 @@ export async function nykaaPayment(
     upi_id: cleanedUpi,
     upiid: cleanedUpi, // keep both to be safe
   };
+  BaseURL = normalizeBaseURL(BaseURL);
 
   const res = await fetch(`${BaseURL}/api/nykaa/payment`, {
     method: "POST",

@@ -3,15 +3,18 @@ import { useCallback, useState } from "react";
 import type { NykaaProduct } from "../../types/nykaa";
 import type { WestsideProduct } from "../../types/westside";
 import type { PantaloonsProduct } from "../../types/pantaloons";
+import type { ShoppersStopProduct } from "../../types/shoppersstop";
 
 import { nykaaSearch } from "../api/nykaaApi";
 import { westsideSearch } from "../api/westsideApi";
 import { pantaloonsSearch } from "../api/pantaloonsApi";
+import { shoppersstopSearch } from "../api/shoppersstopApi";
 
 type UnifiedSearchResult = {
   nykaa: NykaaProduct[];
   westside: WestsideProduct[];
   pantaloons: PantaloonsProduct[];
+  shoppersstop: ShoppersStopProduct[];
 };
 
 type UnifiedSearchErrors = Partial<Record<keyof UnifiedSearchResult, string>>;
@@ -34,7 +37,6 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
   // Keep the same Pantaloons mapping logic as Pantaloons.tsx (do not change types)
   const mapPantaloonsToUIProducts = (data: any): PantaloonsProduct[] => {
     const rawProducts = Array.isArray(data?.products) ? data.products : [];
-
     const filtered = rawProducts
       .filter((p: any) => p?.product_url != null && p?.image != null)
       .slice(0, 5);
@@ -51,20 +53,22 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
   const searchAll = useCallback(
     async (query: string): Promise<UnifiedSearchResult> => {
       const q = query?.trim();
+
       if (!q) {
         setErrors({
           nykaa: "Please enter a product to search!",
           westside: "Please enter a product to search!",
           pantaloons: "Please enter a product to search!",
+          shoppersstop: "Please enter a product to search!",
         });
-        return { nykaa: [], westside: [], pantaloons: [] };
+        return { nykaa: [], westside: [], pantaloons: [], shoppersstop: [] };
       }
 
       setLoading(true);
       setErrors({});
 
       try {
-        // Start all three searches in parallel (same pattern as useCombinedSearchFlow)
+        // Start all searches in parallel
         const nykaaPromise = nykaaSearch(BaseURL, q);
         const westsidePromise = westsideSearch(BaseURL, q);
         const pantaloonsPromise = pantaloonsSearch(BaseURL, {
@@ -72,14 +76,20 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
           page: 1,
           sort_by: "popularity",
         });
+        const shoppersstopPromise = shoppersstopSearch(BaseURL, q);
 
-        const [nykaaRes, westsideRes, pantaloonsRes] = await Promise.allSettled(
-          [nykaaPromise, westsidePromise, pantaloonsPromise]
-        );
+        const [nykaaRes, westsideRes, pantaloonsRes, shoppersstopRes] =
+          await Promise.allSettled([
+            nykaaPromise,
+            westsidePromise,
+            pantaloonsPromise,
+            shoppersstopPromise,
+          ]);
 
         let nykaa: NykaaProduct[] = [];
         let westside: WestsideProduct[] = [];
         let pantaloons: PantaloonsProduct[] = [];
+        let shoppersstop: ShoppersStopProduct[] = [];
 
         const nextErrors: UnifiedSearchErrors = {};
 
@@ -141,9 +151,27 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
           nextErrors.pantaloons = "Pantaloons search failed.";
         }
 
-        setErrors(nextErrors);
+        // Shoppers Stop (preserve original keys/behavior)
+        if (shoppersstopRes.status === "fulfilled") {
+          const { res, data } = shoppersstopRes.value as any;
 
-        return { nykaa, westside, pantaloons };
+          if (!res?.ok || String(data?.status).toLowerCase() !== "success") {
+            nextErrors.shoppersstop = safeMsg(
+              data?.message,
+              data?.detail,
+              "Shoppers Stop search failed."
+            );
+          } else {
+            shoppersstop = Array.isArray(data?.products)
+              ? (data.products as ShoppersStopProduct[])
+              : [];
+          }
+        } else {
+          nextErrors.shoppersstop = "Shoppers Stop search failed.";
+        }
+
+        setErrors(nextErrors);
+        return { nykaa, westside, pantaloons, shoppersstop };
       } finally {
         setLoading(false);
       }
