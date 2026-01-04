@@ -48,7 +48,7 @@ export default function Airbnb() {
 
   const updateGuests = (
     type: "adults" | "children" | "rooms",
-    delta: number,
+    delta: number
   ) => {
     setGuests((prev) => {
       const newVal = prev[type] + delta;
@@ -136,7 +136,9 @@ export default function Airbnb() {
               </svg>
             </button>
 
-            <h2 className="text-xl font-bold text-center mb-6">Booking Details</h2>
+            <h2 className="text-xl font-bold text-center mb-6">
+              Booking Details
+            </h2>
 
             <div className="space-y-4">
               <div className="relative group">
@@ -217,7 +219,9 @@ export default function Airbnb() {
                     {guests.rooms} room
                   </span>
                   <svg
-                    className={`w-4 h-4 transition-transform ${showGuestDropdown ? "rotate-180" : ""}`}
+                    className={`w-4 h-4 transition-transform ${
+                      showGuestDropdown ? "rotate-180" : ""
+                    }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -301,7 +305,9 @@ export default function Airbnb() {
                 onClick={handleContinue}
                 disabled={loading}
                 className={`w-full bg-[#D4111D] text-white font-semibold py-3 rounded-xl transition-colors mt-4 shadow-[0_0_20px_rgba(212,17,29,0.4)] ${
-                  loading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#b00e18]"
+                  loading
+                    ? "opacity-60 cursor-not-allowed"
+                    : "hover:bg-[#b00e18]"
                 }`}
               >
                 {loading ? "Searching..." : "CONTINUE"}
@@ -404,9 +410,7 @@ export default function Airbnb() {
           {loading && (
             <p className="text-sm text-gray-400">Loading listings...</p>
           )}
-          {error && !loading && (
-            <p className="text-sm text-red-500">{error}</p>
-          )}
+          {error && !loading && <p className="text-sm text-red-500">{error}</p>}
           {!loading && !error && listings.length === 0 && (
             <p className="text-sm text-gray-400">No listings found yet.</p>
           )}
@@ -430,13 +434,17 @@ export default function Airbnb() {
                 <div className="p-4 flex flex-col justify-between flex-1">
                   <div>
                     <h3 className="text-lg font-semibold">{item.name}</h3>
-                    <p className="text-gray-500 text-sm">{item.subtitle || item.title}</p>
+                    <p className="text-gray-500 text-sm">
+                      {item.subtitle || item.title}
+                    </p>
                   </div>
 
                   <div className="flex items-center justify-between mt-4">
                     <div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-xl font-bold">{item.price_text}</span>
+                        <span className="text-xl font-bold">
+                          {item.price_text}
+                        </span>
                       </div>
                       {item.rating && item.rating !== "N/A" && (
                         <p className="text-xs text-gray-400 mt-1">
@@ -496,7 +504,8 @@ export default function Airbnb() {
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                  /></svg>
+                    />
+                  </svg>
                 </button>
                 <button className="p-2 text-white bg-gray-700 hover:bg-gray-600 rounded-full">
                   <svg

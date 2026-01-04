@@ -383,9 +383,9 @@ export default function Ola() {
                                 onChange={(e) => setBottomInput(e.target.value)}
                             />
                             <VoiceRecorderButton
-                                onTextReady={(text) =>
-                                    setBottomInput((prev) => (prev ? `${prev} ${text}` : text))
-                                }
+                                onTextReady={(text) => {
+                                    setBottomInput(text);
+                                }}
                             />
                             <button className="p-2 bg-white/15 hover:bg-white/25 rounded-full transition-colors">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

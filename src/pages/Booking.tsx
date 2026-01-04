@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import VoiceRecorderButton from "../components/VoiceRecorderButton";
 
 export default function Booking() {
   const navigate = useNavigate();
@@ -455,6 +456,11 @@ export default function Booking() {
                 className="w-full bg-[#1c1c1c]/90 backdrop-blur-md border border-gray-700 rounded-full pl-6 pr-32 py-4 text-sm focus:outline-none focus:border-gray-500 shadow-xl"
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <VoiceRecorderButton
+                onTextReady={(text) => {
+                  setMessageInput(text);
+                }}
+              />
                 <button className="p-2 text-gray-400 hover:text-white">
                   <svg
                     className="w-5 h-5"

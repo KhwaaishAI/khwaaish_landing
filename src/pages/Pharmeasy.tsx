@@ -564,9 +564,9 @@ export default function Pharmeasy() {
                                     className="flex-1 bg-transparent outline-none text-sm"
                                 />
                                 <VoiceRecorderButton
-                                    onTextReady={(text) =>
-                                        setChatInput((prev) => (prev ? `${prev} ${text}` : text))
-                                    }
+                                    onTextReady={(text) => {
+                                        setChatInput(text);
+                                    }}
                                 />
                                 <button
                                     onClick={handleSearchProducts}
