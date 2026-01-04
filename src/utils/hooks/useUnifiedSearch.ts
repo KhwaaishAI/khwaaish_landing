@@ -17,7 +17,13 @@ type UnifiedSearchResult = {
   shoppersstop: ShoppersStopProduct[];
 };
 
-type UnifiedSearchErrors = Partial<Record<keyof UnifiedSearchResult, string>>;
+// keep same shape intention as before (partial error map)
+type UnifiedSearchErrors = Partial<{
+  nykaa: string;
+  westside: string;
+  pantaloons: string;
+  shoppersstop: string;
+}>;
 
 type Opts = {
   BaseURL: string;
@@ -50,10 +56,10 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
     })) as PantaloonsProduct[];
   };
 
+  // existing behavior (kept as-is) - returns only when all finish
   const searchAll = useCallback(
     async (query: string): Promise<UnifiedSearchResult> => {
       const q = query?.trim();
-
       if (!q) {
         setErrors({
           nykaa: "Please enter a product to search!",
@@ -68,7 +74,6 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
       setErrors({});
 
       try {
-        // Start all searches in parallel
         const nykaaPromise = nykaaSearch(BaseURL, q);
         const westsidePromise = westsideSearch(BaseURL, q);
         const pantaloonsPromise = pantaloonsSearch(BaseURL, {
@@ -154,7 +159,6 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
         // Shoppers Stop (preserve original keys/behavior)
         if (shoppersstopRes.status === "fulfilled") {
           const { res, data } = shoppersstopRes.value as any;
-
           if (!res?.ok || String(data?.status).toLowerCase() !== "success") {
             nextErrors.shoppersstop = safeMsg(
               data?.message,
@@ -179,5 +183,169 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
     [BaseURL]
   );
 
-  return { searchAll, loading, errors };
+  /**
+   * NEW: streaming version.
+   * Calls onUpdate multiple times (as each brand finishes) while other calls continue.
+   * Does NOT change existing keys/props/types used in Unified.tsx.
+   */
+  const searchAllStreaming = useCallback(
+    (
+      query: string,
+      onUpdate: (patch: Partial<UnifiedSearchResult>) => void
+    ) => {
+      const q = query?.trim();
+
+      if (!q) {
+        setErrors({
+          nykaa: "Please enter a product to search!",
+          westside: "Please enter a product to search!",
+          pantaloons: "Please enter a product to search!",
+          shoppersstop: "Please enter a product to search!",
+        });
+        onUpdate({
+          nykaa: [],
+          westside: [],
+          pantaloons: [],
+          shoppersstop: [],
+        });
+        return Promise.resolve({
+          nykaa: [],
+          westside: [],
+          pantaloons: [],
+          shoppersstop: [],
+        });
+      }
+
+      setLoading(true);
+      setErrors({});
+
+      const nextErrors: UnifiedSearchErrors = {};
+
+      // Start all searches in parallel (do not await here)
+      const nykaaPromise = nykaaSearch(BaseURL, q)
+        .then(({ res, data }: any) => {
+          if (res?.ok) {
+            const nykaa = (data?.products ?? data?.results ?? []).map(
+              (p: any) => ({
+                ...p,
+                availablesizes:
+                  p?.availablesizes ??
+                  p?.available_sizes ??
+                  p?.availableSizes ??
+                  [],
+                imageurl:
+                  p?.imageurl ?? p?.image_url ?? p?.image ?? p?.imageUrl,
+              })
+            ) as NykaaProduct[];
+
+            onUpdate({ nykaa });
+          } else {
+            nextErrors.nykaa = safeMsg(
+              data?.message,
+              data?.detail,
+              "Nykaa search failed."
+            );
+            setErrors({ ...nextErrors });
+            onUpdate({ nykaa: [] });
+          }
+        })
+        .catch(() => {
+          nextErrors.nykaa = "Nykaa search failed.";
+          setErrors({ ...nextErrors });
+          onUpdate({ nykaa: [] });
+        });
+
+      const westsidePromise = westsideSearch(BaseURL, q)
+        .then(({ res, data }: any) => {
+          if (res?.ok) {
+            const westside = (data?.products ?? []) as WestsideProduct[];
+            onUpdate({ westside });
+          } else {
+            nextErrors.westside = safeMsg(
+              data?.message,
+              data?.detail,
+              "Westside search failed."
+            );
+            setErrors({ ...nextErrors });
+            onUpdate({ westside: [] });
+          }
+        })
+        .catch(() => {
+          nextErrors.westside = "Westside search failed.";
+          setErrors({ ...nextErrors });
+          onUpdate({ westside: [] });
+        });
+
+      const pantaloonsPromise = pantaloonsSearch(BaseURL, {
+        query: q,
+        page: 1,
+        sort_by: "popularity",
+      })
+        .then(({ res, data }: any) => {
+          if (res?.ok) {
+            const pantaloons = mapPantaloonsToUIProducts(data);
+            onUpdate({ pantaloons });
+          } else {
+            nextErrors.pantaloons = safeMsg(
+              data?.message,
+              data?.detail,
+              "Pantaloons search failed."
+            );
+            setErrors({ ...nextErrors });
+            onUpdate({ pantaloons: [] });
+          }
+        })
+        .catch(() => {
+          nextErrors.pantaloons = "Pantaloons search failed.";
+          setErrors({ ...nextErrors });
+          onUpdate({ pantaloons: [] });
+        });
+
+      const shoppersstopPromise = shoppersstopSearch(BaseURL, q)
+        .then(({ res, data }: any) => {
+          if (!res?.ok || String(data?.status).toLowerCase() !== "success") {
+            nextErrors.shoppersstop = safeMsg(
+              data?.message,
+              data?.detail,
+              "Shoppers Stop search failed."
+            );
+            setErrors({ ...nextErrors });
+            onUpdate({ shoppersstop: [] });
+          } else {
+            const shoppersstop = Array.isArray(data?.products)
+              ? (data.products as ShoppersStopProduct[])
+              : [];
+            onUpdate({ shoppersstop });
+          }
+        })
+        .catch(() => {
+          nextErrors.shoppersstop = "Shoppers Stop search failed.";
+          setErrors({ ...nextErrors });
+          onUpdate({ shoppersstop: [] });
+        });
+
+      // Return a promise that settles when all are done (useful for finally blocks)
+      return Promise.allSettled([
+        nykaaPromise,
+        westsidePromise,
+        pantaloonsPromise,
+        shoppersstopPromise,
+      ]).then(() => {
+        setErrors({ ...nextErrors });
+        setLoading(false);
+
+        // final combined is not strictly required by your UI,
+        // but return it anyway (empty arrays if failed)
+        return {
+          nykaa: [],
+          westside: [],
+          pantaloons: [],
+          shoppersstop: [],
+        } as UnifiedSearchResult;
+      });
+    },
+    [BaseURL]
+  );
+
+  return { searchAll, searchAllStreaming, loading, errors };
 }

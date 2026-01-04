@@ -66,6 +66,13 @@ type UnifiedProductsMessage = {
     pantaloons?: string;
     shoppersstop?: string;
   };
+  order?: ("nykaa" | "westside" | "pantaloons" | "shoppersstop")[];
+  loading?: {
+    nykaa?: boolean;
+    westside?: boolean;
+    pantaloons?: boolean;
+    shoppersstop?: boolean;
+  };
 };
 
 const BaseURL = import.meta.env.VITE_API_BASE_URL;
@@ -76,6 +83,12 @@ export default function Unified() {
   const [isLoading, setIsLoading] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const updateMessageById = (id: string, content: string) => {
+    setMessages((prev) =>
+      prev.map((m: any) => (m.id === id ? { ...m, content } : m))
+    );
+  };
 
   const pushSystem = (text: string) =>
     setMessages((prev) => [
@@ -112,25 +125,109 @@ export default function Unified() {
     if (!q) return;
 
     setIsLoading(true);
+
+    const resultMessageId = crypto.randomUUID();
+
+    const initialPayload: UnifiedProductsMessage = {
+      type: "unified-products",
+      query: q,
+      nykaa: [],
+      westside: [],
+      pantaloons: [],
+      shoppersstop: [],
+      errors: {},
+      order: [],
+      loading: {
+        nykaa: true,
+        westside: true,
+        pantaloons: true,
+        shoppersstop: true,
+      },
+    };
+
+    setMessages((prev: any) => [
+      ...prev,
+      {
+        id: resultMessageId,
+        role: "system",
+        content: JSON.stringify(initialPayload),
+      },
+    ]);
+
+    const seen = new Set<
+      "nykaa" | "westside" | "pantaloons" | "shoppersstop"
+    >();
+
+    const updateBubble = (
+      updater: (cur: UnifiedProductsMessage) => UnifiedProductsMessage
+    ) => {
+      setMessages((prev: any) =>
+        prev.map((m: any) => {
+          if (m.id !== resultMessageId) return m;
+
+          let cur: UnifiedProductsMessage;
+          try {
+            cur = JSON.parse(m.content);
+          } catch {
+            cur = initialPayload;
+          }
+
+          const next = updater(cur);
+          return { ...m, content: JSON.stringify(next) };
+        })
+      );
+    };
+
     try {
-      const { nykaa, westside, pantaloons, shoppersstop } =
-        await unified.searchAll(q);
+      await unified.searchAllStreaming(q, (patch) => {
+        const brand =
+          patch?.shoppersstop !== undefined
+            ? "shoppersstop"
+            : patch?.pantaloons !== undefined
+            ? "pantaloons"
+            : patch?.westside !== undefined
+            ? "westside"
+            : patch?.nykaa !== undefined
+            ? "nykaa"
+            : null;
 
-      const payload: UnifiedProductsMessage = {
-        type: "unified-products",
-        query: q,
-        nykaa,
-        westside,
-        pantaloons,
-        shoppersstop,
-        errors: unified.errors,
-      };
+        if (!brand) {
+          // no brand found; just merge patch safely
+          updateBubble((cur) => ({
+            ...cur,
+            ...(patch as any),
+            errors: unified.errors,
+          }));
+          return;
+        }
 
-      pushSystem(JSON.stringify(payload));
+        const isFirstTime = !seen.has(brand);
+        if (isFirstTime) seen.add(brand);
+
+        updateBubble((cur) => {
+          const nextOrder = isFirstTime
+            ? [...(cur.order ?? []), brand]
+            : cur.order ?? [];
+
+          return {
+            ...cur,
+            ...(patch as any),
+            order: nextOrder,
+            loading: { ...(cur.loading ?? {}), [brand]: false },
+            errors: unified.errors,
+          };
+        });
+      });
     } catch (err) {
       console.log("UNIFIED SEARCH ERROR", err);
       pushSystem("Something went wrong!");
     } finally {
+      // Just ensure errors are synced at end; loading flags are already turned off per brand.
+      updateBubble((cur) => ({
+        ...cur,
+        errors: unified.errors,
+      }));
+
       setIsLoading(false);
     }
   };
@@ -157,31 +254,145 @@ export default function Unified() {
 
   const renderUnifiedProducts = (p: UnifiedProductsMessage) => {
     const nykaaSelected = nykaaFlow.pendingProduct;
-
     const westsideSelectedUrl =
       westsideFlow.pendingProduct?.product_url ?? null;
-
     const pantaloonsSelectedUrl =
       pantaloonsFlow.pendingProduct?.producturl ?? null;
-
     const shoppersstopSelectedUrl =
       shoppersstopFlow.pendingProduct?.url ?? null;
 
-    const getNykaaAvailableSizesLocal = (p: any): string[] => {
+    const getNykaaAvailableSizesLocal = (prod: any): string[] => {
       const raw =
-        p?.availablesizes ?? p?.available_sizes ?? p?.availableSizes ?? [];
+        prod?.availablesizes ??
+        prod?.available_sizes ??
+        prod?.availableSizes ??
+        [];
       const arr = Array.isArray(raw) ? raw : [];
       const cleaned = arr.map((s: any) => String(s).trim()).filter(Boolean);
       return Array.from(new Set(cleaned));
     };
 
+    const order = p.order?.length
+      ? p.order
+      : (["nykaa", "westside", "pantaloons", "shoppersstop"] as const);
+
+    const isLoadingBrand = (
+      brand: "nykaa" | "westside" | "pantaloons" | "shoppersstop"
+    ) => Boolean(p.loading?.[brand]);
+
+    const BrandLoader = ({ text }: { text: string }) => (
+      <div className="text-white/70 text-sm flex items-center gap-2">
+        {/* <FlowerLoader /> */}
+        <span>{text}</span>
+      </div>
+    );
+
+    const BrandSection = ({
+      brand,
+    }: {
+      brand: "nykaa" | "westside" | "pantaloons" | "shoppersstop";
+    }) => {
+      if (brand === "shoppersstop") {
+        return (
+          <div className="space-y-2">
+            <h3 className="text-white font-semibold">Shoppers Stop results</h3>
+
+            {isLoadingBrand("shoppersstop") ? (
+              <BrandLoader text="Shoppers Stop data loading..." />
+            ) : p.shoppersstop?.length ? (
+              <ShoppersStopProductGrid
+                products={p.shoppersstop}
+                onSelect={(product: any) =>
+                  shoppersstopFlow.openProductAndFetchSizes(product)
+                }
+                selectedProductUrl={shoppersstopSelectedUrl}
+              />
+            ) : (
+              <div className="text-white/70 text-sm">
+                No Shoppers Stop products found.
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      if (brand === "pantaloons") {
+        return (
+          <div className="space-y-2">
+            <h3 className="text-white font-semibold">Pantaloons results</h3>
+
+            {isLoadingBrand("pantaloons") ? (
+              <BrandLoader text="Pantaloons data loading..." />
+            ) : p.pantaloons?.length ? (
+              <PantaloonsProductGrid
+                products={p.pantaloons}
+                onSelect={(product: any) =>
+                  pantaloonsFlow.openProductThenAskPincode(product)
+                }
+                selectedProductUrl={pantaloonsSelectedUrl}
+              />
+            ) : (
+              <div className="text-white/70 text-sm">
+                No Pantaloons products found.
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      if (brand === "westside") {
+        return (
+          <div className="space-y-2">
+            <h3 className="text-white font-semibold">Westside results</h3>
+
+            {isLoadingBrand("westside") ? (
+              <BrandLoader text="Westside data loading..." />
+            ) : p.westside?.length ? (
+              <WestsideProductGrid
+                products={p.westside}
+                onSelect={(product: any) =>
+                  westsideFlow.openProductAndFetchSizes(product)
+                }
+                selectedProductUrl={westsideSelectedUrl}
+              />
+            ) : (
+              <div className="text-white/70 text-sm">
+                No Westside products found.
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // nykaa
+      return (
+        <div className="space-y-2">
+          <h3 className="text-white font-semibold">Nykaa results</h3>
+
+          {isLoadingBrand("nykaa") ? (
+            <BrandLoader text="Nykaa data loading..." />
+          ) : p.nykaa?.length ? (
+            <ProductGrid
+              products={p.nykaa}
+              onSelect={(product: any) => nykaaFlow.openSizeForProduct(product)}
+              selectedProduct={nykaaSelected}
+            />
+          ) : (
+            <div className="text-white/70 text-sm">
+              No Nykaa products found.
+            </div>
+          )}
+        </div>
+      );
+    };
+
     return (
-      <div className="w-full space-y-6">
+      <div className="space-y-6">
         {p.errors?.nykaa ||
         p.errors?.westside ||
         p.errors?.pantaloons ||
         p.errors?.shoppersstop ? (
-          <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-200">
+          <div className="text-red-300 text-sm space-y-1">
             {p.errors?.nykaa ? <div>Nykaa: {p.errors.nykaa}</div> : null}
             {p.errors?.westside ? (
               <div>Westside: {p.errors.westside}</div>
@@ -195,71 +406,9 @@ export default function Unified() {
           </div>
         ) : null}
 
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold">Nykaa results</h3>
-          {p.nykaa?.length ? (
-            <ProductGrid
-              products={p.nykaa}
-              selectedProduct={nykaaSelected}
-              onSelect={(product: any) => nykaaFlow.openSizeForProduct(product)}
-            />
-          ) : (
-            <div className="text-sm text-white/60">
-              No Nykaa products found.
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold">Westside results</h3>
-          {p.westside?.length ? (
-            <WestsideProductGrid
-              products={p.westside}
-              selectedProductUrl={westsideSelectedUrl}
-              onSelect={(product: any) =>
-                westsideFlow.openProductAndFetchSizes(product)
-              }
-            />
-          ) : (
-            <div className="text-sm text-white/60">
-              No Westside products found.
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold">Pantaloons results</h3>
-          {p.pantaloons?.length ? (
-            <PantaloonsProductGrid
-              products={p.pantaloons}
-              selectedProductUrl={pantaloonsSelectedUrl}
-              onSelect={(product: any) =>
-                pantaloonsFlow.openProductThenAskPincode(product)
-              }
-            />
-          ) : (
-            <div className="text-sm text-white/60">
-              No Pantaloons products found.
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold">Shoppers Stop results</h3>
-          {p.shoppersstop?.length ? (
-            <ShoppersStopProductGrid
-              products={p.shoppersstop}
-              selectedProductUrl={shoppersstopSelectedUrl}
-              onSelect={(product: any) =>
-                shoppersstopFlow.openProductAndFetchSizes(product)
-              }
-            />
-          ) : (
-            <div className="text-sm text-white/60">
-              No Shoppers Stop products found.
-            </div>
-          )}
-        </div>
+        {order.map((brand) => (
+          <BrandSection key={brand} brand={brand} />
+        ))}
       </div>
     );
   };
