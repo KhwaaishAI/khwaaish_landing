@@ -9,12 +9,15 @@ import { nykaaSearch } from "../api/nykaaApi";
 import { westsideSearch } from "../api/westsideApi";
 import { pantaloonsSearch } from "../api/pantaloonsApi";
 import { shoppersstopSearch } from "../api/shoppersstopApi";
+import type { TataCliqProduct } from "../../types/tatacliq";
+import { tatacliqSearch } from "../api/tatacliqApi";
 
 type UnifiedSearchResult = {
   nykaa: NykaaProduct[];
   westside: WestsideProduct[];
   pantaloons: PantaloonsProduct[];
   shoppersstop: ShoppersStopProduct[];
+  tatacliq: TataCliqProduct[];
 };
 
 // keep same shape intention as before (partial error map)
@@ -23,6 +26,7 @@ type UnifiedSearchErrors = Partial<{
   westside: string;
   pantaloons: string;
   shoppersstop: string;
+  tatacliq: string;
 }>;
 
 type Opts = {
@@ -82,19 +86,27 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
           sort_by: "popularity",
         });
         const shoppersstopPromise = shoppersstopSearch(BaseURL, q);
+        const tatacliqPromise = tatacliqSearch(BaseURL, q);
 
-        const [nykaaRes, westsideRes, pantaloonsRes, shoppersstopRes] =
-          await Promise.allSettled([
-            nykaaPromise,
-            westsidePromise,
-            pantaloonsPromise,
-            shoppersstopPromise,
-          ]);
+        const [
+          nykaaRes,
+          westsideRes,
+          pantaloonsRes,
+          shoppersstopRes,
+          tatacliqRes,
+        ] = await Promise.allSettled([
+          nykaaPromise,
+          westsidePromise,
+          pantaloonsPromise,
+          shoppersstopPromise,
+          tatacliqPromise,
+        ]);
 
         let nykaa: NykaaProduct[] = [];
         let westside: WestsideProduct[] = [];
         let pantaloons: PantaloonsProduct[] = [];
         let shoppersstop: ShoppersStopProduct[] = [];
+        let tatacliq: TataCliqProduct[] = [];
 
         const nextErrors: UnifiedSearchErrors = {};
 
@@ -174,8 +186,24 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
           nextErrors.shoppersstop = "Shoppers Stop search failed.";
         }
 
+        // Tata Cliq (ADD THIS ENTIRE BLOCK after shoppersstop else block)
+        if (tatacliqRes.status === "fulfilled") {
+          const { res, data } = tatacliqRes.value as any;
+          if (res?.ok && String(data?.status).toLowerCase() === "success") {
+            tatacliq = Array.isArray(data?.products) ? data.products : [];
+          } else {
+            nextErrors.tatacliq = safeMsg(
+              data?.message,
+              data?.detail,
+              "Tata Cliq search failed."
+            );
+          }
+        } else {
+          nextErrors.tatacliq = "Tata Cliq search failed.";
+        }
+
         setErrors(nextErrors);
-        return { nykaa, westside, pantaloons, shoppersstop };
+        return { nykaa, westside, pantaloons, shoppersstop, tatacliq };
       } finally {
         setLoading(false);
       }
@@ -201,18 +229,21 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
           westside: "Please enter a product to search!",
           pantaloons: "Please enter a product to search!",
           shoppersstop: "Please enter a product to search!",
+          tatacliq: "Please enter a product to search!",
         });
         onUpdate({
           nykaa: [],
           westside: [],
           pantaloons: [],
           shoppersstop: [],
+          tatacliq: [],
         });
         return Promise.resolve({
           nykaa: [],
           westside: [],
           pantaloons: [],
           shoppersstop: [],
+          tatacliq: [],
         });
       }
 
@@ -324,12 +355,37 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
           onUpdate({ shoppersstop: [] });
         });
 
+      // ADD Tata Cliq promise
+      const tatacliqPromise = tatacliqSearch(BaseURL, q)
+        .then(({ res, data }: any) => {
+          if (res?.ok && String(data?.status).toLowerCase() === "success") {
+            const tatacliq = Array.isArray(data?.products)
+              ? (data.products as TataCliqProduct[])
+              : [];
+            onUpdate({ tatacliq });
+          } else {
+            nextErrors.tatacliq = safeMsg(
+              data?.message,
+              data?.detail,
+              "Tata Cliq search failed."
+            );
+            setErrors({ ...nextErrors });
+            onUpdate({ tatacliq: [] });
+          }
+        })
+        .catch(() => {
+          nextErrors.tatacliq = "Tata Cliq search failed.";
+          setErrors({ ...nextErrors });
+          onUpdate({ tatacliq: [] });
+        });
+
       // Return a promise that settles when all are done (useful for finally blocks)
       return Promise.allSettled([
         nykaaPromise,
         westsidePromise,
         pantaloonsPromise,
         shoppersstopPromise,
+        tatacliqPromise,
       ]).then(() => {
         setErrors({ ...nextErrors });
         setLoading(false);
@@ -341,6 +397,7 @@ export function useUnifiedSearch({ BaseURL }: Opts) {
           westside: [],
           pantaloons: [],
           shoppersstop: [],
+          tatacliq: [],
         } as UnifiedSearchResult;
       });
     },

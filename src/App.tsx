@@ -24,7 +24,7 @@ import PantaloonsChat from "./pages/Pantaloons";
 import Flipkart from "./pages/Flipkart";
 import Amazon from "./pages/Amazon";
 import Combined from "./pages/Combined";
-import UnifiedChat from "./pages/Unified";
+import UnifiedChat from "./pages/Unified";  
 import TataCliq from "./pages/TataCliq";
 
 export default function App() {

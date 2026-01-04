@@ -16,7 +16,7 @@ export default function TataCliqProductGrid({
       <h3 className="text-lg font-semibold mb-2">TataCliq products</h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
-        {products.slice(0, 12).map((p, index) => {
+        {products.slice(0, 5).map((p, index) => {
           const key = `${p.url}-${index}`;
           const isSelected = selectedProductUrl === p.url;
 

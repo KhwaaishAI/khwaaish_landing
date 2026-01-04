@@ -26,7 +26,7 @@ export type TataCliqSearchResponse = {
 
 export type TataCliqViewResponse = {
   status: string; // "success" | ...
-  sizes: string[];
+  sizes?: string[];
   message?: string;
 };
 

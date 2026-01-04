@@ -42,6 +42,8 @@ export async function tatacliqView(BaseURL: string, product_url: string) {
 
   const data = (await res.json()) as TataCliqViewResponse;
   console.log("TATACLIQ API <- /api/tatacliq/view response:", data);
+  console.log("RAW TataCliq VIEW response:", data); // ADD THIS
+  console.log("TataCliq sizes:", data.sizes); // ADD THIS
 
   return { res, data, body };
 }

@@ -53,25 +53,37 @@ type Role = "user" | "system";
 type Message = { id: string; role: Role; content: string };
 
 // This message format is unique to this page (does not touch existing brand types)
+import type { TataCliqProduct } from "../types/tatacliq";
+import TataCliqProductGrid from "../components/tatacliq/TataCliqProductGrid";
+import useTataCliqFlow from "../utils/hooks/useTataCliqFlow";
+import TataCliqProductPopup from "../components/tatacliq/TataCliqProductPopup";
+
 type UnifiedProductsMessage = {
   type: "unified-products";
   query: string;
+
   nykaa: NykaaProduct[];
   westside: WestsideProduct[];
   pantaloons: PantaloonsProduct[];
   shoppersstop: ShoppersStopProduct[];
+  tatacliq: TataCliqProduct[];
+
   errors?: {
     nykaa?: string;
     westside?: string;
     pantaloons?: string;
     shoppersstop?: string;
+    tatacliq?: string;
   };
-  order?: ("nykaa" | "westside" | "pantaloons" | "shoppersstop")[];
+
+  order?: ("nykaa" | "westside" | "pantaloons" | "shoppersstop" | "tatacliq")[];
+
   loading?: {
     nykaa?: boolean;
     westside?: boolean;
     pantaloons?: boolean;
     shoppersstop?: boolean;
+    tatacliq?: boolean;
   };
 };
 
@@ -109,6 +121,7 @@ export default function Unified() {
 
   // ShoppersStop flow (preserve original key/variable/function names)
   const shoppersstopFlow = useShoppersStopFlow({ BaseURL, pushSystem });
+  const tatacliqFlow = useTataCliqFlow({ BaseURL, pushSystem });
 
   // Unified search
   const unified = useUnifiedSearch({ BaseURL });
@@ -142,6 +155,7 @@ export default function Unified() {
         westside: true,
         pantaloons: true,
         shoppersstop: true,
+        tatacliq: true,
       },
     };
 
@@ -155,7 +169,7 @@ export default function Unified() {
     ]);
 
     const seen = new Set<
-      "nykaa" | "westside" | "pantaloons" | "shoppersstop"
+      "nykaa" | "westside" | "pantaloons" | "shoppersstop" | "tatacliq"
     >();
 
     const updateBubble = (
@@ -189,6 +203,8 @@ export default function Unified() {
             ? "westside"
             : patch?.nykaa !== undefined
             ? "nykaa"
+            : patch?.tatacliq !== undefined
+            ? "tatacliq"
             : null;
 
         if (!brand) {
@@ -250,6 +266,7 @@ export default function Unified() {
 
     // preserve existing flows; additionally close ShoppersStop popups
     shoppersstopFlow.closeAllPopups();
+    tatacliqFlow.closeAllPopups();
   };
 
   const renderUnifiedProducts = (p: UnifiedProductsMessage) => {
@@ -274,10 +291,16 @@ export default function Unified() {
 
     const order = p.order?.length
       ? p.order
-      : (["nykaa", "westside", "pantaloons", "shoppersstop"] as const);
+      : ([
+          "nykaa",
+          "westside",
+          "pantaloons",
+          "shoppersstop",
+          "tatacliq",
+        ] as const);
 
     const isLoadingBrand = (
-      brand: "nykaa" | "westside" | "pantaloons" | "shoppersstop"
+      brand: "nykaa" | "westside" | "pantaloons" | "shoppersstop" | "tatacliq"
     ) => Boolean(p.loading?.[brand]);
 
     const BrandLoader = ({ text }: { text: string }) => (
@@ -290,7 +313,7 @@ export default function Unified() {
     const BrandSection = ({
       brand,
     }: {
-      brand: "nykaa" | "westside" | "pantaloons" | "shoppersstop";
+      brand: "nykaa" | "westside" | "pantaloons" | "shoppersstop" | "tatacliq";
     }) => {
       if (brand === "shoppersstop") {
         return (
@@ -363,6 +386,28 @@ export default function Unified() {
           </div>
         );
       }
+      if (brand === "tatacliq") {
+        return (
+          <div className="space-y-2">
+            <h3 className="text-white font-semibold">Tata Cliq results</h3>
+            {isLoadingBrand("tatacliq") ? (
+              <BrandLoader text="Tata Cliq data loading..." />
+            ) : p.tatacliq?.length ? (
+              <TataCliqProductGrid
+                products={p.tatacliq}
+                onSelect={(product) =>
+                  tatacliqFlow.openProductAndFetchSizes(product)
+                }
+                selectedProductUrl={tatacliqFlow.pendingProduct?.url ?? null}
+              />
+            ) : (
+              <div className="text-white/70 text-sm">
+                No Tata Cliq products found.
+              </div>
+            )}
+          </div>
+        );
+      }
 
       // nykaa
       return (
@@ -402,6 +447,9 @@ export default function Unified() {
             ) : null}
             {p.errors?.shoppersstop ? (
               <div>Shoppers Stop: {p.errors.shoppersstop}</div>
+            ) : null}
+            {p.errors?.tatacliq ? (
+              <div>Tata Cliq: {p.errors.tatacliq}</div>
             ) : null}
           </div>
         ) : null}
@@ -696,6 +744,22 @@ export default function Unified() {
         loading={shoppersstopFlow.loadingPayment}
       />
 
+      {/* After last ShoppersStopUpiPopup */}
+      <TataCliqProductPopup
+        open={tatacliqFlow.showProductPopup}
+        loading={tatacliqFlow.loadingView}
+        loadingAddToCart={tatacliqFlow.loadingAddToCart}
+        productTitle={tatacliqFlow.pendingProduct?.title}
+        productPrice={tatacliqFlow.pendingProduct?.price}
+        sizes={tatacliqFlow.sizesToShow}
+        selectedSize={tatacliqFlow.selectedSize}
+        onSelectSize={tatacliqFlow.setSelectedSize}
+        phone={tatacliqFlow.phone}
+        setPhone={tatacliqFlow.setPhone}
+        onAddToCart={tatacliqFlow.handleAddToCart}
+        onCancel={tatacliqFlow.cancelProductPopup}
+      />
+
       {showChat ? (
         <div className="relative min-h-screen w-full bg-black overflow-hidden">
           <div className="h-[calc(100vh-80px)] overflow-y-auto px-4 py-6 space-y-4">
@@ -745,7 +809,7 @@ export default function Unified() {
           onSend={handleSend}
           onNewChat={handleNewChat}
           title="Welcome to Unified Shopping!"
-          subtitle="Search once and browse Nykaa, Westside & Pantaloons together."
+          subtitle="Search once and browse Nykaa, Westside, Pantaloons & Tata Cliq together."
           searchPlaceholder="Search products across all brands..."
           cardTitle="Unified Shopping"
           cardDescription="Search and buy products from Nykaa, Westside and Pantaloons with voice commands."

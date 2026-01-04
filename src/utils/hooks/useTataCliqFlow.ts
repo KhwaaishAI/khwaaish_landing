@@ -116,7 +116,8 @@ export default function useTataCliqFlow({ BaseURL, pushSystem }: Opts) {
       setSessionId(sid);
       closeAllPopups();
 
-      pushSystem(`success: TataCliq add-to-cart completed. session_id=${sid}`);
+      //   pushSystem(`success: TataCliq add-to-cart completed. session_id=${sid}`);
+      pushSystem(`TataCliq order completed`);
     } catch (err) {
       console.log("TATACLIQ FLOW add-to-cart ERROR:", err);
       failAndCloseAll("Something went wrong while adding to cart.");
@@ -136,7 +137,7 @@ export default function useTataCliqFlow({ BaseURL, pushSystem }: Opts) {
 
   const sizesToShow = useMemo(() => {
     const arr = Array.isArray(viewData?.sizes) ? viewData!.sizes : [];
-    return arr.filter(Boolean);
+    return arr.map((s) => String(s).trim()).filter((s) => s.length > 0); // Safe
   }, [viewData]);
 
   return {
