@@ -57,10 +57,14 @@ export default function App() {
           element={loggedIn ? <Home /> : <Navigate to="/" replace />}
         />
 
-        {/* Chat Pages */}\r
+        {/* Chat Pages */}
         <Route
           path="/groceries"
           element={loggedIn ? <UnifiedGroceries /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/zepto"
+          element={loggedIn ? <Chat1 /> : <Navigate to="/" replace />}
         />
         <Route
           path="/chat2"
