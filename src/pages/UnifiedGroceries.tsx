@@ -233,8 +233,8 @@ export default function UnifiedGroceries() {
         try {
             console.log("Searching on both platforms...");
 
-            // Search on both platforms simultaneously
-            const [zeptoResponse, instamartResponse] = await Promise.all([
+            // Fire both searches in parallel and handle failures per-platform
+            const [zeptoResult, instamartResult] = await Promise.allSettled([
                 fetch(`${BaseURL}api/zepto/search`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -247,32 +247,75 @@ export default function UnifiedGroceries() {
                 }),
             ]);
 
-            const zeptoData = await zeptoResponse.json();
-            const instamartData = await instamartResponse.json();
+            let zeptoProducts: any[] = [];
+            let instamartProducts: any[] = [];
 
-            console.log("Zepto search response:", zeptoData);
-            console.log("Instamart search response:", instamartData);
+            // ---- Zepto branch ----
+            if (zeptoResult.status === "fulfilled") {
+                try {
+                    const res = zeptoResult.value;
+                    let zeptoData: any = null;
+                    try {
+                        zeptoData = await res.json();
+                    } catch (e) {
+                        console.error("Zepto JSON parse failed:", e);
+                    }
 
-            if (zeptoData.session_id) setZeptoSessionId(zeptoData.session_id);
-            if (instamartData.session_id) setInstamartSessionId(instamartData.session_id);
+                    console.log("Zepto search response:", zeptoData);
 
-            // Zepto uses 'products', Instamart uses 'results'
-            const zeptoProducts = (zeptoData.products || []).slice(0, 12).map((item: any) => ({
-                ...item,
-                source: "zepto",
-            }));
+                    if (zeptoData?.session_id) setZeptoSessionId(zeptoData.session_id);
 
-            const instamartProducts = (instamartData.results || []).slice(0, 12).map((item: any) => ({
-                ...item,
-                source: "instamart",
-            }));
+                    zeptoProducts = (zeptoData?.products || [])
+                        .slice(0, 12)
+                        .map((item: any) => ({ ...item, source: "zepto" }));
+                } catch (e) {
+                    console.error("Zepto search handling error:", e);
+                    pushSystem("Zepto search failed for this query; showing Instamart results if available.");
+                }
+            } else {
+                console.error("Zepto search promise rejected:", zeptoResult.reason);
+                pushSystem("Zepto search failed for this query; showing Instamart results if available.");
+            }
+
+            // ---- Instamart branch ----
+            if (instamartResult.status === "fulfilled") {
+                try {
+                    const res = instamartResult.value;
+                    let instamartData: any = null;
+                    try {
+                        instamartData = await res.json();
+                    } catch (e) {
+                        console.error("Instamart JSON parse failed:", e);
+                    }
+
+                    console.log("Instamart search response:", instamartData);
+
+                    if (instamartData?.session_id) setInstamartSessionId(instamartData.session_id);
+
+                    instamartProducts = (instamartData?.results || [])
+                        .slice(0, 12)
+                        .map((item: any) => ({ ...item, source: "instamart" }));
+                } catch (e) {
+                    console.error("Instamart search handling error:", e);
+                    pushSystem("Instamart search failed for this query; showing Zepto results if available.");
+                }
+            } else {
+                console.error("Instamart search promise rejected:", instamartResult.reason);
+                pushSystem("Instamart search failed for this query; showing Zepto results if available.");
+            }
 
             const combinedProducts = [...zeptoProducts, ...instamartProducts];
             console.log("Combined products:", combinedProducts.length);
 
             if (combinedProducts.length === 0) {
-                pushSystem("No products found. Please try a different search.");
+                pushSystem("No products found on either platform. Please try a different search.");
             } else {
+                if (zeptoProducts.length && !instamartProducts.length) {
+                    pushSystem("Note: Instamart returned no products or failed. Showing Zepto only.");
+                } else if (!zeptoProducts.length && instamartProducts.length) {
+                    pushSystem("Note: Zepto returned no products or failed. Showing Instamart only.");
+                }
+
                 pushSystem(
                     JSON.stringify({
                         type: "product_list",
@@ -282,7 +325,7 @@ export default function UnifiedGroceries() {
             }
         } catch (err) {
             console.error("Search error:", err);
-            pushSystem("Search failed. Please try again.");
+            pushSystem("Search failed for both platforms. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -1226,9 +1269,9 @@ export default function UnifiedGroceries() {
                 <div className="relative min-h-screen w-full bg-black overflow-hidden flex flex-col">
                     <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-black/50 backdrop-blur-md sticky top-0 z-50">
                         <div className="flex items-center gap-3">
-                            <img src="/logo/zepto.jpg" alt="" className="w-8 h-8 rounded-lg" />
+                            <img src="/logo/zepto.jpg" alt="Zepto" className="w-8 h-8 rounded-lg" />
                             <span className="text-xl font-bold">+</span>
-                            <img src="/logo/instamart.png" alt="" className="w-8 h-8 rounded-lg" />
+                            <img src="/logo/swiggy-instamart.jpg" alt="Swiggy Instamart" className="w-8 h-8 rounded-lg" />
                             <span className="text-lg font-semibold ml-2">Combined Shopping</span>
                         </div>
                     </header>

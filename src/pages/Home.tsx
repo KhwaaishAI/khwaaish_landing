@@ -217,6 +217,42 @@ export default function Home() {
                   </p>
                 </Link>
 
+                {/* Zepto Only */}
+                <Link
+                  to="/zepto"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-purple-400/70 hover:shadow-[0_0_25px_rgba(168,85,247,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img
+                      src="/logo/zepto.jpg"
+                      alt="Zepto"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">Zepto</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Open dedicated Zepto flow (singleplatform).
+                  </p>
+                </Link>
+
+                {/* Instamart Only */}
+                <Link
+                  to="/instamart"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-orange-400/70 hover:shadow-[0_0_25px_rgba(249,115,22,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img
+                      src="/logo/swiggy-instamart.jpg"
+                      alt="Swiggy Instamart"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">Instamart</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Open dedicated Swiggy Instamart flow (singleplatform).
+                  </p>
+                </Link>
+
                 {/* JioMart */}
                 <Link
                   to="/jiomart"
