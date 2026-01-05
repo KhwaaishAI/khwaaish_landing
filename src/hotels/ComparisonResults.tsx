@@ -170,6 +170,7 @@ const ComparisonResults: React.FC<ComparisonResultsProps> = ({
 
       <div className="space-y-6">
         {allDisplayHotels.map((hotel, index) => {
+          console.log("---Rendering hotel card", hotel.name);
           const hotelKey = hotel.name;
 
           const selectedPlatform =
@@ -187,7 +188,7 @@ const ComparisonResults: React.FC<ComparisonResultsProps> = ({
             hotel.agodaHotel?.image_url ||
             hotel.oyoHotel?.imageurl ||
             hotel.bookingHotel?.image_url ||
-            "/images/hotel-placeholder.jpg";
+            "";
           const displayName =
             hotel.agodaHotel?.name ||
             hotel.oyoHotel?.name ||
@@ -197,7 +198,7 @@ const ComparisonResults: React.FC<ComparisonResultsProps> = ({
             hotel.agodaHotel?.location ||
             hotel.oyoHotel?.location ||
             hotel.bookingHotel?.location ||
-            "Mumbai";
+            "";
 
           // Rating logic
           const ratingScore =
@@ -363,6 +364,10 @@ const ComparisonResults: React.FC<ComparisonResultsProps> = ({
                               : "hover:bg-gray-800"
                           }`}
                           onClick={() => {
+                            console.log("🖱 Platform selected", {
+                              hotel: hotelKey,
+                              platform: p.name,
+                            })
                             setSelectedPlatformByHotel((prev) => ({
                               ...prev,
                               [hotelKey]: p.name as "agoda" | "oyo" | "booking",

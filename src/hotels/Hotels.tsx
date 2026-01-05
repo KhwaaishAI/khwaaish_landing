@@ -185,6 +185,8 @@ export default function HotelsComparison() {
       booking: any[];
     };
   } => {
+    console.log("extractComparisonHotels called", results);
+
     const comparisonHotels: ComparisonHotel[] = [];
     const unmatchedHotels = {
       agoda: [] as any[],
@@ -193,13 +195,13 @@ export default function HotelsComparison() {
     };
 
     // Helper function to get first two words
-    const getFirstTwoWords = (name: string): string => {
-      const words = name?.split(" ") || [];
-      return words
-        .slice(0, 2)
-        .join(" ")
+    const normalizeName = (name: string): string => {
+      return name
         .toLowerCase()
-        .replace(/[^\w\s]/gi, "");
+        .replace(/[^a-z0-9 ]/g, "")
+        .replace(/\b(hotel|oyo|residency|inn|lodge|stay|the)\b/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
     };
 
     // Get all hotels from each platform
@@ -219,10 +221,11 @@ export default function HotelsComparison() {
         booking: any | null;
       }
     >();
+    console.log("hotelMap size", hotelMap.size);
 
     // Process Agoda hotels
     agodaHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
+      const key = normalizeName(hotel.name);
       if (!hotelMap.has(key)) {
         hotelMap.set(key, {
           name: hotel.name,
@@ -242,7 +245,7 @@ export default function HotelsComparison() {
 
     // Process OYO hotels
     oyoHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
+      const key = normalizeName(hotel.name);
       if (!hotelMap.has(key)) {
         hotelMap.set(key, {
           name: hotel.name,
@@ -258,7 +261,7 @@ export default function HotelsComparison() {
 
     // Process Booking hotels
     bookingHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
+      const key = normalizeName(hotel.name);
       if (!hotelMap.has(key)) {
         hotelMap.set(key, {
           name: hotel.name,
@@ -274,71 +277,70 @@ export default function HotelsComparison() {
 
     // Convert map to comparison hotels
     hotelMap.forEach((hotelData) => {
-      const agodaPrice = hotelData.agoda?.price || "--";
-      const oyoPrice = hotelData.oyo?.price || "--";
-      const bookingPrice = hotelData.booking?.price || "--";
+      const platformsCount =
+        (hotelData.agoda ? 1 : 0) +
+        (hotelData.oyo ? 1 : 0) +
+        (hotelData.booking ? 1 : 0);
 
-      // Find best price
-      const prices = [
-        { platform: "agoda" as const, price: agodaPrice },
-        { platform: "oyo" as const, price: oyoPrice },
-        { platform: "booking" as const, price: bookingPrice },
-      ].filter((p) => p.price !== "--");
+      // ONLY multi-platform hotels go into comparisonHotels
+      if (platformsCount > 1) {
+        const agodaPrice = hotelData.agoda?.price || "--";
+        const oyoPrice = hotelData.oyo?.price || "--";
+        const bookingPrice = hotelData.booking?.price || "--";
 
-      let bestPrice: { platform: "agoda" | "oyo" | "booking"; price: string } =
-        {
-          platform: "agoda",
-          price: "--",
+        const prices = [
+          { platform: "agoda" as const, price: agodaPrice },
+          { platform: "oyo" as const, price: oyoPrice },
+          { platform: "booking" as const, price: bookingPrice },
+        ].filter((p) => p.price !== "--");
+
+        let bestPrice: {
+          platform: "agoda" | "oyo" | "booking";
+          price: string;
+        } = {
+          platform: prices[0]?.platform || "agoda",
+          price: prices[0]?.price || "--",
         };
-      if (prices.length > 0) {
-        // Convert price strings to numbers for comparison
-        const numericPrices = prices.map((p) => ({
-          ...p,
-          numeric: parseFloat(p.price.replace(/[^\d.]/g, "")) || Infinity,
-        }));
-        numericPrices.sort((a, b) => a.numeric - b.numeric);
-        bestPrice = {
-          platform: numericPrices[0].platform,
-          price: numericPrices[0].price,
-        };
-      }
 
-      comparisonHotels.push({
-        name: hotelData.name,
-        agodaPrice,
-        oyoPrice,
-        bookingPrice,
-        agodaHotel: hotelData.agoda,
-        oyoHotel: hotelData.oyo,
-        bookingHotel: hotelData.booking,
-        bestPrice,
-      });
-    });
+        if (prices.length > 1) {
+          const numericPrices = prices.map((p) => ({
+            ...p,
+            numeric: parseFloat(p.price.replace(/[^\d.]/g, "")) || Infinity,
+          }));
+          numericPrices.sort((a, b) => a.numeric - b.numeric);
+          bestPrice = {
+            platform: numericPrices[0].platform,
+            price: numericPrices[0].price,
+          };
+        }
 
-    // Collect unmatched hotels (hotels that only exist on one platform)
-    agodaHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
-      const entry = hotelMap.get(key);
-      if (entry && !entry.oyo && !entry.booking) {
-        unmatchedHotels.agoda.push(hotel);
+        comparisonHotels.push({
+          name: hotelData.name,
+          agodaPrice,
+          oyoPrice,
+          bookingPrice,
+          agodaHotel: hotelData.agoda,
+          oyoHotel: hotelData.oyo,
+          bookingHotel: hotelData.booking,
+          bestPrice,
+        });
       }
     });
 
-    oyoHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
-      const entry = hotelMap.get(key);
-      if (entry && !entry.agoda && !entry.booking) {
-        unmatchedHotels.oyo.push(hotel);
-      }
-    });
+    hotelMap.forEach((hotelData) => {
+      const platformsCount =
+        (hotelData.agoda ? 1 : 0) +
+        (hotelData.oyo ? 1 : 0) +
+        (hotelData.booking ? 1 : 0);
 
-    bookingHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
-      const entry = hotelMap.get(key);
-      if (entry && !entry.agoda && !entry.oyo) {
-        unmatchedHotels.booking.push(hotel);
+      if (platformsCount === 1) {
+        if (hotelData.agoda) unmatchedHotels.agoda.push(hotelData.agoda);
+        if (hotelData.oyo) unmatchedHotels.oyo.push(hotelData.oyo);
+        if (hotelData.booking) unmatchedHotels.booking.push(hotelData.booking);
       }
     });
+    console.log(" comparisonHotels", comparisonHotels);
+    console.log(" unmatchedHotels", unmatchedHotels);
 
     return { comparisonHotels, unmatchedHotels };
   };
@@ -346,6 +348,7 @@ export default function HotelsComparison() {
   // Search all platforms simultaneously
   const handleSearchAll = async () => {
     if (!messageInput.trim()) return;
+    console.log("handleSearchAll START", messageInput);
 
     const userMessage = messageInput.trim();
 
@@ -367,6 +370,8 @@ export default function HotelsComparison() {
         await new Promise((r) => setTimeout(r, 1200));
       }
 
+      console.log("Calling search APIs (Agoda, OYO, Booking)");
+
       const [agodaRes, oyoRes, bookingRes] = await Promise.allSettled([
         USE_MOCK_DATA
           ? Promise.resolve(mockAgodaResponse)
@@ -381,7 +386,6 @@ export default function HotelsComparison() {
               handleApiError(r, "agoda");
               return r.json();
             }),
-
         USE_MOCK_DATA
           ? Promise.resolve(mockOyoResponse)
           : fetch(`${BaseURL}/oyo_automation/oyo/search/natural`, {
@@ -404,12 +408,19 @@ export default function HotelsComparison() {
               return r.json();
             }),
       ]);
+      console.log("Search responses", {
+        agodaRes,
+        oyoRes,
+        bookingRes,
+      });
 
       const results: PlatformResults[] = [];
 
       //  AGODA ----------
       if (agodaRes.status === "fulfilled") {
         const agodaData = agodaRes.value;
+        console.log("Agoda fulfilled", agodaData);
+
         if (agodaData.search_results?.session_id) {
           setAgodaSessionId(agodaData.search_results.session_id);
         }
@@ -434,6 +445,7 @@ export default function HotelsComparison() {
       //  OYO ----------
       if (oyoRes.status === "fulfilled") {
         const oyoData = oyoRes.value;
+        console.log("OYO fulfilled", oyoData);
         results.push({
           platform: "oyo",
           status: "success",
@@ -459,6 +471,7 @@ export default function HotelsComparison() {
       //  BOOKING ----------
       if (bookingRes.status === "fulfilled") {
         const bookingData = bookingRes.value;
+        console.log("Booking fulfilled", bookingData);
 
         const session =
           bookingData.search_results?.session_id || bookingData.session_id;
@@ -484,6 +497,7 @@ export default function HotelsComparison() {
         });
       }
 
+      console.log("Final platformResults", results);
       setPlatformResults(results);
 
       pushSystem(
