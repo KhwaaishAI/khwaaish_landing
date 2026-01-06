@@ -28,6 +28,7 @@ export default function SwiggyDineoutChat() {
   const [showPhonePopup, setShowPhonePopup] = useState(false);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
+  const [showSearchPopup, setShowSearchPopup] = useState(false);
 
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
@@ -452,16 +453,14 @@ export default function SwiggyDineoutChat() {
     ) : (
       <div
         key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
+        className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
+          }`}
       >
         <div
-          className={`${
-            m.role === "user"
-              ? "bg-white/15 text-white border-white/20"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
+          className={`${m.role === "user"
+            ? "bg-white/15 text-white border-white/20"
+            : "bg-gray-900/80 text-gray-100 border-gray-800"
+            } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-4 py-3 border`}
         >
           {content}
         </div>
@@ -608,11 +607,10 @@ export default function SwiggyDineoutChat() {
                     <button
                       key={option}
                       onClick={() => setDateText(option)}
-                      className={`text-xs px-3 py-1 rounded-full ${
-                        dateText === option
-                          ? "bg-red-600"
-                          : "bg-white/10 hover:bg-white/20"
-                      }`}
+                      className={`text-xs px-3 py-1 rounded-full ${dateText === option
+                        ? "bg-red-600"
+                        : "bg-white/10 hover:bg-white/20"
+                        }`}
                     >
                       {option}
                     </button>
@@ -636,11 +634,10 @@ export default function SwiggyDineoutChat() {
                       <button
                         key={time}
                         onClick={() => setTimeText(time)}
-                        className={`text-xs px-2 py-1 rounded-lg ${
-                          timeText === time
-                            ? "bg-red-600"
-                            : "bg-white/10 hover:bg-white/20"
-                        }`}
+                        className={`text-xs px-2 py-1 rounded-lg ${timeText === time
+                          ? "bg-red-600"
+                          : "bg-white/10 hover:bg-white/20"
+                          }`}
                       >
                         {time}
                       </button>
@@ -657,21 +654,19 @@ export default function SwiggyDineoutChat() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setOfferType("regular")}
-                    className={`flex-1 py-2 rounded-lg border ${
-                      offerType === "regular"
-                        ? "bg-red-600 border-red-500"
-                        : "bg-white/10 border-gray-700"
-                    }`}
+                    className={`flex-1 py-2 rounded-lg border ${offerType === "regular"
+                      ? "bg-red-600 border-red-500"
+                      : "bg-white/10 border-gray-700"
+                      }`}
                   >
                     Regular Offer
                   </button>
                   <button
                     onClick={() => setOfferType("special")}
-                    className={`flex-1 py-2 rounded-lg border ${
-                      offerType === "special"
-                        ? "bg-red-600 border-red-500"
-                        : "bg-white/10 border-gray-700"
-                    }`}
+                    className={`flex-1 py-2 rounded-lg border ${offerType === "special"
+                      ? "bg-red-600 border-red-500"
+                      : "bg-white/10 border-gray-700"
+                      }`}
                   >
                     Special Offer
                   </button>
@@ -692,6 +687,61 @@ export default function SwiggyDineoutChat() {
                 className="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loadingConfirm ? <PopupLoader /> : "Confirm Booking"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SEARCH POPUP */}
+      {showSearchPopup && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 p-6 rounded-2xl w-80 md:w-96 space-y-4 border border-gray-700">
+            <h2 className="text-xl font-semibold text-white">Find a Restaurant</h2>
+            <p className="text-sm text-gray-400">
+              Where would you like to dine today?
+            </p>
+
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Enter restaurant name..."
+                value={messageInput}
+                onChange={(e) => setMessageInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setShowSearchPopup(false);
+                    handleSend();
+                  }
+                }}
+                className="w-full px-4 py-3 pr-10 rounded-xl bg-white/10 border border-gray-700 text-white outline-none focus:border-red-500 transition-colors"
+                autoFocus
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <VoiceRecorderButton
+                  onTextReady={(text) =>
+                    setMessageInput((prev) => (prev ? `${prev} ${text}` : text))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSearchPopup(false)}
+                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowSearchPopup(false);
+                  handleSend();
+                }}
+                disabled={!messageInput.trim()}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Search
               </button>
             </div>
           </div>
@@ -748,13 +798,11 @@ export default function SwiggyDineoutChat() {
               <button
                 type="submit"
                 disabled={loadingSearch}
-                className={`p-2.5 rounded-full ${
-                  loadingSearch ? "opacity-50" : ""
-                } ${
-                  messageInput
+                className={`p-2.5 rounded-full ${loadingSearch ? "opacity-50" : ""
+                  } ${messageInput
                     ? "bg-red-600 hover:bg-red-500"
                     : "bg-white/20 hover:bg-white/30"
-                }`}
+                  }`}
               >
                 {loadingSearch ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -943,40 +991,19 @@ export default function SwiggyDineoutChat() {
                   </p>
                 </div>
                 <div className="w-full relative">
-                  <input
-                    type="text"
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    placeholder="Search for restaurants..."
-                    className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white placeholder-white/60"
-                    style={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
-                    <VoiceRecorderButton
-                      onTextReady={(text) => {
-                        setMessageInput(text);
-                      }}
-                    />
-                    <button
-                      onClick={handleSend}
-                      disabled={loadingSearch}
-                      className={`p-2 ${loadingSearch ? "opacity-50" : ""} ${
-                        messageInput
-                          ? "bg-red-600 hover:bg-red-500"
-                          : "bg-white/20 hover:bg-white/30"
-                      } rounded-full transition-colors`}
+                  <div
+                    className="w-full relative cursor-pointer"
+                    onClick={() => setShowSearchPopup(true)}
+                  >
+                    <div
+                      className="w-full rounded-full px-5 py-3 sm:px-6 sm:py-4 text-white/60 bg-white/10 border border-gray-700 hover:border-gray-500 transition-colors"
                     >
-                      {loadingSearch ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
+                      Search for restaurants...
+                    </div>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                      <div className="p-2 bg-white/20 rounded-full">
                         <svg
-                          className="w-5 h-5"
+                          className="w-5 h-5 text-white"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -985,11 +1012,11 @@ export default function SwiggyDineoutChat() {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M14 5l7 7m0 0l-7 7m7-7H3"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                           />
                         </svg>
-                      )}
-                    </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

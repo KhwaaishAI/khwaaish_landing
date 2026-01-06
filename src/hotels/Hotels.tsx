@@ -106,7 +106,7 @@ export default function HotelsComparison() {
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [agodaSessionId, setAgodaSessionId] = useState("default");
+  const [agodaSessionId, setAgodaSessionId] = useState("");
   const [bookingSessionId, setBookingSessionId] = useState<string | null>(null);
 
   // Popup states
@@ -376,37 +376,37 @@ export default function HotelsComparison() {
         USE_MOCK_DATA
           ? Promise.resolve(mockAgodaResponse)
           : fetch(`${BaseURL}/api/agoda/chat`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                message: userMessage,
-                session_id: agodaSessionId,
-              }),
-            }).then(async (r) => {
-              handleApiError(r, "agoda");
-              return r.json();
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: userMessage,
+              session_id: agodaSessionId,
             }),
+          }).then(async (r) => {
+            handleApiError(r, "agoda");
+            return r.json();
+          }),
         USE_MOCK_DATA
           ? Promise.resolve(mockOyoResponse)
           : fetch(`${BaseURL}/oyo_automation/oyo/search/natural`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ query: userMessage }),
-            }).then(async (r) => {
-              handleApiError(r, "oyo");
-              return r.json();
-            }),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: userMessage }),
+          }).then(async (r) => {
+            handleApiError(r, "oyo");
+            return r.json();
+          }),
 
         USE_MOCK_DATA
           ? Promise.resolve(mockBookingResponse)
           : fetch(`${BaseURL}/api/booking/chat`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ message: userMessage }),
-            }).then(async (r) => {
-              handleApiError(r, "booking");
-              return r.json();
-            }),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: userMessage }),
+          }).then(async (r) => {
+            handleApiError(r, "booking");
+            return r.json();
+          }),
       ]);
       console.log("Search responses", {
         agodaRes,
@@ -1221,16 +1221,14 @@ export default function HotelsComparison() {
     ) : (
       <div
         key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
+        className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
+          }`}
       >
         <div
-          className={`${
-            m.role === "user"
-              ? "bg-gray-900/80 text-gray-100 border-gray-800"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-5 py-4 border shadow-sm`}
+          className={`${m.role === "user"
+            ? "bg-gray-900/80 text-gray-100 border-gray-800"
+            : "bg-gray-900/80 text-gray-100 border-gray-800"
+            } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-5 py-4 border shadow-sm`}
         >
           {content}
         </div>
@@ -1299,7 +1297,7 @@ export default function HotelsComparison() {
             </div>
           </div>
         </div>
-      )}
+      )};
 
       {/* OYO OTP POPUP */}
       {showOyoOtpPopup && (
@@ -1533,8 +1531,8 @@ export default function HotelsComparison() {
                         selectedHotel.image_url?.startsWith("//")
                           ? `https:${selectedHotel.image_url}`
                           : selectedHotel.image_url ||
-                            selectedHotel.imageurl ||
-                            "/images/hotel-placeholder.jpg"
+                          selectedHotel.imageurl ||
+                          "/images/hotel-placeholder.jpg"
                       }
                       alt={selectedHotel.name}
                       className="w-full h-full object-cover"
@@ -1828,9 +1826,8 @@ export default function HotelsComparison() {
         <div className="relative min-h-screen w-full bg-black overflow-hidden">
           {/* Sidebar */}
           <aside
-            className={`fixed left-0 top-0 z-40 h-full border-r border-gray-800 bg-black transition-transform duration-300 w-64 ${
-              sidebarOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
+            className={`fixed left-0 top-0 z-40 h-full border-r border-gray-800 bg-black transition-transform duration-300 w-64 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+              }`}
           >
             <div className="flex justify-between items-center gap-2 px-4 py-3">
               <button
@@ -1894,9 +1891,8 @@ export default function HotelsComparison() {
 
           {/* Chat Messages - FIXED: Remove left margin on mobile, add proper margin on desktop */}
           <div
-            className={`overflow-y-auto px-4 py-6 space-y-4 ${
-              sidebarOpen ? "md:ml-64" : "md:ml-0"
-            }`}
+            className={`overflow-y-auto px-4 py-6 space-y-4 ${sidebarOpen ? "md:ml-64" : "md:ml-0"
+              }`}
           >
             {messages.map((m) => renderMessage(m))}
             {isLoading && <FlowerLoader />}
@@ -1905,11 +1901,10 @@ export default function HotelsComparison() {
           {/* Message Input - FIXED: Proper positioning */}
           <div
             className={`absolute bottom-0 left-0 right-0 z-40 mx-auto max-w-4xl px-4 py-4 
-                       bg-gradient-to-t from-black/80 via-black/40 to-transparent ${
-                         sidebarOpen ? "md:left-64" : "md:left-0"
-                       }`}
+                       bg-gradient-to-t from-black/80 via-black/40 to-transparent ${sidebarOpen ? "md:left-64" : "md:left-0"
+              }`}
           >
-            {/* <div className="flex items-center gap-3 rounded-full px-4 py-3 border border-gray-800 bg-white/10 backdrop-blur">
+            <div className="flex items-center gap-3 rounded-full px-4 py-3 border border-gray-800 bg-white/10 backdrop-blur">
               <input
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
@@ -1925,37 +1920,42 @@ export default function HotelsComparison() {
                 disabled={loadingSearch}
               />
 
-              <button
-                onClick={() => {
-                  console.log("Search button clicked");
-                  handleSearchAll();
-                }}
-                disabled={loadingSearch || !messageInput.trim()}
-                className={`p-2.5 rounded-full ${
-                  messageInput && !loadingSearch
-                    ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                <VoiceRecorderButton
+                  onTextReady={(text) =>
+                    setMessageInput((prev) =>
+                      prev ? prev + " " + text : text
+                    )
+                  }
+                />
+                <button
+                  onClick={handleSearchAll}
+                  disabled={loadingSearch}
+                  className={`p-2 ${loadingSearch ? "opacity-50" : ""} ${messageInput
+                    ? "bg-red-600 hover:bg-red-500"
                     : "bg-white/20 hover:bg-white/30"
-                } transition-all`}
-              >
-                {loadingSearch ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                )}
-              </button>
-            </div> */}
+                    } rounded-full transition-colors`}
+                >
+                  {loadingSearch ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -2118,11 +2118,10 @@ export default function HotelsComparison() {
                         handleSearchAll();
                       }}
                       disabled={!messageInput.trim()}
-                      className={`p-2 ${
-                        messageInput
-                          ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
-                          : "bg-white/20 hover:bg-white/30"
-                      } rounded-full transition-all`}
+                      className={`p-2 ${messageInput
+                        ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
+                        : "bg-white/20 hover:bg-white/30"
+                        } rounded-full transition-all`}
                     >
                       <svg
                         className="w-5 h-5"
