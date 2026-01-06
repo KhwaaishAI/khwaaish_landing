@@ -300,9 +300,8 @@ export default function Agoda() {
               <button
                 onClick={handleContinue}
                 disabled={loading}
-                className={`w-full bg-[#D4111D] text-white font-semibold py-3 rounded-xl transition-colors mt-4 shadow-[0_0_20px_rgba(212,17,29,0.4)] ${
-                  loading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#b00e18]"
-                }`}
+                className={`w-full bg-[#D4111D] text-white font-semibold py-3 rounded-xl transition-colors mt-4 shadow-[0_0_20px_rgba(212,17,29,0.4)] ${loading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#b00e18]"
+                  }`}
               >
                 {loading ? "Searching..." : "CONTINUE"}
               </button>
@@ -419,59 +418,59 @@ export default function Agoda() {
                   : hotel.image_url
                 : "/placeholder.jpg";
               return (
-              <div
-                key={index}
-                className="bg-[#111] border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-700 transition-colors flex flex-col"
-              >
-                <div className="h-48 overflow-hidden relative">
-                  <img
-                    src={imageSrc}
-                    alt={hotel.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-                    View
+                <div
+                  key={index}
+                  className="bg-[#111] border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-700 transition-colors flex flex-col"
+                >
+                  <div className="h-48 overflow-hidden relative">
+                    <img
+                      src={imageSrc}
+                      alt={hotel.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                      View
+                    </div>
                   </div>
-                </div>
-                <div className="p-4 flex flex-col justify-between flex-1">
-                  <div>
-                    <h3 className="text-lg font-semibold">{hotel.name}</h3>
-                    <p className="text-gray-500 text-sm">{hotel.area}</p>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-4">
+                  <div className="p-4 flex flex-col justify-between flex-1">
                     <div>
-                      <div className="flex items-baseline gap-2">
-                        {hotel.original_price && (
-                          <span className="text-xs line-through text-red-500">
-                            {hotel.original_price}
-                          </span>
-                        )}
-                        {hotel.price && (
-                          <span className="text-xl font-bold">{hotel.price}</span>
-                        )}
-                      </div>
-                      {hotel.rating && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          Rating: {hotel.rating}
-                        </p>
-                      )}
+                      <h3 className="text-lg font-semibold">{hotel.name}</h3>
+                      <p className="text-gray-500 text-sm">{hotel.area}</p>
                     </div>
 
-                    <button
-                      className="bg-[#D4111D] hover:bg-[#b00e18] text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg shadow-red-900/20"
-                      onClick={() => {
-                        if (hotel.url) {
-                          window.open(hotel.url, "_blank");
-                        }
-                      }}
-                    >
-                      Book Now
-                    </button>
+                    <div className="flex items-center justify-between mt-4">
+                      <div>
+                        <div className="flex items-baseline gap-2">
+                          {hotel.original_price && (
+                            <span className="text-xs line-through text-red-500">
+                              {hotel.original_price}
+                            </span>
+                          )}
+                          {hotel.price && (
+                            <span className="text-xl font-bold">{hotel.price}</span>
+                          )}
+                        </div>
+                        {hotel.rating && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            Rating: {hotel.rating}
+                          </p>
+                        )}
+                      </div>
+
+                      <button
+                        className="bg-[#D4111D] hover:bg-[#b00e18] text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg shadow-red-900/20"
+                        onClick={() => {
+                          if (hotel.url) {
+                            window.open(hotel.url, "_blank");
+                          }
+                        }}
+                      >
+                        Book Now
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
+              );
             })}
           </div>
 

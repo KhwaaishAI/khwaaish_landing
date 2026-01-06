@@ -11,6 +11,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      "/oyo_automation": {
+        target: "https://api.khwaaish.com",
+        changeOrigin: true,
+        secure: true,
+      },
       // Remove or update other proxies if not needed
       "/amazon": {
         target: "http://localhost:8001", // Update if needed

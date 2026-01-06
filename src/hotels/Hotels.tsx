@@ -106,7 +106,7 @@ export default function HotelsComparison() {
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [agodaSessionId, setAgodaSessionId] = useState("default");
+  const [agodaSessionId, setAgodaSessionId] = useState("");
   const [bookingSessionId, setBookingSessionId] = useState<string | null>(null);
 
   // Popup states
@@ -185,6 +185,8 @@ export default function HotelsComparison() {
       booking: any[];
     };
   } => {
+    console.log("extractComparisonHotels called", results);
+
     const comparisonHotels: ComparisonHotel[] = [];
     const unmatchedHotels = {
       agoda: [] as any[],
@@ -193,13 +195,13 @@ export default function HotelsComparison() {
     };
 
     // Helper function to get first two words
-    const getFirstTwoWords = (name: string): string => {
-      const words = name?.split(" ") || [];
-      return words
-        .slice(0, 2)
-        .join(" ")
+    const normalizeName = (name: string): string => {
+      return name
         .toLowerCase()
-        .replace(/[^\w\s]/gi, "");
+        .replace(/[^a-z0-9 ]/g, "")
+        .replace(/\b(hotel|oyo|residency|inn|lodge|stay|the)\b/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
     };
 
     // Get all hotels from each platform
@@ -219,10 +221,11 @@ export default function HotelsComparison() {
         booking: any | null;
       }
     >();
+    console.log("hotelMap size", hotelMap.size);
 
     // Process Agoda hotels
     agodaHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
+      const key = normalizeName(hotel.name);
       if (!hotelMap.has(key)) {
         hotelMap.set(key, {
           name: hotel.name,
@@ -242,7 +245,7 @@ export default function HotelsComparison() {
 
     // Process OYO hotels
     oyoHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
+      const key = normalizeName(hotel.name);
       if (!hotelMap.has(key)) {
         hotelMap.set(key, {
           name: hotel.name,
@@ -258,7 +261,7 @@ export default function HotelsComparison() {
 
     // Process Booking hotels
     bookingHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
+      const key = normalizeName(hotel.name);
       if (!hotelMap.has(key)) {
         hotelMap.set(key, {
           name: hotel.name,
@@ -274,71 +277,70 @@ export default function HotelsComparison() {
 
     // Convert map to comparison hotels
     hotelMap.forEach((hotelData) => {
-      const agodaPrice = hotelData.agoda?.price || "--";
-      const oyoPrice = hotelData.oyo?.price || "--";
-      const bookingPrice = hotelData.booking?.price || "--";
+      const platformsCount =
+        (hotelData.agoda ? 1 : 0) +
+        (hotelData.oyo ? 1 : 0) +
+        (hotelData.booking ? 1 : 0);
 
-      // Find best price
-      const prices = [
-        { platform: "agoda" as const, price: agodaPrice },
-        { platform: "oyo" as const, price: oyoPrice },
-        { platform: "booking" as const, price: bookingPrice },
-      ].filter((p) => p.price !== "--");
+      // ONLY multi-platform hotels go into comparisonHotels
+      if (platformsCount > 1) {
+        const agodaPrice = hotelData.agoda?.price || "--";
+        const oyoPrice = hotelData.oyo?.price || "--";
+        const bookingPrice = hotelData.booking?.price || "--";
 
-      let bestPrice: { platform: "agoda" | "oyo" | "booking"; price: string } =
-        {
-          platform: "agoda",
-          price: "--",
+        const prices = [
+          { platform: "agoda" as const, price: agodaPrice },
+          { platform: "oyo" as const, price: oyoPrice },
+          { platform: "booking" as const, price: bookingPrice },
+        ].filter((p) => p.price !== "--");
+
+        let bestPrice: {
+          platform: "agoda" | "oyo" | "booking";
+          price: string;
+        } = {
+          platform: prices[0]?.platform || "agoda",
+          price: prices[0]?.price || "--",
         };
-      if (prices.length > 0) {
-        // Convert price strings to numbers for comparison
-        const numericPrices = prices.map((p) => ({
-          ...p,
-          numeric: parseFloat(p.price.replace(/[^\d.]/g, "")) || Infinity,
-        }));
-        numericPrices.sort((a, b) => a.numeric - b.numeric);
-        bestPrice = {
-          platform: numericPrices[0].platform,
-          price: numericPrices[0].price,
-        };
-      }
 
-      comparisonHotels.push({
-        name: hotelData.name,
-        agodaPrice,
-        oyoPrice,
-        bookingPrice,
-        agodaHotel: hotelData.agoda,
-        oyoHotel: hotelData.oyo,
-        bookingHotel: hotelData.booking,
-        bestPrice,
-      });
-    });
+        if (prices.length > 1) {
+          const numericPrices = prices.map((p) => ({
+            ...p,
+            numeric: parseFloat(p.price.replace(/[^\d.]/g, "")) || Infinity,
+          }));
+          numericPrices.sort((a, b) => a.numeric - b.numeric);
+          bestPrice = {
+            platform: numericPrices[0].platform,
+            price: numericPrices[0].price,
+          };
+        }
 
-    // Collect unmatched hotels (hotels that only exist on one platform)
-    agodaHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
-      const entry = hotelMap.get(key);
-      if (entry && !entry.oyo && !entry.booking) {
-        unmatchedHotels.agoda.push(hotel);
+        comparisonHotels.push({
+          name: hotelData.name,
+          agodaPrice,
+          oyoPrice,
+          bookingPrice,
+          agodaHotel: hotelData.agoda,
+          oyoHotel: hotelData.oyo,
+          bookingHotel: hotelData.booking,
+          bestPrice,
+        });
       }
     });
 
-    oyoHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
-      const entry = hotelMap.get(key);
-      if (entry && !entry.agoda && !entry.booking) {
-        unmatchedHotels.oyo.push(hotel);
-      }
-    });
+    hotelMap.forEach((hotelData) => {
+      const platformsCount =
+        (hotelData.agoda ? 1 : 0) +
+        (hotelData.oyo ? 1 : 0) +
+        (hotelData.booking ? 1 : 0);
 
-    bookingHotels.forEach((hotel) => {
-      const key = getFirstTwoWords(hotel.name);
-      const entry = hotelMap.get(key);
-      if (entry && !entry.agoda && !entry.oyo) {
-        unmatchedHotels.booking.push(hotel);
+      if (platformsCount === 1) {
+        if (hotelData.agoda) unmatchedHotels.agoda.push(hotelData.agoda);
+        if (hotelData.oyo) unmatchedHotels.oyo.push(hotelData.oyo);
+        if (hotelData.booking) unmatchedHotels.booking.push(hotelData.booking);
       }
     });
+    console.log(" comparisonHotels", comparisonHotels);
+    console.log(" unmatchedHotels", unmatchedHotels);
 
     return { comparisonHotels, unmatchedHotels };
   };
@@ -346,6 +348,7 @@ export default function HotelsComparison() {
   // Search all platforms simultaneously
   const handleSearchAll = async () => {
     if (!messageInput.trim()) return;
+    console.log("handleSearchAll START", messageInput);
 
     const userMessage = messageInput.trim();
 
@@ -367,49 +370,57 @@ export default function HotelsComparison() {
         await new Promise((r) => setTimeout(r, 1200));
       }
 
+      console.log("Calling search APIs (Agoda, OYO, Booking)");
+
       const [agodaRes, oyoRes, bookingRes] = await Promise.allSettled([
         USE_MOCK_DATA
           ? Promise.resolve(mockAgodaResponse)
           : fetch(`${BaseURL}/api/agoda/chat`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                message: userMessage,
-                session_id: agodaSessionId,
-              }),
-            }).then(async (r) => {
-              handleApiError(r, "agoda");
-              return r.json();
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: userMessage,
+              session_id: agodaSessionId,
             }),
-
+          }).then(async (r) => {
+            handleApiError(r, "agoda");
+            return r.json();
+          }),
         USE_MOCK_DATA
           ? Promise.resolve(mockOyoResponse)
           : fetch(`${BaseURL}/oyo_automation/oyo/search/natural`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ query: userMessage }),
-            }).then(async (r) => {
-              handleApiError(r, "oyo");
-              return r.json();
-            }),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: userMessage }),
+          }).then(async (r) => {
+            handleApiError(r, "oyo");
+            return r.json();
+          }),
 
         USE_MOCK_DATA
           ? Promise.resolve(mockBookingResponse)
           : fetch(`${BaseURL}/api/booking/chat`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ message: userMessage }),
-            }).then(async (r) => {
-              handleApiError(r, "booking");
-              return r.json();
-            }),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: userMessage }),
+          }).then(async (r) => {
+            handleApiError(r, "booking");
+            return r.json();
+          }),
       ]);
+      console.log("Search responses", {
+        agodaRes,
+        oyoRes,
+        bookingRes,
+      });
 
       const results: PlatformResults[] = [];
 
       //  AGODA ----------
       if (agodaRes.status === "fulfilled") {
         const agodaData = agodaRes.value;
+        console.log("Agoda fulfilled", agodaData);
+
         if (agodaData.search_results?.session_id) {
           setAgodaSessionId(agodaData.search_results.session_id);
         }
@@ -434,6 +445,7 @@ export default function HotelsComparison() {
       //  OYO ----------
       if (oyoRes.status === "fulfilled") {
         const oyoData = oyoRes.value;
+        console.log("OYO fulfilled", oyoData);
         results.push({
           platform: "oyo",
           status: "success",
@@ -459,6 +471,7 @@ export default function HotelsComparison() {
       //  BOOKING ----------
       if (bookingRes.status === "fulfilled") {
         const bookingData = bookingRes.value;
+        console.log("Booking fulfilled", bookingData);
 
         const session =
           bookingData.search_results?.session_id || bookingData.session_id;
@@ -484,6 +497,7 @@ export default function HotelsComparison() {
         });
       }
 
+      console.log("Final platformResults", results);
       setPlatformResults(results);
 
       pushSystem(
@@ -1207,16 +1221,14 @@ export default function HotelsComparison() {
     ) : (
       <div
         key={m.id}
-        className={`flex ${
-          m.role === "user" ? "justify-end" : "justify-start"
-        }`}
+        className={`flex ${m.role === "user" ? "justify-end" : "justify-start"
+          }`}
       >
         <div
-          className={`${
-            m.role === "user"
-              ? "bg-gray-900/80 text-gray-100 border-gray-800"
-              : "bg-gray-900/80 text-gray-100 border-gray-800"
-          } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-5 py-4 border shadow-sm`}
+          className={`${m.role === "user"
+            ? "bg-gray-900/80 text-gray-100 border-gray-800"
+            : "bg-gray-900/80 text-gray-100 border-gray-800"
+            } max-w-[85%] sm:max-w-[70%] md:max-w-[60%] rounded-2xl px-5 py-4 border shadow-sm`}
         >
           {content}
         </div>
@@ -1285,7 +1297,7 @@ export default function HotelsComparison() {
             </div>
           </div>
         </div>
-      )}
+      )};
 
       {/* OYO OTP POPUP */}
       {showOyoOtpPopup && (
@@ -1519,8 +1531,8 @@ export default function HotelsComparison() {
                         selectedHotel.image_url?.startsWith("//")
                           ? `https:${selectedHotel.image_url}`
                           : selectedHotel.image_url ||
-                            selectedHotel.imageurl ||
-                            "/images/hotel-placeholder.jpg"
+                          selectedHotel.imageurl ||
+                          "/images/hotel-placeholder.jpg"
                       }
                       alt={selectedHotel.name}
                       className="w-full h-full object-cover"
@@ -1814,9 +1826,8 @@ export default function HotelsComparison() {
         <div className="relative min-h-screen w-full bg-black overflow-hidden">
           {/* Sidebar */}
           <aside
-            className={`fixed left-0 top-0 z-40 h-full border-r border-gray-800 bg-black transition-transform duration-300 w-64 ${
-              sidebarOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
+            className={`fixed left-0 top-0 z-40 h-full border-r border-gray-800 bg-black transition-transform duration-300 w-64 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+              }`}
           >
             <div className="flex justify-between items-center gap-2 px-4 py-3">
               <button
@@ -1880,9 +1891,8 @@ export default function HotelsComparison() {
 
           {/* Chat Messages - FIXED: Remove left margin on mobile, add proper margin on desktop */}
           <div
-            className={`overflow-y-auto px-4 py-6 space-y-4 ${
-              sidebarOpen ? "md:ml-64" : "md:ml-0"
-            }`}
+            className={`overflow-y-auto px-4 py-6 space-y-4 ${sidebarOpen ? "md:ml-64" : "md:ml-0"
+              }`}
           >
             {messages.map((m) => renderMessage(m))}
             {isLoading && <FlowerLoader />}
@@ -1891,11 +1901,10 @@ export default function HotelsComparison() {
           {/* Message Input - FIXED: Proper positioning */}
           <div
             className={`absolute bottom-0 left-0 right-0 z-40 mx-auto max-w-4xl px-4 py-4 
-                       bg-gradient-to-t from-black/80 via-black/40 to-transparent ${
-                         sidebarOpen ? "md:left-64" : "md:left-0"
-                       }`}
+                       bg-gradient-to-t from-black/80 via-black/40 to-transparent ${sidebarOpen ? "md:left-64" : "md:left-0"
+              }`}
           >
-            {/* <div className="flex items-center gap-3 rounded-full px-4 py-3 border border-gray-800 bg-white/10 backdrop-blur">
+            <div className="flex items-center gap-3 rounded-full px-4 py-3 border border-gray-800 bg-white/10 backdrop-blur">
               <input
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
@@ -1911,37 +1920,42 @@ export default function HotelsComparison() {
                 disabled={loadingSearch}
               />
 
-              <button
-                onClick={() => {
-                  console.log("Search button clicked");
-                  handleSearchAll();
-                }}
-                disabled={loadingSearch || !messageInput.trim()}
-                className={`p-2.5 rounded-full ${
-                  messageInput && !loadingSearch
-                    ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
+                <VoiceRecorderButton
+                  onTextReady={(text) =>
+                    setMessageInput((prev) =>
+                      prev ? prev + " " + text : text
+                    )
+                  }
+                />
+                <button
+                  onClick={handleSearchAll}
+                  disabled={loadingSearch}
+                  className={`p-2 ${loadingSearch ? "opacity-50" : ""} ${messageInput
+                    ? "bg-red-600 hover:bg-red-500"
                     : "bg-white/20 hover:bg-white/30"
-                } transition-all`}
-              >
-                {loadingSearch ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                )}
-              </button>
-            </div> */}
+                    } rounded-full transition-colors`}
+                >
+                  {loadingSearch ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -2104,11 +2118,10 @@ export default function HotelsComparison() {
                         handleSearchAll();
                       }}
                       disabled={!messageInput.trim()}
-                      className={`p-2 ${
-                        messageInput
-                          ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
-                          : "bg-white/20 hover:bg-white/30"
-                      } rounded-full transition-all`}
+                      className={`p-2 ${messageInput
+                        ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600"
+                        : "bg-white/20 hover:bg-white/30"
+                        } rounded-full transition-all`}
                     >
                       <svg
                         className="w-5 h-5"
