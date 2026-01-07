@@ -10,33 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout
+      # 1. Checkout code
       - uses: actions/checkout@v4
 
-      # 2️⃣ Node
+      # 2. Setup Node.js
       - uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3️⃣ Install deps
-      - run: npm install
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: npm install
 
-      # 4️⃣ Build (skip TS)
-      - run: npx vite build
+      # 4. Build React app (skip TS errors)
+      - name: Build React app
+        run: npx vite build
 
-      # 5️⃣ AWS creds (GitHub runner only)
+      # 5. Configure AWS credentials (GitHub runner only)
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6️⃣ Upload build → S3/latest-build (NO --delete)
-      - name: Upload build files to S3
-        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}/latest-build
+      # 6. Upload build to S3 (BUCKET ROOT – ONE LINE ONLY)
+      - name: Upload build to S3
+        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}
 
-      # 7️⃣ Deploy on EC2 (NO CLEANUP)
-      - name: Deploy to EC2
+      # 7. Deploy to EC2 (NO CLEANUP, NO DELETE)
+      - name: Deploy to EC2 and restart Apache
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -44,10 +46,18 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            WEB_ROOT="/var/www/html"
-            S3_PATH="s3://${{ secrets.S3_BUCKET_NAME }}/latest-build"
 
-            aws s3 sync "$S3_PATH" "$WEB_ROOT"
+            WEB_ROOT="/var/www/html"
+            S3_BUCKET="s3://${{ secrets.S3_BUCKET_NAME }}"
+
+            echo "Syncing build from S3 to EC2"
+            aws s3 sync "$S3_BUCKET" "$WEB_ROOT"
+
+            echo "Fixing permissions"
             sudo chown -R ubuntu:ubuntu "$WEB_ROOT"
             sudo chmod -R 755 "$WEB_ROOT"
+
+            echo "Restarting Apache"
             sudo systemctl reload apache2 || sudo systemctl restart apache2
+
+            echo "Deployment completed successfully"
