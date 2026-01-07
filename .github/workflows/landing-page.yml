@@ -1,4 +1,4 @@
-name: React Prod Deployment (Skip TS Errors)
+name: React Production Deployment
 
 on:
   push:
@@ -10,22 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # 1️⃣ Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # ✅ Skip TypeScript checks
+      # 4️⃣ Build React app (skip TypeScript errors)
       - name: Build React app
         run: npx vite build
 
-      # ✅ Configure AWS credentials
+      # 5️⃣ Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -33,12 +36,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # ✅ SINGLE LINE — CANNOT BREAK
-      - name: Upload build to S3
-        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
+      # 6️⃣ DELETE old build from S3 (IMPORTANT)
+      - name: Delete old build from S3
+        run: aws s3 rm s3://${{ secrets.S3_BUCKET_NAME }} --recursive
 
-      # ✅ Deploy on EC2
-      - name: Deploy to EC2 & restart Apache
+      # 7️⃣ Upload NEW build to S3 (single-line, safe)
+      - name: Upload new build to S3
+        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}
+
+      # 8️⃣ Deploy on EC2 & restart Apache
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -50,7 +57,7 @@ jobs:
             S3_BUCKET="${{ secrets.S3_BUCKET_NAME }}"
 
             sudo rm -rf ${WEB_ROOT}/*
-            aws s3 sync s3://$S3_BUCKET $WEB_ROOT --delete
+            aws s3 sync s3://$S3_BUCKET $WEB_ROOT
             sudo chown -R ubuntu:ubuntu $WEB_ROOT
             sudo chmod -R 755 $WEB_ROOT
             sudo systemctl reload apache2 || sudo systemctl restart apache2
