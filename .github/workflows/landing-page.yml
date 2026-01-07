@@ -10,25 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
+      # 1️⃣ Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js
+      # 2️⃣ Node setup
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3️⃣ Install dependencies
+      # 3️⃣ Install deps
       - name: Install dependencies
         run: npm install
 
-      # 4️⃣ Build React app (skip TypeScript errors)
+      # 4️⃣ Build (skip TS errors)
       - name: Build React app
         run: npx vite build
 
-      # 5️⃣ Configure AWS credentials
+      # 5️⃣ AWS creds
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -36,16 +36,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6️⃣ DELETE old build from S3 (IMPORTANT)
+      # 6️⃣ DELETE old build from S3 (SINGLE LINE!)
       - name: Delete old build from S3
         run: aws s3 rm s3://${{ secrets.S3_BUCKET_NAME }} --recursive
 
-      # 7️⃣ Upload NEW build to S3 (single-line, safe)
+      # 7️⃣ Upload new build to S3 (SINGLE LINE!)
       - name: Upload new build to S3
         run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}
 
-      # 8️⃣ Deploy on EC2 & restart Apache
-      - name: Deploy to EC2
+      # 8️⃣ Deploy on EC2
+      - name: Deploy to EC2 & restart Apache
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
