@@ -19,26 +19,23 @@ jobs:
           node-version: 18
 
       # 3️⃣ Install deps
-      - name: Install dependencies
-        run: npm install
+      - run: npm install
 
-      # 4️⃣ Build React (skip TS checks)
-      - name: Build React app
-        run: npx vite build
+      # 4️⃣ Build (skip TS)
+      - run: npx vite build
 
-      # 5️⃣ AWS creds for GitHub runner
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      # 5️⃣ AWS creds (GitHub runner only)
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6️⃣ REPLACE old build in S3 (SOURCE OF TRUTH)
-      - name: Sync new build to S3 (replace old)
-        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
+      # 6️⃣ Upload build → S3/latest-build (NO --delete)
+      - name: Upload build files to S3
+        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}/latest-build
 
-      # 7️⃣ Deploy to EC2 (NO CLEANING)
+      # 7️⃣ Deploy on EC2 (NO CLEANUP)
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -47,18 +44,10 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-
             WEB_ROOT="/var/www/html"
-            S3_BUCKET="s3://${{ secrets.S3_BUCKET_NAME }}"
+            S3_PATH="s3://${{ secrets.S3_BUCKET_NAME }}/latest-build"
 
-            echo "Syncing build from S3 to EC2"
-            aws s3 sync "$S3_BUCKET" "$WEB_ROOT"
-
-            echo "Fixing permissions"
+            aws s3 sync "$S3_PATH" "$WEB_ROOT"
             sudo chown -R ubuntu:ubuntu "$WEB_ROOT"
             sudo chmod -R 755 "$WEB_ROOT"
-
-            echo "Restarting Apache"
             sudo systemctl reload apache2 || sudo systemctl restart apache2
-
-            echo "Deployment completed successfully"
