@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
-      - name: Checkout code
+      # 1️⃣ Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       # 2️⃣ Setup Node.js
@@ -24,11 +24,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 4️⃣ Build React app (skip TypeScript blocking)
+      # 4️⃣ Build React app (skip TS blocking)
       - name: Build React app
         run: npx vite build
 
-      # 5️⃣ Configure AWS credentials (for GitHub runner only)
+      # 5️⃣ Configure AWS credentials (for GitHub runner)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -36,7 +36,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6️⃣ Upload build to S3 (BUCKET ROOT – matches your S3 structure)
+      # 6️⃣ Upload build to S3 (bucket root – matches your setup)
       - name: Upload build to S3
         run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}
 
