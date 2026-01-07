@@ -3,7 +3,7 @@ name: React Prod Deployment (Skip TS Errors)
 on:
   push:
     branches:
-      - prod
+      - main
 
 jobs:
   deploy:
