@@ -43,4 +43,15 @@ jobs:
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          use
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            WEB_ROOT="/var/www/html"
+            S3_BUCKET="s3://${{ secrets.S3_BUCKET_NAME }}"
+
+            sudo rm -rf ${WEB_ROOT:?}/*
+            aws s3 sync $S3_BUCKET $WEB_ROOT
+            sudo chown -R ubuntu:ubuntu $WEB_ROOT
+            sudo chmod -R 755 $WEB_ROOT
+            sudo systemctl reload apache2 || sudo systemctl restart apache2
