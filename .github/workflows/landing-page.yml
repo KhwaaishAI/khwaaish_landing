@@ -1,1 +1,64 @@
-#
+name: React Prod Deployment
+
+on:
+  push:
+    branches:
+      - ma
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build React app
+        run: npm run build
+
+      - name: Upload build to S3
+        uses: aws-actions/s3-sync@v1
+        with:
+          source-dir: build
+          destination-bucket: ${{ secrets.S3_BUCKET_NAME }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to EC2 & Restart Apache
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+
+            echo " Deploying React build to EC2"
+
+            WEB_ROOT="/var/www/html"
+            S3_BUCKET="${{ secrets.S3_BUCKET_NAME }}"
+
+            echo " Cleaning old files"
+            sudo rm -rf ${WEB_ROOT}/*
+
+            echo " Downloading latest build from S3"
+            aws s3 sync s3://$S3_BUCKET $WEB_ROOT --delete
+
+            echo " Fixing permissions"
+            sudo chown -R ubuntu:ubuntu $WEB_ROOT
+            sudo chmod -R 755 $WEB_ROOT
+
+            echo " Restarting Apache"
+            sudo systemctl reload apache2 || sudo systemctl restart apache2
+
+            echo " Deployment successful"
