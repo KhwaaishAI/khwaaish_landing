@@ -3,7 +3,7 @@ name: React Prod Deployment
 on:
   push:
     branches:
-      - ma
+      - main
 
 jobs:
   deploy:
