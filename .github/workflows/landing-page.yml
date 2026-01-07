@@ -10,34 +10,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # 1️⃣ Checkout
       - uses: actions/checkout@v4
 
-      # 2. Setup Node.js
+      # 2️⃣ Setup Node
       - uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3. Install dependencies
-      - name: Install dependencies
-        run: npm install
+      # 3️⃣ Install deps
+      - run: npm install
 
-      # 4. Build React app (skip TS errors)
-      - name: Build React app
-        run: npx vite build
+      # 4️⃣ Build React (skip TS)
+      - run: npx vite build
 
-      # 5. Configure AWS credentials (GitHub runner only)
+      # 5️⃣ AWS creds for GitHub runner
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6. Upload build to S3 (BUCKET ROOT – ONE LINE ONLY)
+      # 6️⃣ Upload build to S3 (single line, safe)
       - name: Upload build to S3
         run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}
 
-      # 7. Deploy to EC2 (NO CLEANUP, NO DELETE)
+      # 7️⃣ Deploy to EC2
       - name: Deploy to EC2 and restart Apache
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -48,9 +46,11 @@ jobs:
             set -e
 
             WEB_ROOT="/var/www/html"
-            S3_BUCKET="s3://${{ secrets.S3_BUCKET_NAME }}"
+            S3_BUCKET=$(printf "s3://%s" "${{ secrets.S3_BUCKET_NAME }}")
 
+            echo "Using S3 bucket: $S3_BUCKET"
             echo "Syncing build from S3 to EC2"
+
             aws s3 sync "$S3_BUCKET" "$WEB_ROOT"
 
             echo "Fixing permissions"
