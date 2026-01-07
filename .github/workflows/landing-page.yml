@@ -10,23 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout
-      - uses: actions/checkout@v4
+      # 1️⃣ Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # 2️⃣ Node
-      - uses: actions/setup-node@v4
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3️⃣ Install deps
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # 4️⃣ Build (skip TS errors)
+      # 4️⃣ Build React app (skip TypeScript blocking)
       - name: Build React app
         run: npx vite build
 
-      # 5️⃣ AWS credentials
+      # 5️⃣ Configure AWS credentials (for GitHub runner only)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -34,7 +36,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6️⃣ Upload build to S3 BUCKET ROOT (THIS MATCHES YOUR SCREENSHOT)
+      # 6️⃣ Upload build to S3 (BUCKET ROOT – matches your S3 structure)
       - name: Upload build to S3
         run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}
 
@@ -47,11 +49,21 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
+
             WEB_ROOT="/var/www/html"
             S3_BUCKET="s3://${{ secrets.S3_BUCKET_NAME }}"
 
+            echo "Cleaning old files"
             sudo rm -rf ${WEB_ROOT:?}/*
-            aws s3 sync $S3_BUCKET $WEB_ROOT
-            sudo chown -R ubuntu:ubuntu $WEB_ROOT
-            sudo chmod -R 755 $WEB_ROOT
+
+            echo "Syncing build from S3"
+            aws s3 sync "$S3_BUCKET" "$WEB_ROOT"
+
+            echo "Fixing permissions"
+            sudo chown -R ubuntu:ubuntu "$WEB_ROOT"
+            sudo chmod -R 755 "$WEB_ROOT"
+
+            echo "Restarting Apache"
             sudo systemctl reload apache2 || sudo systemctl restart apache2
+
+            echo "Deployment completed successfully"
