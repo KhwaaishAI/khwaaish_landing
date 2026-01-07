@@ -10,25 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # 1. Checkout
+      - uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # 2. Node
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3️⃣ Install dependencies
+      # 3. Install deps
       - name: Install dependencies
         run: npm install
 
-      # 4️⃣ Build React app (skip TypeScript errors)
+      # 4. Build (skip TS checks)
       - name: Build React app
         run: npx vite build
 
-      # 5️⃣ Configure AWS credentials
+      # 5. AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -36,12 +34,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6️⃣ Upload build to S3 → build/ folder (SAFE)
-      - name: Upload build to S3 (build folder)
-        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}/build
+      # 6. Upload build to S3/build (ONE LINE – SAFE)
+      - name: Upload build to S3
+        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}/build/
 
-      # 7️⃣ Deploy on EC2 & restart Apache
-      - name: Deploy to EC2
+      # 7. Deploy to EC2
+      - name: Deploy to EC2 and restart Apache
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -50,9 +48,9 @@ jobs:
           script: |
             set -e
             WEB_ROOT="/var/www/html"
-            S3_PATH="s3://${{ secrets.S3_BUCKET_NAME }}/build"
+            S3_PATH="s3://${{ secrets.S3_BUCKET_NAME }}/build/"
 
-            sudo rm -rf ${WEB_ROOT}/*
+            sudo rm -rf ${WEB_ROOT:?}/*
             aws s3 sync $S3_PATH $WEB_ROOT
             sudo chown -R ubuntu:ubuntu $WEB_ROOT
             sudo chmod -R 755 $WEB_ROOT
