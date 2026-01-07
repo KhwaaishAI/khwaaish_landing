@@ -10,25 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # 1️⃣ Checkout
+      - uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # 2️⃣ Node
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3️⃣ Install dependencies
+      # 3️⃣ Install deps
       - name: Install dependencies
         run: npm install
 
-      # 4️⃣ Build React app (skip TypeScript checks)
+      # 4️⃣ Build (skip TS errors)
       - name: Build React app
         run: npx vite build
 
-      # 5️⃣ Configure AWS credentials
+      # 5️⃣ AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -36,24 +34,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 6️⃣ Upload build → S3/latest-build (ONE LINE, SAFE)
-      - name: Upload build to S3 (latest-build)
-        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}/latest-build/
+      # 6️⃣ Upload build to S3 BUCKET ROOT (THIS MATCHES YOUR SCREENSHOT)
+      - name: Upload build to S3
+        run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_NAME }}
 
       # 7️⃣ Deploy to EC2 & restart Apache
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -e
-            WEB_ROOT="/var/www/html"
-            S3_PATH="s3://${{ secrets.S3_BUCKET_NAME }}/latest-build/"
-
-            sudo rm -rf ${WEB_ROOT:?}/*
-            aws s3 sync $S3_PATH $WEB_ROOT
-            sudo chown -R ubuntu:ubuntu $WEB_ROOT
-            sudo chmod -R 755 $WEB_ROOT
-            sudo systemctl reload apache2 || sudo systemctl restart apache2
+          use
