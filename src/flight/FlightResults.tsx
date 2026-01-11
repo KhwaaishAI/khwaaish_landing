@@ -37,14 +37,25 @@ interface GroupedFlight {
 const formatTime = (timeString: string) => {
     if (!timeString) return "--:--";
     const cleaned = timeString.trim();
-    if (cleaned.match(/^\d{1,2}:\d{2}$/)) {
-        const parts = cleaned.split(':');
-        const hours = parseInt(parts[0], 10);
-        const minutes = parts[1];
+
+    // 1. Handle explicit AM/PM
+    const amPmMatch = cleaned.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)/i);
+    if (amPmMatch) {
+        // Normalize spacing and case. parseInt removes leading zeros (07 -> 7)
+        return `${parseInt(amPmMatch[1], 10)}:${amPmMatch[2]} ${amPmMatch[3].toUpperCase()}`;
+    }
+
+    // 2. Handle ISO or 24h "HH:MM(:SS)"
+    // Matches 14:00, 14:00:00, 2023-10-10T14:00:00
+    const timeMatch = cleaned.match(/(?:T|\s|^)(\d{1,2}):(\d{2})(?::\d{2})?/);
+    if (timeMatch) {
+        let hours = parseInt(timeMatch[1], 10);
+        const minutes = timeMatch[2];
         const suffix = hours >= 12 ? 'PM' : 'AM';
         const h12 = hours % 12 || 12;
         return `${h12}:${minutes} ${suffix}`;
     }
+
     return cleaned.replace(/\u202f/g, " ").toUpperCase();
 };
 
@@ -98,101 +109,176 @@ export default function FlightResults({
     const [showComparisonOnly, setShowComparisonOnly] = useState(false);
 
     const groupedFlights = useMemo(() => {
-        const map: Record<string, GroupedFlight> = {};
+        const allOptions: any[] = [];
+        const agodaSessionId = agodaResults?.session_id || "";
+        const bookingSessionId = bookingResults?.session_id || "";
 
-        // --- Process Agoda ---
-        if (agodaResults && agodaResults.flights) {
-            const agodaSessionId = agodaResults.session_id || "";
+        const resolveAirlineName = (flight: any) => {
+            let name = flight.airline || flight.airline_name || flight.carrier_name || flight.carrierName || "";
+            if (name && name.toLowerCase() !== "unknown") return name;
+
+            // Try to extract from logo URL if name is unknown
+            const logo = (flight.logo_url || flight.airline_logo || "").toLowerCase();
+            if (logo.includes("/ai.") || logo.includes("air-india") || logo.includes("air%20india")) return "Air India";
+            if (logo.includes("/6e.") || logo.includes("indigo")) return "IndiGo";
+            if (logo.includes("/sg.") || logo.includes("spicejet")) return "SpiceJet";
+            if (logo.includes("/uk.") || logo.includes("vistara")) return "Vistara";
+            if (logo.includes("/qp.") || logo.includes("akasa")) return "Akasa Air";
+            if (logo.includes("/g8.") || logo.includes("goair")) return "Go First";
+            if (logo.includes("/i5.") || logo.includes("airasia")) return "AirAsia India";
+
+            return "Unknown";
+        };
+
+        const getFallbackLogo = (name: string) => {
+            const n = name.toLowerCase();
+            if (n.includes("indigo")) return "https://images.seeklogo.com/logo-png/31/1/indigo-airlines-logo-png_seeklogo-317426.png";
+            if (n.includes("spicejet")) return "https://logos-world.net/wp-content/uploads/2023/01/SpiceJet-Logo.jpg";
+            if (n.includes("akasa")) return "https://upload.wikimedia.org/wikipedia/commons/2/22/Akasa_Air_logo_with_slogan.png";
+            if (n.includes("air india")) return "https://upload.wikimedia.org/wikipedia/en/thumb/d/d4/Air_India_Logo.svg/512px-Air_India_Logo.svg.png";
+            if (n.includes("vistara")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Vistara_logo.svg/512px-Vistara_logo.svg.png";
+            if (n.includes("go first") || n.includes("goair")) return "https://logos.skyscnr.com/images/airlines/favicon/G8.png";
+            if (n.includes("airasia")) return "https://logos.skyscnr.com/images/airlines/favicon/I5.png";
+            return "";
+        };
+
+        // Collect Agoda Options
+        if (agodaResults?.flights) {
             agodaResults.flights.forEach((flight: any) => {
-                const depTime = formatTime(flight.departure_time);
-                const arrTime = formatTime(flight.arrival_time);
-                const airline = flight.airline || "Unknown";
-                const depCity = flight.origin || flight.departure_code || "Origin";
-                const arrCity = flight.destination || flight.arrival_code || "Dest";
-
-                // Key: Airline + DepTime + Route
-                const key = `${airline}_${depTime}_${depCity}_${arrCity}`.replace(/\s+/g, '').toUpperCase();
-                const priceVal = flight.price_text || flight.price || flight.total_price || flight.amount || 0;
-
-                if (!map[key]) {
-                    map[key] = {
-                        id: key,
-                        airline,
-                        airlineLogo: flight.logo_url || flight.airline_logo || "",
-                        flightNumber: flight.flight_number || "",
-                        departureTime: depTime,
-                        departureCity: depCity,
-                        arrivalTime: arrTime,
-                        arrivalCity: arrCity,
-                        duration: flight.duration || "--",
-                        stops: parseInt(flight.stops || (flight.layover ? '1' : '0')) || 0,
-                        options: [],
-                        bestPrice: 9999999
-                    };
-                }
-
-                const price = parsePrice(priceVal);
-                map[key].options.push({
+                const name = resolveAirlineName(flight);
+                allOptions.push({
                     provider: "Agoda",
-                    price,
-                    rawDepartureTime: flight.departure_time,
+                    airline: name,
+                    airlineLogo: flight.logo_url || flight.airline_logo || getFallbackLogo(name),
+                    flightNumber: flight.flight_number || "",
+                    departureTime: formatTime(flight.departure_time),
+                    arrivalTime: formatTime(flight.arrival_time),
+                    departureCity: flight.origin || flight.departure_code || "Origin",
+                    arrivalCity: flight.destination || flight.arrival_code || "Dest",
+                    duration: flight.duration || "--",
+                    stops: parseInt(flight.stops || (flight.layover ? '1' : '0')) || 0,
+                    price: parsePrice(flight.price_text || flight.price || flight.total_price || flight.amount || 0),
                     sessionId: agodaSessionId,
                     deepLink: flight.deep_link || "",
                     badges: Array.isArray(flight.badges) ? flight.badges : [],
-                    stops: parseInt(flight.stops) || 0,
-                    duration: flight.duration || "--"
+                    rawTime: flight.departure_time
                 });
-                if (price > 0 && price < map[key].bestPrice) map[key].bestPrice = price;
             });
         }
 
-        // --- Process Booking.com ---
-        if (bookingResults && bookingResults.flights) {
-            const bookingSessionId = bookingResults.session_id || "";
+        // Collect Booking.com Options
+        if (bookingResults?.flights) {
             bookingResults.flights.forEach((flight: any) => {
-                const rawTime = flight.departure_time || flight.departureDate || "";
-                const depTime = formatTime(rawTime);
-                const arrTime = formatTime(flight.arrival_time || flight.arrivalDate);
-                const airline = flight.airline || "Unknown";
-                const depCity = flight.departure_airport || flight.origin || "Origin";
-                const arrCity = flight.arrival_airport || flight.destination || "Dest";
-
-                const key = `${airline}_${depTime}_${depCity}_${arrCity}`.replace(/\s+/g, '').toUpperCase();
-                const priceVal = flight.price || flight.price_text || flight.amount || flight.totalAmount || 0;
-
-                if (!map[key]) {
-                    map[key] = {
-                        id: key,
-                        airline,
-                        airlineLogo: flight.airline_logo || "",
-                        flightNumber: flight.flight_number || "",
-                        departureTime: depTime,
-                        departureCity: depCity,
-                        arrivalTime: arrTime,
-                        arrivalCity: arrCity,
-                        duration: flight.duration || "--",
-                        stops: flight.stops || 0,
-                        options: [],
-                        bestPrice: 9999999
-                    };
-                }
-
-                const price = parsePrice(priceVal);
-                map[key].options.push({
+                const name = resolveAirlineName(flight);
+                allOptions.push({
                     provider: "Booking.com",
-                    price,
-                    rawDepartureTime: rawTime,
+                    airline: name,
+                    airlineLogo: flight.airline_logo || flight.logo_url || getFallbackLogo(name),
+                    flightNumber: flight.flight_number || "",
+                    departureTime: formatTime(flight.departure_time || flight.departureDate || ""),
+                    arrivalTime: formatTime(flight.arrival_time || flight.arrivalDate || ""),
+                    departureCity: flight.departure_airport || flight.origin || "Origin",
+                    arrivalCity: flight.arrival_airport || flight.destination || "Dest",
+                    duration: flight.duration || "--",
+                    stops: flight.stops || 0,
+                    price: parsePrice(flight.price || flight.price_text || flight.amount || flight.totalAmount || 0),
                     sessionId: bookingSessionId,
                     deepLink: "",
                     badges: flight.has_flexible_badge ? ["Flexible"] : [],
-                    stops: flight.stops || 0,
-                    duration: flight.duration || "--"
+                    rawTime: flight.departure_time || flight.departureDate
                 });
-                if (price > 0 && price < map[key].bestPrice) map[key].bestPrice = price;
             });
         }
 
-        return Object.values(map);
+        const groups: GroupedFlight[] = [];
+
+        allOptions.forEach(opt => {
+            const matchIndex = groups.findIndex(g =>
+                g.departureTime === opt.departureTime &&
+                g.departureCity === opt.departureCity &&
+                g.arrivalCity === opt.arrivalCity &&
+                (g.airline === opt.airline || g.airline === "Unknown" || opt.airline === "Unknown")
+            );
+
+            if (matchIndex >= 0) {
+                const group = groups[matchIndex];
+
+                // Data Enrichment: Merge missing information between providers
+                if (group.airline === "Unknown" && opt.airline !== "Unknown") {
+                    group.airline = opt.airline;
+                }
+                if (!group.airlineLogo && opt.airlineLogo) {
+                    group.airlineLogo = opt.airlineLogo;
+                }
+                if (!group.flightNumber && opt.flightNumber) {
+                    group.flightNumber = opt.flightNumber;
+                }
+
+                // If group has name but current opt has logo (and group doesn't), take the logo
+                if (group.airline !== "Unknown" && !group.airlineLogo && opt.airlineLogo) {
+                    group.airlineLogo = opt.airlineLogo;
+                }
+
+                // Update best price for the group
+                if (opt.price > 0 && opt.price < group.bestPrice) {
+                    group.bestPrice = opt.price;
+                }
+
+                const existingOptionIndex = group.options.findIndex(o => o.provider === opt.provider);
+                if (existingOptionIndex >= 0) {
+                    if (opt.price > 0 && opt.price < group.options[existingOptionIndex].price) {
+                        group.options[existingOptionIndex] = {
+                            provider: opt.provider,
+                            price: opt.price,
+                            rawDepartureTime: opt.rawTime,
+                            sessionId: opt.sessionId,
+                            deepLink: opt.deepLink,
+                            badges: opt.badges,
+                            stops: opt.stops,
+                            duration: opt.duration
+                        };
+                    }
+                } else {
+                    group.options.push({
+                        provider: opt.provider,
+                        price: opt.price,
+                        rawDepartureTime: opt.rawTime,
+                        sessionId: opt.sessionId,
+                        deepLink: opt.deepLink,
+                        badges: opt.badges,
+                        stops: opt.stops,
+                        duration: opt.duration
+                    });
+                }
+            } else {
+                // Create new group
+                groups.push({
+                    id: `${opt.airline}_${opt.departureTime}_${opt.departureCity}_${opt.arrivalCity}`.replace(/\s+/g, '').toUpperCase(),
+                    airline: opt.airline,
+                    airlineLogo: opt.airlineLogo,
+                    flightNumber: opt.flightNumber,
+                    departureTime: opt.departureTime,
+                    departureCity: opt.departureCity,
+                    arrivalTime: opt.arrivalTime,
+                    arrivalCity: opt.arrivalCity,
+                    duration: opt.duration,
+                    stops: opt.stops,
+                    options: [{
+                        provider: opt.provider,
+                        price: opt.price,
+                        rawDepartureTime: opt.rawTime,
+                        sessionId: opt.sessionId,
+                        deepLink: opt.deepLink,
+                        badges: opt.badges,
+                        stops: opt.stops,
+                        duration: opt.duration
+                    }],
+                    bestPrice: opt.price
+                });
+            }
+        });
+
+        return groups;
     }, [agodaResults, bookingResults]);
 
     // Derived Sorted/Filtered List
@@ -344,9 +430,17 @@ export default function FlightResults({
                             <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pl-2">
                                 {/* Left: Airline & Info */}
                                 <div className="flex items-center gap-4 w-full lg:w-[35%]">
-                                    <div className="w-14 h-14 bg-white rounded-xl p-2 flex items-center justify-center shrink-0 shadow-inner">
+                                    <div className="w-14 h-14 bg-white rounded-xl p-2 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
                                         {flight.airlineLogo ? (
-                                            <img src={flight.airlineLogo} alt={flight.airline} className="w-full h-full object-contain" />
+                                            <img
+                                                src={flight.airlineLogo}
+                                                alt={flight.airline}
+                                                className="w-full h-full object-contain"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                    (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-gray-400 text-[10px] text-center font-bold leading-tight">${flight.airline}</span>`;
+                                                }}
+                                            />
                                         ) : (
                                             <span className="text-gray-400 text-xs text-center font-bold leading-tight">{flight.airline}</span>
                                         )}
