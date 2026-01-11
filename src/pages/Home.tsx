@@ -83,14 +83,34 @@ export default function Home() {
         {/* Sections */}
         <div className="mt-3 space-y-2 px-4 text-sm text-gray-400">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span>History</span>
           </div>
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             <span>Drafts</span>
           </div>
@@ -116,8 +136,18 @@ export default function Home() {
           )}
           <div className="ml-auto flex items-center gap-3">
             <button className="p-2 hover:bg-gray-900 rounded-lg transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
               </svg>
             </button>
             <div className="p-2 hover:bg-gray-900 rounded-full transition-colors">
@@ -247,7 +277,9 @@ export default function Home() {
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">Instamart</h3>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Instamart
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Open dedicated Swiggy Instamart flow (single platform).
                   </p>
@@ -455,7 +487,9 @@ export default function Home() {
                       />
                     </div>
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-center w-full">Hotels</h3>
+                  <h3 className="text-sm sm:text-base font-semibold text-center w-full">
+                    Hotels
+                  </h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug text-center w-full">
                     Agoda, Booking.com & Oyo
                   </p>
@@ -482,9 +516,7 @@ export default function Home() {
                       />
                     </div>
                   </div>
-                  <h3 className="text-sm sm:text-base font-semibold">
-                    Flight
-                  </h3>
+                  <h3 className="text-sm sm:text-base font-semibold">Flight</h3>
                   <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
                     Search and book flights
                   </p>
@@ -528,6 +560,44 @@ export default function Home() {
                   </p>
                 </Link>
 
+                {/* Instamart Only */}
+                <Link
+                  to="/instamart-auto-order"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-orange-400/70 hover:shadow-[0_0_25px_rgba(249,115,22,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img
+                      src="/logo/swiggy-instamart.jpg"
+                      alt="Swiggy Instamart"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Instamart Auto Order
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Swiggy Instamart Auto Order.
+                  </p>
+                </Link>
+                {/* Zepto Only */}
+                <Link
+                  to="/zepto-auto-order"
+                  className="group relative flex flex-col items-start gap-2 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/80 hover:border-purple-400/70 hover:shadow-[0_0_25px_rgba(168,85,247,0.35)] px-4 py-3 sm:px-5 sm:py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-md mb-1">
+                    <img
+                      src="/logo/zepto.jpg"
+                      alt="Zepto"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold">
+                    Zepto Auto Order
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">
+                    Zepto Auto Order. 
+                  </p>
+                </Link>
               </div>
             </div>
           </div>

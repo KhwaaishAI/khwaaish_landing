@@ -32,6 +32,8 @@ import Cabs from "./cabs/Cabs";
 import Hotels from "./hotels/Hotels";
 import Flight from "./flight/Flight";
 import UnifiedGroceries from "./pages/UnifiedGroceries";
+import InstamartAutoOrder from "./pages/InstamartAutoOrder";
+import ZeptoAutoOrder from "./pages/ZeptoAutoOrder";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -60,7 +62,9 @@ export default function App() {
         {/* Chat Pages */}
         <Route
           path="/groceries"
-          element={loggedIn ? <UnifiedGroceries /> : <Navigate to="/" replace />}
+          element={
+            loggedIn ? <UnifiedGroceries /> : <Navigate to="/" replace />
+          }
         />
         <Route
           path="/zepto"
@@ -69,7 +73,7 @@ export default function App() {
         <Route
           path="/chat2"
           element={<Chat2 />}
-        // element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
+          // element={loggedIn ? <Chat2 /> : <Navigate to="/" replace />}
         />
         <Route
           path="/myntra"
@@ -122,7 +126,7 @@ export default function App() {
         <Route
           path="/agoda"
           element={<Agoda />}
-        // element={loggedIn ? <Agoda /> : <Navigate to="/" replace />}
+          // element={loggedIn ? <Agoda /> : <Navigate to="/" replace />}
         />
         <Route
           path="/airbnb"
@@ -177,6 +181,18 @@ export default function App() {
         <Route
           path="/flight"
           element={loggedIn ? <Flight /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/instamart-auto-order"
+          element={
+            loggedIn ? <InstamartAutoOrder /> : <Navigate to="/" replace />
+          }
+        />
+        <Route
+          path="/zepto-auto-order"
+          element={
+            loggedIn ? <ZeptoAutoOrder /> : <Navigate to="/" replace />
+          }
         />
       </Routes>
     </BrowserRouter>
